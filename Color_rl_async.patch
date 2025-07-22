@@ -1,0 +1,378 @@
+diff --git a/include/gl_cuda_bridge.hpp b/include/gl_cuda_bridge.hpp
+index 1111111..2222222 100644
+--- a/include/gl_cuda_bridge.hpp
++++ b/include/gl_cuda_bridge.hpp
+@@ -1,13 +1,22 @@
+ #pragma once
+ #include <cuda_gl_interop.h>
+ #include <GL/gl.h>
++#include <cuda_runtime.h>
+
+ struct GLCudaBridge {
+-    GLuint ssbo{0};
+-    cudaGraphicsResource *cudaRes{nullptr};
++    GLuint salSSBO{0}, psiSSBO{0};
++    cudaGraphicsResource *salRes{nullptr}, *psiRes{nullptr};
++    size_t count{0};
++    // for async copies
++    cudaStream_t copyStream{nullptr};
+
+-    void init(size_t count);
+-    cudaGraphicsResource* resource();
+-    GLuint buffer() const;
++    void init(size_t count);
++    cudaGraphicsResource* salResource();
++    cudaGraphicsResource* psiResource();
++    GLuint salBuffer() const;
++    GLuint psiBuffer() const;
++    void createCopyStream();
++    void destroy();
+ };
+diff --git a/src/gl_cuda_bridge.cpp b/src/gl_cuda_bridge.cpp
+index 3333333..4444444 100644
+--- a/src/gl_cuda_bridge.cpp
++++ b/src/gl_cuda_bridge.cpp
+@@ -1,13 +1,41 @@
+ #include "gl_cuda_bridge.hpp"
+ #include <stdexcept>
+ #include <iostream>
+
+-void GLCudaBridge::init(size_t count){
+-    this->count = count;
+-    glGenBuffers(1, &ssbo);
+-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+-    glBufferData(GL_SHADER_STORAGE_BUFFER, count * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
+-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+-    cudaGraphicsGLRegisterBuffer(&cudaRes, ssbo, cudaGraphicsMapFlagsWriteDiscard);
++void GLCudaBridge::init(size_t c){
++    count = c;
++
++    glGenBuffers(1, &salSSBO);
++    glBindBuffer(GL_SHADER_STORAGE_BUFFER, salSSBO);
++    glBufferData(GL_SHADER_STORAGE_BUFFER, count*sizeof(float), nullptr, GL_DYNAMIC_DRAW);
++    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, salSSBO);
++
++    glGenBuffers(1, &psiSSBO);
++    glBindBuffer(GL_SHADER_STORAGE_BUFFER, psiSSBO);
++    glBufferData(GL_SHADER_STORAGE_BUFFER, count*sizeof(float), nullptr, GL_DYNAMIC_DRAW);
++    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, psiSSBO);
++
++    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
++
++    cudaGraphicsGLRegisterBuffer(&salRes, salSSBO, cudaGraphicsMapFlagsWriteDiscard);
++    cudaGraphicsGLRegisterBuffer(&psiRes, psiSSBO, cudaGraphicsMapFlagsWriteDiscard);
+ }
+-
+-cudaGraphicsResource* GLCudaBridge::resource(){ return cudaRes; }
+-GLuint GLCudaBridge::buffer() const{ return ssbo; }
++cudaGraphicsResource* GLCudaBridge::salResource(){ return salRes; }
++cudaGraphicsResource* GLCudaBridge::psiResource(){ return psiRes; }
++GLuint GLCudaBridge::salBuffer() const{ return salSSBO; }
++GLuint GLCudaBridge::psiBuffer() const{ return psiSSBO; }
++
++void GLCudaBridge::createCopyStream(){
++    cudaStreamCreateWithFlags(&copyStream, cudaStreamNonBlocking);
++}
++void GLCudaBridge::destroy(){
++    if(copyStream) cudaStreamDestroy(copyStream);
++    if(salRes) cudaGraphicsUnregisterResource(salRes);
++    if(psiRes) cudaGraphicsUnregisterResource(psiRes);
++    if(salSSBO) glDeleteBuffers(1, &salSSBO);
++    if(psiSSBO) glDeleteBuffers(1, &psiSSBO);
++}
+diff --git a/include/pmll_cuda.hpp b/include/pmll_cuda.hpp
+index 5555555..6666666 100644
+--- a/include/pmll_cuda.hpp
++++ b/include/pmll_cuda.hpp
+@@ -4,6 +4,10 @@
+ #include <vector>
+ #include <cuda_gl_interop.h>
+ #include <cuda_runtime.h>
++
++// Async streams
++struct Streams { cudaStream_t sim, copy; };
++
+ struct RLBus;
+
+ struct PMLLDevice {
+@@ -16,6 +20,8 @@ struct PMLLDevice {
+     static constexpr int K_WARM = 96;
+
+     int *d_tier{nullptr};
++    Streams streams;
++    void init_streams();
+
+     float *d_memory{nullptr};
+     float *d_sal{nullptr};
+@@ -34,7 +40,7 @@ struct PMLLDevice {
+     void classify_tiers();   // host helper using thrust
+     void step(RLBus &bus);
+-    void toSSBO(cudaGraphicsResource *res);
++    void toSSBO(cudaGraphicsResource *salRes, cudaGraphicsResource *psiRes, cudaStream_t copyStr);
+
+     ~PMLLDevice();
+ };
+diff --git a/src/pmll_cuda.cu b/src/pmll_cuda.cu
+index 7777777..8888888 100644
+--- a/src/pmll_cuda.cu
++++ b/src/pmll_cuda.cu
+@@ -1,6 +1,9 @@
+ #include <cuda_runtime.h>
+ #include <curand_kernel.h>
+ #include <thrust/device_vector.h>
++#include <thrust/sequence.h>
++#include <thrust/sort.h>
++#include <thrust/fill.h>
+ #include "rl_bus.hpp"
+ #include "pmll_cuda.hpp"
+
+@@ -24,6 +27,14 @@ __device__ inline float psi_update(float current, float reward, float alpha=PSI_
+     return (1.0f - alpha) * current + alpha * reward;
+ }
+
++__global__ void copy_to_ssbo(const float *src, float *dst, int n){
++    int i = blockIdx.x * blockDim.x + threadIdx.x;
++    if(i < n) dst[i] = src[i];
++}
++
++// ---------------- Streams ----------------
++void PMLLDevice::init_streams(){ cudaStreamCreateWithFlags(&streams.sim, cudaStreamNonBlocking);
++                                 cudaStreamCreateWithFlags(&streams.copy, cudaStreamNonBlocking); }
+
+ __global__ void init_rng(curandState *state, unsigned long seed, int n){
+     int id = threadIdx.x + blockIdx.x * blockDim.x;
+@@ -130,7 +141,7 @@ void PMLLDevice::step(RLBus &bus){
+     // 1) generate new inputs
+     int threads = std::max(NEW_PER_STEP * vsize, NEW_PER_STEP);
+-    generate_inputs<<<(threads+255)/256,256>>>(rng_states, d_new_vecs, d_new_rewards, NEW_PER_STEP);
++    generate_inputs<<<(threads+255)/256,256,0,streams.sim>>>(rng_states, d_new_vecs, d_new_rewards, NEW_PER_STEP);
+
+     // 2) apply decay and psi
+-    decay_and_psi<<<(cap+255)/256,256>>>(d_sal, bus.d_rewards, cap);
++    decay_and_psi<<<(cap+255)/256,256,0,streams.sim>>>(d_sal, bus.d_rewards, cap);
+
+     // 3) Classify tiers (host-managed thrust)
+@@ -151,7 +162,7 @@ void PMLLDevice::step(RLBus &bus){
+         if(slot < 0) slot = 0;
+
+         float *vec_ptr = d_new_vecs + i * vsize;
+-        write_activation<<<(vsize+255)/256,256>>>(d_memory, d_sal, vec_ptr, h_new_sal[i], slot);
++        write_activation<<<(vsize+255)/256,256,0,streams.sim>>>(d_memory, d_sal, vec_ptr, h_new_sal[i], slot);
+     }
+ }
+
+-void PMLLDevice::toSSBO(cudaGraphicsResource *res){
+-    size_t bytes;
+-    float *d_ptr;
+-    cudaGraphicsMapResources(1, &res, 0);
+-    cudaGraphicsResourceGetMappedPointer((void**)&d_ptr, &bytes, res);
+-    sal_to_ssbo<<<(cap+255)/256,256>>>(d_sal, d_ptr, cap);
+-    cudaGraphicsUnmapResources(1, &res, 0);
++void PMLLDevice::toSSBO(cudaGraphicsResource *salRes, cudaGraphicsResource *psiRes, cudaStream_t copyStr){
++    size_t bytes; float *dptr;
++    // SAL
++    cudaGraphicsMapResources(1, &salRes, copyStr);
++    cudaGraphicsResourceGetMappedPointer((void**)&dptr, &bytes, salRes);
++    copy_to_ssbo<<<(cap+255)/256,256,0,copyStr>>>(d_sal, dptr, cap);
++    cudaGraphicsUnmapResources(1, &salRes, copyStr);
++
++    // PSI
++    cudaGraphicsMapResources(1, &psiRes, copyStr);
++    cudaGraphicsResourceGetMappedPointer((void**)&dptr, &bytes, psiRes);
++    copy_to_ssbo<<<(cap+255)/256,256,0,copyStr>>>(d_rewards, dptr, cap);
++    cudaGraphicsUnmapResources(1, &psiRes, copyStr);
+ }
+
+ PMLLDevice::~PMLLDevice(){
+@@ -162,6 +173,8 @@ PMLLDevice::~PMLLDevice(){
+     cudaFree(d_new_vecs);
+     cudaFree(d_new_rewards);
++    cudaStreamDestroy(streams.sim);
++    cudaStreamDestroy(streams.copy);
+ }
+diff --git a/include/rl_stream.hpp b/include/rl_stream.hpp
+new file mode 100644
+--- /dev/null
++++ b/include/rl_stream.hpp
+@@ -0,0 +1,28 @@
++#pragma once
++#include <thread>
++#include <atomic>
++struct RLBus;
++
++class RLStream {
++public:
++    RLStream(RLBus &bus, int port=5055);
++    ~RLStream();
++    void start();
++    void stop();
++private:
++    void loop();
++    RLBus &bus;
++    int port;
++    std::thread th;
++    std::atomic<bool> running{false};
++};
+diff --git a/src/rl_stream.cpp b/src/rl_stream.cpp
+new file mode 100644
+--- /dev/null
++++ b/src/rl_stream.cpp
+@@ -0,0 +1,87 @@
++#include "rl_stream.hpp"
++#include "rl_bus.hpp"
++#include <sys/socket.h>
++#include <netinet/in.h>
++#include <unistd.h>
++#include <sstream>
++#include <string>
++#include <vector>
++
++RLStream::RLStream(RLBus &b, int p):bus(b),port(p){}
++RLStream::~RLStream(){ stop(); }
++
++void RLStream::start(){
++    running = true;
++    th = std::thread(&RLStream::loop, this);
++}
++void RLStream::stop(){
++    running = false;
++    if(th.joinable()) th.join();
++}
++void RLStream::loop(){
++    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
++    sockaddr_in addr{}; addr.sin_family = AF_INET; addr.sin_addr.s_addr = INADDR_ANY; addr.sin_port = htons(port);
++    bind(server_fd, (sockaddr*)&addr, sizeof(addr));
++    listen(server_fd, 1);
++    while(running){
++        int client = accept(server_fd, nullptr, nullptr);
++        if(client < 0) continue;
++        std::string buf(8192,'\0');
++        while(running){
++            ssize_t n = read(client, buf.data(), buf.size()-1);
++            if(n <= 0) break;
++            buf[n] = '\0';
++            std::stringstream ss(buf);
++            std::vector<float> vals; vals.reserve(1024);
++            std::string tok;
++            while(std::getline(ss, tok, ',')){
++                if(tok.empty()) continue;
++                vals.push_back(std::stof(tok));
++            }
++            if(!vals.empty()) bus.push_host(vals);
++        }
++        close(client);
++    }
++    close(server_fd);
++}
+diff --git a/src/main.cpp b/src/main.cpp
+index 9999999..aaaaaaa 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -1,9 +1,13 @@
+ #include <iostream>
+ #include <vector>
+ #include <GLFW/glfw3.h>
+ #include "glad/glad.h"
+ 
+ #include "pmll_cuda.hpp"
+ #include "gl_cuda_bridge.hpp"
+ #include "rl_bus.hpp"
++#include "rl_stream.hpp"
+ 
+ // shaders moved to separate files for brevity
+ extern const char* VERT_SRC;
+ extern const char* FRAG_SRC;
+@@ -35,6 +39,8 @@ int main(){
+     PMLLDevice dev(CAP, VECTOR_SIZE);
+     dev.init_streams();
+     RLBus bus(CAP);
++    RLStream rlstream(bus, 5055);
++    rlstream.start();
+ 
+     GLCudaBridge bridge;
+     bridge.init(CAP);
+@@ -42,6 +48,7 @@ int main(){
+     bridge.createCopyStream();
+ 
+     // Shaders now loaded from files
++    // (ensure you copy shaders/pmll.vert & pmll.frag to build dir)
+     GLuint prog = makeProgram(VERT_SRC, FRAG_SRC);
+     GLint zLoc = glGetUniformLocation(prog,"zLayer");
+ 
+@@ -55,13 +62,18 @@ int main(){
+     Ledger ledger;
+     std::string prev(64,'0');
+ 
++    // GL sync objects (double buffer z-layer)
++    float zLayer = 0.0f;
++
+     while(!glfwWindowShouldClose(win)){
+         glfwPollEvents();
+ 
+-        // toy reward; now real rewards arrive over rlstream
+-        // bus.push_host(rewards);
++        // device sim step (runs in dev.streams.sim)
+         dev.step(bus);
+-        dev.toSSBO(bridge.resource());
++
++        // async copy sal&psi to SSBO (dev.streams.copy)
++        dev.toSSBO(bridge.salResource(), bridge.psiResource(), bridge.copyStream);
++
++        zLayer += 0.01f;
+ 
+         // ledger logging (sample)
+         if(step<1024){
+@@ -75,10 +87,13 @@ int main(){
+         glUseProgram(prog);
+-        glUniform1f(zLoc, (float)step*0.01f);
++        glUniform1f(zLoc, zLayer);
+         glBindVertexArray(vao);
+         glDrawArrays(GL_POINTS, 0, CAP);
+         glfwSwapBuffers(win);
+         step++;
+     }
++    rlstream.stop();
++    bridge.destroy();
+     glfwDestroyWindow(win);
+     glfwTerminate();
+     return 0;
+diff --git a/shaders/pmll.vert b/shaders/pmll.vert
+new file mode 100644
+--- /dev/null
++++ b/shaders/pmll.vert
+@@ -0,0 +1,24 @@
++#version 430
++layout(std430, binding=0) buffer Sal      { float sal[]; };
++layout(std430, binding=1) buffer PsiBuff  { float psiVals[]; };
++layout(location=0) in uint slotId;
++uniform float zLayer;
++out float vSal;
++out float vPsi;
++void main(){
++    vSal = sal[slotId];
++    vPsi = psiVals[slotId];
++    vec3 pos = vec3(float(slotId), vSal * 5.0, zLayer);
++    gl_Position = vec4(pos/vec3(512.0,10.0,512.0)*2.0-1.0, 1.0);
++    gl_PointSize = 3.0;
++}
+diff --git a/shaders/pmll.frag b/shaders/pmll.frag
+new file mode 100644
+--- /dev/null
++++ b/shaders/pmll.frag
+@@ -0,0 +1,21 @@
++#version 430
++in float vSal;
++in float vPsi;
++out vec4 fragColor;
++vec3 hsv2rgb(vec3 c){
++    vec3 rgb = clamp( abs(mod(c.x*6.0+vec3(0,4,2),6.0)-3.0)-1.0, 0.0, 1.0 );
++    return c.z * mix(vec3(1.0), rgb, c.y);
++}
++void main(){
++    float hue = clamp(vPsi, 0.0, 1.0);
++    float val = clamp(vSal, 0.0, 1.0);
++    float sat = 0.9;
++    vec3 rgb = hsv2rgb(vec3(hue, sat, val));
++    fragColor = vec4(rgb, 1.0);
++}
