@@ -1,0 +1,197 @@
+diff --git a/include/pmll_cuda.hpp b/include/pmll_cuda.hpp
+index 1111111..2222222 100644
+--- a/include/pmll_cuda.hpp
++++ b/include/pmll_cuda.hpp
+@@ -6,6 +6,12 @@ struct RLBus;
+ struct PMLLDevice {
+     int cap, vsize;
++    // Tier sizes
++    static constexpr int K_HOT  = 32;
++    static constexpr int K_WARM = 96;
++
++    // 0=cold, 1=warm, 2=hot
++    int *d_tier{nullptr};
+ 
+     float *d_memory{nullptr};
+     float *d_sal{nullptr};
+@@ -22,6 +28,9 @@ struct PMLLDevice {
+ 
+     std::vector<float> h_sal;
++    std::vector<int>   h_tier;
++
++    void classify_tiers();   // host helper using thrust
+     void step(RLBus &bus);
+     void toSSBO(cudaGraphicsResource *res);
+ };
+diff --git a/src/pmll_cuda.cu b/src/pmll_cuda.cu
+index 3333333..4444444 100644
+--- a/src/pmll_cuda.cu
++++ b/src/pmll_cuda.cu
+@@ -1,6 +1,9 @@
+ #include <cuda_runtime.h>
+ #include <curand_kernel.h>
+ #include <thrust/device_vector.h>
++#include <thrust/sequence.h>
++#include <thrust/sort.h>
++#include <thrust/fill.h>
+ #include "rl_bus.hpp"
+ #include "pmll_cuda.hpp"
+ 
+@@ -39,6 +42,22 @@ __global__ void sal_to_ssbo(const float *sal, float *ssbo_out, int n){
+     if (id < n) ssbo_out[id] = sal[id];
+ }
+ 
++// find min salience index restricted to a tier value
++__global__ void tier_argmin(const float *sal, const int *tier, int want, int n, int *outIdx, float *outVal){
++    __shared__ float sVal[256];
++    __shared__ int   sIdx[256];
++    int gid = blockIdx.x * blockDim.x + threadIdx.x;
++    float v = 1e30f;
++    int   idx = -1;
++    if (gid < n && tier[gid] == want){
++        v = sal[gid];
++        idx = gid;
++    }
++    sVal[threadIdx.x] = v;
++    sIdx[threadIdx.x] = idx;
++    __syncthreads();
++    // reduction
++    for(int stride=blockDim.x/2; stride>0; stride>>=1){
++        if(threadIdx.x < stride){
++            if(sVal[threadIdx.x+stride] < sVal[threadIdx.x]){
++                sVal[threadIdx.x] = sVal[threadIdx.x+stride];
++                sIdx[threadIdx.x] = sIdx[threadIdx.x+stride];
++            }
++        }
++        __syncthreads();
++    }
++    if(threadIdx.x==0){
++        atomicMin(outVal, sVal[0]); // compare by value
++        // cheap trick: if our value matches global min, store idx
++        if(sVal[0] == *outVal) *outIdx = sIdx[0];
++    }
++}
++
+ // -------------------- Host API --------------------
+ PMLLDevice::PMLLDevice(int capacity, int vec_size)
+ : cap(capacity), vsize(vec_size){
+@@ -48,6 +67,8 @@ PMLLDevice::PMLLDevice(int capacity, int vec_size)
+     cudaMalloc(&d_rewards, cap * sizeof(float));
+     cudaMemset(d_memory, 0, cap * vsize * sizeof(float));
+     cudaMemset(d_sal, 0, cap * sizeof(float));
++    // tiers
++    cudaMalloc(&d_tier, cap * sizeof(int)); cudaMemset(d_tier, 0, cap*sizeof(int));
+ 
+     cudaMemset(d_rewards, 0, cap * sizeof(float));
+ 
+@@ -65,6 +86,47 @@ PMLLDevice::PMLLDevice(int capacity, int vec_size)
+     cudaMalloc(&d_new_rewards, NEW_PER_STEP * sizeof(float));
+ }
+ 
++void PMLLDevice::classify_tiers(){
++    // Host-side classification using thrust sort on device values
++    thrust::device_vector<float> d_vals(d_sal, d_sal + cap);
++    thrust::device_vector<int>   d_idx(cap);
++    thrust::sequence(d_idx.begin(), d_idx.end());
++
++    // ascending sort (lowest first)
++    thrust::sort_by_key(d_vals.begin(), d_vals.end(), d_idx.begin());
++
++    // Mark tiers on host
++    h_tier.assign(cap, 0);
++    int hot_start  = cap - K_HOT;
++    int warm_start = cap - (K_HOT + K_WARM);
++    for(int i=warm_start; i<hot_start; ++i) h_tier[d_idx[i]] = 1; // warm
++    for(int i=hot_start; i<cap;       ++i) h_tier[d_idx[i]] = 2; // hot
++
++    cudaMemcpy(d_tier, h_tier.data(), cap*sizeof(int), cudaMemcpyHostToDevice);
++}
++
+ void PMLLDevice::step(RLBus &bus){
+     // 1) generate new inputs
+     int threads = std::max(NEW_PER_STEP * vsize, NEW_PER_STEP);
+@@ -75,26 +137,60 @@ void PMLLDevice::step(RLBus &bus){
+     decay_and_psi<<<(cap+255)/256,256>>>(d_sal, bus.d_rewards, cap);
+ 
+     // 3) Top-K via thrust to know what NOT to evict (optional)
+-    // For eviction we just find min (greedy) on host for now
+-    h_sal.resize(cap);
+-    cudaMemcpy(h_sal.data(), d_sal, cap*sizeof(float), cudaMemcpyDeviceToHost);
+-
+-    std::vector<float> h_new_sal(NEW_PER_STEP);
+-    cudaMemcpy(h_new_sal.data(), d_new_rewards, NEW_PER_STEP*sizeof(float), cudaMemcpyDeviceToHost);
+-
+-    for (int i=0;i<NEW_PER_STEP;i++){
+-        int slot = std::distance(h_sal.begin(), std::min_element(h_sal.begin(), h_sal.end()));
+-        float *vec_ptr = d_new_vecs + i * vsize;
+-        write_activation<<<(vsize+255)/256,256>>>(d_memory, d_sal, vec_ptr, h_new_sal[i], slot);
+-        h_sal[slot] = h_new_sal[i];
+-    }
++    classify_tiers();
++
++    // host get new rewards for logging only
++    std::vector<float> h_new_sal(NEW_PER_STEP);
++    cudaMemcpy(h_new_sal.data(), d_new_rewards, NEW_PER_STEP*sizeof(float), cudaMemcpyDeviceToHost);
++
++    // Evict slots in order: cold -> warm
++    for(int i=0;i<NEW_PER_STEP;i++){
++        int *d_minIdx; float *d_minVal;
++        cudaMalloc(&d_minIdx, sizeof(int));
++        cudaMalloc(&d_minVal, sizeof(float));
++        float inf = 1e30f; int neg = -1;
++        cudaMemcpy(d_minVal, &inf, sizeof(float), cudaMemcpyHostToDevice);
++        cudaMemcpy(d_minIdx, &neg, sizeof(int),   cudaMemcpyHostToDevice);
++
++        // 1) try cold
++        tier_argmin<<<(cap+255)/256,256>>>(d_sal, d_tier, 0, cap, d_minIdx, d_minVal);
++        int slot;
++        cudaMemcpy(&slot, d_minIdx, sizeof(int), cudaMemcpyDeviceToHost);
++        if(slot < 0){
++            // 2) fallback warm
++            cudaMemcpy(d_minVal, &inf, sizeof(float), cudaMemcpyHostToDevice);
++            tier_argmin<<<(cap+255)/256,256>>>(d_sal, d_tier, 1, cap, d_minIdx, d_minVal);
++            cudaMemcpy(&slot, d_minIdx, sizeof(int), cudaMemcpyDeviceToHost);
++        }
++        if(slot < 0){
++            // shouldn't happen: all hot. fallback slot 0
++            slot = 0;
++        }
++
++        float *vec_ptr = d_new_vecs + i * vsize;
++        write_activation<<<(vsize+255)/256,256>>>(d_memory, d_sal, vec_ptr, h_new_sal[i], slot);
++
++        cudaFree(d_minIdx);
++        cudaFree(d_minVal);
++    }
+ }
+ 
+ PMLLDevice::~PMLLDevice(){
+     cudaFree(d_memory);
+     cudaFree(d_sal);
+     cudaFree(d_rewards);
++    cudaFree(d_tier);
+     cudaFree(rng_states);
+     cudaFree(d_new_vecs);
+     cudaFree(d_new_rewards);
+ }
+diff --git a/README.md b/README.md
+index 5555555..6666666 100644
+--- a/README.md
++++ b/README.md
+@@ -10,6 +10,16 @@ Features:
+ - CUDA ⇄ OpenGL interop (SSBO) for live salience plots
+ - Hash-chained ledger (JSONL)
+ 
++### Tiered Top-K Eviction
++
++We now maintain three bands:
++
++| band | size | evict? |
++|------|------|--------|
++| hot  | 32   | never  |
++| warm | 96   | only if no cold slots |
++| cold | rest | primary eviction pool |
++
+ ## Build
+ 
+ ```bash
