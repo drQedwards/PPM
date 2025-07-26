@@ -14,7 +14,30 @@ Implements:
 Run:
   python -m ppm.cli --root . init
 """
+# ppm/cli.py
+import click
+from ppm.resolver import resolve_sync
+from ppm.install import install_from_plan
 
+@click.group()
+def cli(): ...
+
+@cli.command(help="Ensure transformers + matching torch are installed deterministically.")
+@click.option("--gpu", type=click.Choice(["auto","cpu","cu121","cu122","rocm6"]),
+              default="auto", show_default=True)
+@click.option("--lock/--no-lock", default=True, show_default=True)
+def ensure(gpu, lock):
+    plan = resolve_sync(["transformers"], user_gpu_flag=gpu, write_lock=lock)
+    install_from_plan(plan)
+    click.echo("✓ transformers stack ready")
+
+@cli.command()
+@click.argument("specs", nargs=-1)  # e.g. transformers==4.43.3 torch==2.4.0
+@click.option("--gpu", type=click.Choice(["auto","cpu","cu121","cu122","rocm6"]))
+@click.option("--lock/--no-lock", default=True)
+def add(specs, gpu, lock):
+    plan = resolve_sync(list(specs), user_gpu_flag=gpu, write_lock=lock)
+    install_from_plan(plan)
 from __future__ import annotations
 import argparse, os, sys, json, hashlib, time, getpass, platform, socket, uuid
 from typing import Dict, Any, List
