@@ -1,0 +1,22 @@
+[[package]]
+name = "torch"
+version = "2.4.0"
+url = "https://download.pytorch.org/whl/cu121/torch-2.4.0-cp310-cp310-manylinux2014_x86_64.whl"
+sha256 = "b5c8…"
+tags = ["cp310","manylinux2014_x86_64"]
+backend = "cu121"
+
+[[package]]
+name = "transformers"
+version = "4.43.3"
+url = "https://files.pythonhosted.org/packages/.../transformers-4.43.3-py3-none-any.whl"
+sha256 = "9a0e…"
+requires = [
+  "huggingface-hub>=0.23.0",
+  "tokenizers>=0.19.1",
+  "safetensors>=0.4.3",
+  "filelock",
+  "numpy",
+  "requests",
+  "pydantic>=1.7.4,<3"
+]
