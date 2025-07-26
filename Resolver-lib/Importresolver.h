@@ -86,7 +86,26 @@ int ir_matrix_verify_cuda(const char *root,
                           const char *matrix_inputs_path,
                           const char *report_path,
                           int *out_mismatch_count);
-
+/**
+ * Verify Ed25519 signatures for artifacts, with GPU SHA-256 integrity checks.
+ *
+ * signatures_json_path: JSON file with fields:
+ *   {
+ *     "mode": "raw" | "ph",
+ *     "items": [
+ *       {"filename": "...", "sha256": "...", "pubkey": "<base64>", "sig": "<base64>"}
+ *     ]
+ *   }
+ *
+ * report_json_path: output JSON with per-file results.
+ *
+ * Returns 0 on success. Outputs invalid signature and hash mismatch counts.
+ */
+int ir_signature_verify_cuda(const char *root,
+                             const char *signatures_json_path,
+                             const char *report_json_path,
+                             int *out_invalid_sig_count,
+                             int *out_hash_mismatch_count);
 /* ---------------- Native (stub) API ---------------- */
 
 IR_EnvTags *ir_detect_env(void);
