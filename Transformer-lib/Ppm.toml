@@ -1,0 +1,17 @@
+[tool.ppm]
+python = ">=3.10,<3.13"
+indexes = ["https://pypi.org/simple"]
+
+# Optional: default GPU policy
+default_gpu = "auto"   # "auto" | "cpu" | "cu121" | "cu122" | "rocm6"
+
+[tool.ppm.backends]
+# Map backends to extra indexes and marker constraints
+cpu.index  = "https://download.pytorch.org/whl/cpu"
+cu121.index = "https://download.pytorch.org/whl/cu121"
+cu122.index = "https://download.pytorch.org/whl/cu122"
+rocm6.index = "https://download.pytorch.org/whl/rocm6.0"
+
+# Preferred PyTorch major/minor (PPM will choose latest patch that satisfies)
+torch_prefer = "2.4.*"
+transformers_prefer = "4.43.*"
