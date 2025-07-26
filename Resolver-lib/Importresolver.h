@@ -80,3 +80,42 @@ void ir_free_graph(DepNode **graph, size_t n);
 }
 #endif
 #endif
+
+#ifndef IMPORTRESOLVER_H
+#define IMPORTRESOLVER_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stddef.h>
+
+/**
+ * Resolve Python requirements and emit:
+ *   - <root>/.ppm/lock.json
+ *   - <root>/pylock.toml
+ *   - <root>/resolver.py
+ *
+ * Parameters:
+ *   root: project root directory
+ *   reqs: array of N requirement strings (e.g., "torch==2.7.0")
+ *   n_reqs: size of reqs
+ *   index_url: primary simple index (e.g., "https://pypi.org/simple")
+ *   extra_index_url: optional extra index (e.g., "https://download.pytorch.org/whl/cu118") or NULL
+ *   py_exec: python executable to invoke (e.g., "python3") or NULL to auto-detect "python3"
+ *   helper_path: path to the Python helper script "importresolver.py"
+ *
+ * Returns 0 on success, non-zero on failure.
+ */
+int ir_resolve(const char *root,
+               const char **reqs, size_t n_reqs,
+               const char *index_url,
+               const char *extra_index_url,
+               const char *py_exec,
+               const char *helper_path);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* IMPORTRESOLVER_H */
