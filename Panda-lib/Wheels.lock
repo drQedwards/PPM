@@ -1,0 +1,11 @@
+[[package]]
+name = "pandas"
+version = "2.2.2"
+sha256  = "89d4…"
+
+[[package]]
+name = "numpy"
+version = "1.28.2"
+sha256  = "a1b2…"
+
+# … plus python-dateutil, pytz
