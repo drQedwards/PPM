@@ -1,3 +1,270 @@
+# PPM CLI Showcase - Python Package Manager
+
+PPM is a next-generation Python package manager with features like hermetic packaging, GPU-accelerated verification, and cryptographic signing. Here's a comprehensive showcase of its CLI capabilities.
+
+## 1. Basic Package Import
+
+### Simple Import
+```bash
+# Import a single package
+ppm import transformers
+
+# Import with specific version
+ppm import transformers==4.43.3
+
+# Import multiple packages
+ppm import transformers torch numpy
+```
+
+### Import from Requirements File
+```bash
+# Scan a Python file for imports and install them
+ppm import --from-file my_script.py
+
+# Import from requirements.txt
+ppm import --from-file requirements.txt
+```
+
+### Verbose Import (see what's happening)
+```bash
+ppm import transformers --verbose
+# Output:
+# 🔍 Resolving transformers...
+# ⬇️  Downloading transformers-4.43.3-py3-none-any.whl
+# ✅ Cached to ~/.ppm/cache/transformers-4.43.3-py3-none-any.whl
+# 🔐 GPU integrity check: PASSED
+# ✅ transformers==4.43.3 imported successfully
+```
+
+## 2. Advanced CLI Features
+
+### Initialize a Project
+```bash
+# Initialize PPM in current directory
+ppm init
+
+# Output creates:
+# .ppm/
+# ├── ledger.jsonl      # Append-only operation log
+# ├── state.json        # Current state
+# ├── lock.json         # Dependency lockfile
+# └── snapshots/        # Rollback points
+```
+
+### GPU-Accelerated Operations
+```bash
+# Ensure transformers with GPU backend auto-detection
+ppm ensure transformers --gpu auto
+
+# Force CUDA 12.1 backend
+ppm ensure transformers --gpu cu121
+
+# CPU-only installation
+ppm ensure transformers --gpu cpu
+```
+
+### Dependency Resolution and Locking
+```bash
+# Add packages and create lockfile
+ppm add transformers torch==2.4.0 --lock
+
+# Plan changes before applying
+ppm plan
+# Output:
+# {
+#   "plan": "install",
+#   "packages": {
+#     "transformers": "4.43.3",
+#     "torch": "2.4.0",
+#     "tokenizers": "0.19.1"
+#   }
+# }
+
+# Apply the plan
+ppm apply --note "Added ML stack"
+```
+
+## 3. Snapshot and Rollback System
+
+### Create Snapshots
+```bash
+# Create a named snapshot
+ppm snapshot --name "before-upgrade"
+
+# List all snapshots
+ppm snapshots
+# before-upgrade
+# auto-2025-08-09-15-30
+
+# Rollback to a snapshot
+ppm rollback before-upgrade
+```
+
+## 4. Integrity and Security
+
+### GPU-Accelerated Hash Verification
+```bash
+# The CLI automatically uses CUDA for hash verification
+ppm import torch --verbose
+# 🔍 Resolving torch...
+# ⬇️  Downloading torch-2.4.0+cu121-cp310-cp310-manylinux2014_x86_64.whl
+# 🚀 GPU hash verification: SHA-256 computed on device
+# ✅ Integrity verified: e3b0c44298fc1c149afbf4c8996fb924...
+```
+
+### Cryptographic Signing (Ed25519)
+```bash
+# Generate signing keys
+ppm keygen --out-priv ed25519.priv --out-pub ed25519.pub
+
+# Sign artifacts with GPU receipts
+ppm sign --sk ed25519.priv --file torch-2.4.0-cp310-cp310-manylinux2014_x86_64.whl --gpu ./libbreath_gpu.so
+
+# Verify signatures
+ppm verify --receipt torch-2.4.0-cp310-cp310-manylinux2014_x86_64.whl.receipt.json --file torch-2.4.0-cp310-cp310-manylinux2014_x86_64.whl
+```
+
+## 5. Plugin System
+
+### Install and Use Plugins
+```bash
+# Install a plugin from URL
+ppm plugin add auditwheel https://cdn.example.com/auditwheel.so
+
+# Run plugin commands
+ppm plugin run auditwheel repair --wheel torch-2.4.0-cp310-linux_x86_64.whl
+
+# Install pandas plugin for data analysis
+ppm plugin add panda https://cdn.example.com/panda.so
+ppm plugin run panda install
+ppm plugin run panda csv-peek data.csv
+```
+
+## 6. Environment Management
+
+### Doctor - Diagnose Environment
+```bash
+ppm doctor
+# 🔍 pypm doctor — beginning diagnostics
+# ✅ Python dev headers found
+# ✅ C compiler available
+# ✅ CUDA toolkit available
+# ✅ GPU integrity engine functional
+# 🏁 Diagnostics complete (0 issues found)
+```
+
+### Sandbox - Isolated Environment
+```bash
+# Create temporary sandbox
+ppm sandbox
+
+# Create sandbox in specific directory
+ppm sandbox -d /tmp/my-sandbox
+```
+
+### Hermetic Packaging
+```bash
+# Create hermetic bundle
+ppm pypylock -o production-env.tar.gz
+
+# This creates a complete, reproducible environment
+# that can be deployed anywhere
+```
+
+## 7. Advanced Workflows
+
+### ML/AI Workflow with Transformers
+```bash
+# Initialize ML project
+ppm init
+ppm ensure transformers --gpu auto
+
+# PPM auto-detects CUDA and installs appropriate torch version
+# Lockfile ensures reproducible builds across environments
+
+# Check what was resolved
+cat pylock.toml
+```
+
+### Provenance and SBOM Generation
+```bash
+# Generate Software Bill of Materials
+ppm sbom --out project-sbom.json
+
+# Generate provenance statements (SLSA-style)
+ppm provenance --out provenance.json
+
+# Export dependency graph
+ppm graph --dot | dot -Tpng -o deps.png
+```
+
+### Development Workflow
+```bash
+# Development cycle
+ppm add pytest black mypy --dev
+ppm snapshot --name "dev-setup"
+
+# Make changes, test
+# If something breaks:
+ppm rollback dev-setup
+
+# View operation history
+ppm provenance --last 10
+```
+
+## 8. C/CUDA Integration
+
+The CLI also supports C and CUDA implementations for performance:
+
+```bash
+# Compile C version (faster)
+gcc -O3 -lcurl -ldl CLI.c -o ppm-native
+
+# Compile CUDA version (GPU acceleration)
+nvcc -O3 CLI.cu -lcuda -o ppm-gpu
+
+# Use GPU-accelerated import
+./ppm-gpu import transformers torch --verbose
+# Uses CUDA kernels for hash verification and integrity checks
+```
+
+## 9. Configuration and Customization
+
+### Configuration File (pypm.toml)
+```toml
+[tool.ppm]
+python = "^3.10"
+default_gpu = "auto"
+
+[tool.ppm.backends]
+cpu.index = "https://download.pytorch.org/whl/cpu"
+cu121.index = "https://download.pytorch.org/whl/cu121"
+cu122.index = "https://download.pytorch.org/whl/cu122"
+
+torch_prefer = "2.4.*"
+transformers_prefer = "4.43.*"
+```
+
+### Environment Variables
+```bash
+export PYP_WORKSPACE_ROOT=/path/to/project  # Override workspace detection
+export PYP_DEBUG=1                          # Enable debug output
+export CUDA_VISIBLE_DEVICES=0               # Control GPU usage
+```
+
+## Key Features Demonstrated
+
+✅ **Hermetic Packaging** - Reproducible, self-contained environments  
+✅ **GPU Acceleration** - CUDA-powered hash verification and integrity  
+✅ **Cryptographic Security** - Ed25519 signing and verification  
+✅ **Plugin Architecture** - Extensible with custom functionality  
+✅ **Append-Only Ledger** - Immutable operation history  
+✅ **Smart Resolution** - Auto-detects GPU capabilities for ML packages  
+✅ **Multiple Backends** - C, Python, and CUDA implementations  
+✅ **Enterprise Ready** - SBOM generation, provenance tracking
+
+PPM represents the next generation of Python package management, combining speed, security, and reproducibility for modern development workflows.
+
 # PPM by Dr. Q Josef Kurk Edwards &qchains
 The Python Package Manager (# **pypm** – the “npm-style” package manager for Python  
 *C-powered core · reproducible installs · plugin-friendly · workspace-aware*
