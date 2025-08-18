@@ -1,0 +1,61 @@
+# ppm-uv-cli.toml — v0.1
+version = 1
+
+[cli]
+runner = "uv"              # which backend to call
+venv_path = ".venv"
+enforce_venv = true        # refuse to run outside the venv
+python = ">=3.10,<3.13"    # preferred interpreter range
+
+[index]
+primary = "https://pypi.org/simple"
+mirrors = []               # add corporate mirrors here
+offline = false
+
+[policy]
+verify = "sigstore-or-hash"       # verify wheels, fall back to hashes
+licenses_allow = ["MIT","BSD-3-Clause","Apache-2.0"]
+sources_allow  = ["pypi"]         # add "mirror:corp" etc.
+build_isolation = true
+
+[workspace]
+members = ["apps/api","libs/core"]  # monorepo-aware
+
+[groups.main]
+deps = ["fastapi", "pydantic>=2"]
+
+[groups.dev]
+deps = ["pytest", "ruff==0.6.*", "mypy"]
+
+[scripts]                           # DX tasks
+test = "pytest -q"
+fmt  = "ruff check --fix ."
+serve = "uvicorn app:app --reload"
+
+# Default live overlay (merged before execution). Your `LET` command edits this.
+[let]
+offline = false
+pin.numpy = "2.*"
+
+# Argument transforms so PPM flags map nicely to uv
+# ["incoming", "rewrite to"]
+[transforms.add]
+rewrite = [
+  ["--dev",         "--group=dev"],
+  ["-D",            "--group=dev"],
+  ["--editable",    "--editable"],      # kept
+]
+
+# Map PPM verbs to uv subcommands (keep flags pass-through where possible)
+[mapping]
+init    = { cmd = "uv init" }
+add     = { cmd = "uv add" }
+remove  = { cmd = "uv remove" }
+sync    = { cmd = "uv sync" }
+lock    = { cmd = "uv lock" }
+resolve = { cmd = "uv lock --upgrade" }   # or your own resolver entrypoint
+run     = { cmd = "uv run" }
+build   = { cmd = "uv build" }
+publish = { cmd = "uv publish" }
+venv    = { cmd = "uv venv" }
+x       = { cmd = "uvx" }                 # ephemeral tools
