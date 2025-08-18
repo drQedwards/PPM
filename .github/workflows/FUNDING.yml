@@ -1,0 +1,7 @@
+# These are supported funding model platforms
+# Place this file at: .github/FUNDING.yml
+
+github: [drQedwards]            # shows when GitHub Sponsors is enabled
+buy_me_a_coffee: drqedwards     # from https://buymeacoffee.com/drqedwards
+custom:
+  - https://buymeacoffee.com/drqedwards
