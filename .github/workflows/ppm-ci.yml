@@ -1,0 +1,285 @@
+name: ppm-ci
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths-ignore:
+      - "**/*.md"
+      - "**/.gitignore"
+      - ".github/ISSUE_TEMPLATE/**"
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+  release:
+    types: [ published ]
+
+# stop overlapping runs per branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  PPM_VERSION: "7.7.7"
+  # Optional publish secrets (set in repo/org secrets)
+  PPM_REGISTRY_URL: ${{ secrets.PPM_REGISTRY_URL }}
+  PPM_REGISTRY_TOKEN: ${{ secrets.PPM_REGISTRY_TOKEN }}
+
+jobs:
+  resolve-lock:
+    name: Resolve & Lock (SAT) + Doctor (explain)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-311-${{ hashFiles('PPM*.toml', 'PPM*.lock', 'requirements*.txt') }}
+          restore-keys: |
+            pip-${{ runner.os }}-311-
+
+      - name: Init toolchain (headers/compilers)
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential python3-dev pkg-config
+          echo "CC=gcc" >> $GITHUB_ENV
+          echo "CXX=g++" >> $GITHUB_ENV
+
+      - name: Install PPM CLI
+        shell: bash
+        run: |
+          python -m pip install -U pip
+          # prefer a tagged release; fall back to git tag if needed
+          pip install "ppm==${PPM_VERSION}" || pip install "git+https://github.com/drQedwards/PPM@${PPM_VERSION}"
+
+      - name: Prove plan (resolve → lock)
+        shell: bash
+        run: |
+          ppm resolve
+          ppm lock
+          # Keep the lock deterministic in CI diffs
+          test -f PPM.lock && echo "Lock created."
+
+      - name: Doctor (explain only)
+        shell: bash
+        run: |
+          # Show minimal unsat set if any (redline); do not fail the job here
+          ppm doctor --explain || true
+
+      - name: Upload lock artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lock-${{ github.sha }}
+          path: |
+            PPM.toml
+            PPM.lock
+          if-no-files-found: error
+
+  build-wheelhouse:
+    name: Build Wheels (matrix)
+    needs: resolve-lock
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        py: ["3.10", "3.11", "3.12"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.py }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ matrix.py }}-${{ hashFiles('PPM*.toml', 'PPM*.lock', 'requirements*.txt') }}
+          restore-keys: |
+            pip-${{ runner.os }}-${{ matrix.py }}-
+
+      - name: Install PPM CLI
+        shell: bash
+        run: |
+          python -m pip install -U pip
+          pip install "ppm==${PPM_VERSION}" || pip install "git+https://github.com/drQedwards/PPM@${PPM_VERSION}"
+
+      - name: Download lock
+        uses: actions/download-artifact@v4
+        with:
+          name: lock-${{ github.sha }}
+
+      - name: Build wheels
+        shell: bash
+        run: |
+          mkdir -p wheelhouse
+          # Build wheels for this Python version; your PPM build will respect the lock
+          ppm build --wheel --out wheelhouse/
+          ls -l wheelhouse || true
+
+      - name: Upload wheelhouse
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheelhouse-${{ matrix.py }}
+          path: wheelhouse/
+
+  test:
+    name: Install from Wheelhouse & Test
+    needs: build-wheelhouse
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-311-${{ hashFiles('PPM*.toml', 'PPM*.lock') }}
+          restore-keys: |
+            pip-${{ runner.os }}-311-
+
+      - name: Install PPM CLI
+        shell: bash
+        run: |
+          python -m pip install -U pip
+          pip install "ppm==${PPM_VERSION}" || pip install "git+https://github.com/drQedwards/PPM@${PPM_VERSION}"
+
+      - name: Download all wheelhouse artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheelhouse-*
+          merge-multiple: true
+          path: ./wheelhouse
+
+      - name: Install (prefer wheelhouse)
+        shell: bash
+        run: |
+          # Optional: ensure we fail if lock can't be satisfied
+          ppm install --prefer wheelhouse
+
+      - name: Run tests
+        shell: bash
+        run: |
+          if [ -f "pytest.ini" ] || [ -d "tests" ]; then
+            ppm run test || pytest -q
+          else
+            echo "No tests/ found; skipping."
+          fi
+
+      - name: Doctor (enforce greenline)
+        shell: bash
+        run: |
+          # Fail the job if redlines remain after install
+          ppm doctor --fail-on-red --explain
+
+  doctor-autofix:
+    name: Doctor Autofix (PR helper)
+    if: ${{ github.event_name == 'pull_request' }}
+    needs: resolve-lock
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout (PR head)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PPM CLI
+        shell: bash
+        run: |
+          python -m pip install -U pip
+          pip install "ppm==${PPM_VERSION}" || pip install "git+https://github.com/drQedwards/PPM@${PPM_VERSION}"
+
+      - name: Doctor --fix (minimal relax to green)
+        shell: bash
+        run: |
+          set -e
+          ppm doctor --fix || true
+          # Only proceed if changes exist
+          if git diff --quiet; then
+            echo "No autofixes needed."
+            exit 0
+          fi
+
+      - name: Create PR with fixes
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "ci(doctor): minimal relax to greenline + lock refresh"
+          title: "ci(doctor): autofix to greenline"
+          body: |
+            Automated `ppm doctor --fix` to resolve minimal conflicts and refresh `PPM.lock`.
+          branch: ci/doctor-autofix/${{ github.run_id }}
+          delete-branch: true
+
+  publish:
+    name: Publish to PPM Registry
+    # publish only on tagged releases; ensure tests passed
+    if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+    needs: [ test ]
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PPM CLI
+        shell: bash
+        run: |
+          python -m pip install -U pip
+          pip install "ppm==${PPM_VERSION}" || pip install "git+https://github.com/drQedwards/PPM@${PPM_VERSION}"
+
+      - name: Download wheelhouse artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheelhouse-*
+          merge-multiple: true
+          path: ./wheelhouse
+
+      - name: Verify & Publish
+        shell: bash
+        env:
+          PPM_REGISTRY_URL: ${{ env.PPM_REGISTRY_URL }}
+          PPM_REGISTRY_TOKEN: ${{ env.PPM_REGISTRY_TOKEN }}
+        run: |
+          test -n "$PPM_REGISTRY_URL" && test -n "$PPM_REGISTRY_TOKEN" || {
+            echo "Registry env not set; skipping publish."; exit 0; }
+          ppm doctor --explain
+          # preflight check: refuse redlines
+          ppm doctor --fail-on-red
+          # publish (adjust flags to your PPM CLI)
+          ppm publish \
+            --registry "$PPM_REGISTRY_URL" \
+            --token "$PPM_REGISTRY_TOKEN" \
+            --wheelhouse ./wheelhouse
