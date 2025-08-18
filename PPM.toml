@@ -1,0 +1,87 @@
+# PPM (Python Package Manager) Configuration File
+# This file manages Python project dependencies, scripts, and deployment settings
+
+[project]
+name = "ppm-demo-project"
+version = "1.0.0"
+description = "A demonstration project showcasing PPM's capabilities"
+keywords = ["python", "ppm", "package-management", "deployment"]
+requires-python = ">=3.9"
+readme = "README.md"
+homepage = "https://github.com/drQedwards/PPM"
+
+[[project.authors]]
+name = "Dr. Q (Josef K. Edwards)"
+email = "dr.q@example.com"
+
+[project.license]
+text = "MIT"
+
+[project.repository]
+type = "git"
+url = "https://github.com/drQedwards/ppm-demo-project.git"
+
+# Build System Configuration
+[build-system]
+requires = ["setuptools>=68", "wheel", "build"]
+build-backend = "setuptools.build_meta"
+
+# PPM Tool Configuration
+[tool.ppm]
+registry = "https://ppm-registry.example.com"
+module_dir = "python_modules"
+egg_info = "ppm-demo-project.egg-info"
+dist_info = "ppm-demo-project.dist-info"
+install_type = "local"
+global = false
+env_prefix = "PY_"
+main = "src/main.py"
+
+# Python Environment Settings
+[tool.ppm.python]
+interpreter = "python3.11"
+requirements_file = "requirements.txt"
+virtual_env = "venv/"
+
+# Production Dependencies
+[tool.ppm.dependencies]
+requests = "^2.28.1"
+numpy = "^1.24.3"
+pandas = "^2.0.1"
+
+# Development Dependencies
+[tool.ppm.dev-dependencies]
+pytest = "^7.2.0"
+flake8 = "^6.0.0"
+black = "^23.3.0"
+
+# Optional Dependencies
+[tool.ppm.optional-dependencies]
+viz = ["matplotlib^3.7.1"]
+
+# Script Definitions
+[tool.ppm.scripts]
+# Main commands
+start = "python src/main.py"
+test = "pytest tests/"
+lint = "flake8 src/ tests/ && black --check src/ tests/"
+format = "black src/ tests/"
+build = "python setup.py sdist bdist_wheel"
+
+# Deployment lifecycle hooks
+predeploy = "ppm run build && ppm run test"
+deploy = "LET --env=staging --target=prod-server --version=${project.version}"
+postdeploy = "echo 'Deployment completed for version ${project.version}'"
+
+# LET Deployment Tool Configuration
+[tool.ppm.config.let]
+default_env = "development"
+targets = ["local", "staging", "production"]
+
+# Bug Tracking
+[tool.ppm.bugs]
+url = "https://github.com/drQedwards/PPM/issues"
+
+# Contribution Guidelines
+[tool.ppm.contributions]
+guidelines = "Please submit PRs to the PPM repo with detailed descriptions."
