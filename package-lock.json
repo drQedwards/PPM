@@ -1,0 +1,48 @@
+{
+  "name": "graphtech.dev",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "clean": "rm -rf dist .11tycache .cache",
+    "build:ts": "node esbuild.config.mjs",
+    "build:11ty": "ELEVENTY_ENV=production npx eleventy --input=src --output=dist",
+    "build": "npm run clean && npm run build:ts && npm run build:11ty",
+    "dev": "npm run clean && concurrently 'npm run watch:ts' 'npm run serve:11ty'",
+    "watch:ts": "node esbuild.config.mjs --watch",
+    "serve:11ty": "npx eleventy --input=src --output=dist --serve --port=8080",
+    "preview": "npx serve dist",
+    "lint": "tsc --noEmit"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PPM/PPM.dev.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PPM/PPM.dev/issues"
+  },
+  "homepage": "https://github.com/PPM/PPM.dev#readme",
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.2",
+    "@types/d3": "^7.4.3",
+    "@types/d3-dispatch": "^3.0.7",
+    "@types/d3-drag": "^3.0.7",
+    "@types/d3-force": "^3.0.10",
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-selection": "^3.0.11",
+    "@types/d3-zoom": "^3.0.8",
+    "concurrently": "^9.2.1",
+    "esbuild": "^0.25.10",
+    "serve": "^14.2.5",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "d3-drag": "^3.0.0",
+    "d3-force": "^3.0.0",
+    "d3-selection": "^3.0.0",
+    "d3-zoom": "^3.0.0"
+  }
+}
