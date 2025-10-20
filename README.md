@@ -1,3 +1,48 @@
+# PPM - Python Package Manager
+
+**pypm** – the “npm-style” package manager for Python  
+*C-powered core · reproducible installs · plugin-friendly · workspace-aware*
+
+![CI](https://img.shields.io/badge/build-passing-brightgreen)  
+![License](https://img.shields.io/badge/license-MIT-blue)  
+![Version](https://img.shields.io/badge/pypm-0.0.2-yellow)  
+
+> **TL;DR**: `pypm` aims to be a **single command** that handles everything from creating a virtual-env to publishing wheels—fast, deterministic, and hackable.  
+> The current proof-of-concept is ~500 LOC of portable C that already boots a shell, diagnoses broken build chains, runs dynamically-loaded plugins, and produces hermetic bundles for air-gapped deploys.
+
+PPM is a next-generation Python package manager with features like hermetic packaging, GPU-accelerated verification, and cryptographic signing.
+
+## ✨ Features (0.0.2)
+
+| Command                  | What it does                                                                 |
+|--------------------------|------------------------------------------------------------------------------|
+| `pypm doctor`            | Checks for Python headers, a C compiler, OpenSSL, WASI toolchain, …          |
+| `pypm sandbox [-d DIR]`  | Drops you into an ephemeral temp dir (or custom DIR) with a full shell       |
+| `pypm plugin add NAME SRC` | Downloads a `.so` plugin (from URL or path) into `~/.pypm/plugins/`        |
+| `pypm plugin run NAME …` | Executes `pypm_plugin_main()` inside the named plugin                        |
+| `pypm pypylock [-o FILE]`| Bundles **every wheel + interpreter** into `dist/venv.tar.gz` (or FILE)     |
+| `pypm version`           | Prints the current CLI version                                               |
+
+*Road-mapped:* SAT dependency solver, parallel wheel cache, workspaces with single lockfile, WASM wheel resolution, Conda & Poetry import plugins.
+
+## 🔧 Building from Source
+
+```bash
+# System deps: a C11 compiler, libcurl, libdl (both standard on Linux/macOS),
+# and tar/libarchive if you want pypylock bundles.
+git clone https://github.com/drQedwards/PPM.git
+cd PPM
+cc -Wall -Wextra -ldl -lcurl -o pypm pypm.c
+./pypm doctor  # Diagnose your dev box
+./pypm sandbox  # Spin up a throw-away REPL playground
+
+# Add a sample plugin (replace with actual URL if available)
+./pypm plugin add conda https://example.com/plugins/conda.so
+./pypm plugin run conda install numpy==1.28.2
+
+# Ship an offline bundle
+./pypm pypylock -o /tmp/my-app.tgz
+
 # PPM CLI Showcase - Python Package Manager
 
 PPM is a next-generation Python package manager with features like hermetic packaging, GPU-accelerated verification, and cryptographic signing. Here's a comprehensive showcase of its CLI capabilities.
