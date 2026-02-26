@@ -36,3 +36,6 @@ include = ["Ppm-lib*", "Q_promise_lib*"]
 
 [tool.setuptools]
 py-modules = ["ppm_cli"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

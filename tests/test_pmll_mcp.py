@@ -13,6 +13,10 @@ import sys
 import time
 import pytest
 
+# mcp requires Python >= 3.10
+if sys.version_info < (3, 10):
+    pytest.skip("mcp requires Python >= 3.10", allow_module_level=True)
+
 # Ensure the repo root is on sys.path so imports work
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
