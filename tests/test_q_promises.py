@@ -11,7 +11,6 @@ These tests validate:
 import ctypes
 import os
 import subprocess
-import sys
 import pytest
 
 # ---------------------------------------------------------------------------
