@@ -33,7 +33,7 @@ def build_shared_library():
         cwd=Q_LIB_DIR,
     )
     subprocess.check_call(
-        ["make", SO_PATH.split("/")[-1]],
+        ["make", os.path.basename(SO_PATH)],
         cwd=Q_LIB_DIR,
     )
     assert os.path.exists(SO_PATH), f"Shared library not found at {SO_PATH}"
