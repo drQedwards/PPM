@@ -8,8 +8,8 @@ Adapted from pufferlib/PMLL.py (drQedwards/PufferLib PR #1) and the
 Q_promise_lib C library in PPM.
 
 Usage:
-    python -m Ppm-lib.pmll_mcp.pmll_mcp_server          # stdio transport
-    python -m Ppm-lib.pmll_mcp.pmll_mcp_server --sse     # SSE transport
+    python -m pmll_mcp.pmll_mcp_server          # stdio transport
+    python -m pmll_mcp.pmll_mcp_server --sse     # SSE transport
 
 License: MIT
 """
