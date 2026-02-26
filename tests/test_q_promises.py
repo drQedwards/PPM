@@ -242,8 +242,8 @@ class TestPPMIntegration:
         assert os.path.isfile(os.path.join(Q_LIB_DIR, "Q_promises.py"))
 
     def test_setup_py_present(self):
-        """Setup.py build config is present."""
-        assert os.path.isfile(os.path.join(Q_LIB_DIR, "Setup.py"))
+        """setup.py build config is present."""
+        assert os.path.isfile(os.path.join(Q_LIB_DIR, "setup.py"))
 
     def test_makefile_present(self):
         """Makefile for C builds is present."""

@@ -52,10 +52,14 @@ import pmll_mcp.pmll_mcp_server as _server_mod
 
 @pytest.fixture(autouse=True)
 def reset_mc():
-    """Reset the global MemoryController before each test."""
+    """Reset the global MemoryController and cached Q lib before each test."""
     _server_mod._mc = None
+    _server_mod._q_lib = None
+    _server_mod._q_cb_type = None
     yield
     _server_mod._mc = None
+    _server_mod._q_lib = None
+    _server_mod._q_cb_type = None
 
 
 # ---------------------------------------------------------------------------

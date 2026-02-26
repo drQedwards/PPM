@@ -3,7 +3,7 @@ from Cython.Build import cythonize
 
 ext = Extension(
     name="Q_promises",
-    sources=["Q_promises.pyx", "Q_promises.c"],
+    sources=["Q_promises.pyx"],
     include_dirs=["."],
     language="c",
 )

@@ -34,8 +34,14 @@ from .pmll_core import (
 # Resolve the Q_promise shared library path
 # ---------------------------------------------------------------------------
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-_Q_SO_PATH = os.path.join(_REPO_ROOT, "Q_promise_lib", "q_promises.so")
+_Q_SO_PATH = os.environ.get("PMLL_Q_PROMISE_SO")
+if not _Q_SO_PATH:
+    _Q_SO_PATH = os.path.join(_REPO_ROOT, "Q_promise_lib", "q_promises.so")
 _MAX_CHAIN_LENGTH = 10000
+
+# Cached ctypes library handle (lazy-loaded on first use)
+_q_lib = None
+_q_cb_type = None
 
 # ---------------------------------------------------------------------------
 # MCP Server
@@ -223,18 +229,9 @@ def q_promise_trace(chain_length: int) -> str:
     if chain_length == 0:
         return json.dumps([])
 
-    if not os.path.exists(_Q_SO_PATH):
+    lib, CALLBACK_TYPE = _load_q_lib()
+    if lib is None:
         return json.dumps({"error": f"Q_promise shared library not found at {_Q_SO_PATH}. Run 'make' in Q_promise_lib/ first."})
-
-    lib = ctypes.CDLL(_Q_SO_PATH)
-    lib.q_mem_create_chain.argtypes = [ctypes.c_size_t]
-    lib.q_mem_create_chain.restype = ctypes.c_void_p
-    lib.q_mem_free_chain.argtypes = [ctypes.c_void_p]
-    lib.q_mem_free_chain.restype = None
-
-    CALLBACK_TYPE = ctypes.CFUNCTYPE(None, ctypes.c_long, ctypes.c_char_p)
-    lib.q_then.argtypes = [ctypes.c_void_p, CALLBACK_TYPE]
-    lib.q_then.restype = None
 
     results: List[Dict[str, Any]] = []
 
@@ -278,18 +275,9 @@ def q_promise_write(chain_length: int, ttl_s: float = 60.0) -> str:
     if chain_length == 0:
         return json.dumps({"written": 0, "committed": 0, "utilization": 0.0})
 
-    if not os.path.exists(_Q_SO_PATH):
+    lib, CALLBACK_TYPE = _load_q_lib()
+    if lib is None:
         return json.dumps({"error": f"Q_promise shared library not found at {_Q_SO_PATH}. Run 'make' in Q_promise_lib/ first."})
-
-    lib = ctypes.CDLL(_Q_SO_PATH)
-    lib.q_mem_create_chain.argtypes = [ctypes.c_size_t]
-    lib.q_mem_create_chain.restype = ctypes.c_void_p
-    lib.q_mem_free_chain.argtypes = [ctypes.c_void_p]
-    lib.q_mem_free_chain.restype = None
-
-    CALLBACK_TYPE = ctypes.CFUNCTYPE(None, ctypes.c_long, ctypes.c_char_p)
-    lib.q_then.argtypes = [ctypes.c_void_p, CALLBACK_TYPE]
-    lib.q_then.restype = None
 
     mc = _get_mc()
     written = [0]
@@ -330,6 +318,30 @@ def _safe_serialize(obj: Any) -> Any:
     if isinstance(obj, (list, tuple)):
         return [_safe_serialize(i) for i in obj]
     return str(obj)
+
+
+def _load_q_lib():
+    """Lazily load and cache the Q_promise shared library."""
+    global _q_lib, _q_cb_type
+    if _q_lib is not None:
+        return _q_lib, _q_cb_type
+
+    if not os.path.exists(_Q_SO_PATH):
+        return None, None
+
+    lib = ctypes.CDLL(_Q_SO_PATH)
+    lib.q_mem_create_chain.argtypes = [ctypes.c_size_t]
+    lib.q_mem_create_chain.restype = ctypes.c_void_p
+    lib.q_mem_free_chain.argtypes = [ctypes.c_void_p]
+    lib.q_mem_free_chain.restype = None
+
+    cb_type = ctypes.CFUNCTYPE(None, ctypes.c_long, ctypes.c_char_p)
+    lib.q_then.argtypes = [ctypes.c_void_p, cb_type]
+    lib.q_then.restype = None
+
+    _q_lib = lib
+    _q_cb_type = cb_type
+    return lib, cb_type
 
 
 # ---------------------------------------------------------------------------

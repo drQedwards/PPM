@@ -185,43 +185,50 @@ class MemoryController:
             self._promise_queue.clear()
 
         committed = 0
-        for p in queue:
-            if p.expired:
-                continue
-            slot = self.backend.phi(p.pid, self.pool_size)
-            self._pool[slot] = p.data
-            committed += 1
+        with self._lock:
+            for p in queue:
+                if p.expired:
+                    continue
+                slot = self.backend.phi(p.pid, self.pool_size)
+                self._pool[slot] = p.data
+                committed += 1
 
-            if self.store:
-                block = MemoryBlock(
-                    payload={"pid": p.pid, "slot": slot},
-                    mid=deterministic_hash({"pid": p.pid, "slot": slot}),
-                    ts=time.time(),
-                )
-                self.store.append(block)
+                if self.store:
+                    block = MemoryBlock(
+                        payload={"pid": p.pid, "slot": slot},
+                        mid=deterministic_hash({"pid": p.pid, "slot": slot}),
+                        ts=time.time(),
+                    )
+                    self.store.append(block)
 
-        self.backend._util = self.utilization()
+            filled = sum(1 for x in self._pool if x is not None)
+            current_util = filled / self.pool_size if self.pool_size > 0 else 0.0
+            if hasattr(self.backend, "_util"):
+                self.backend._util = current_util
 
-        if self.utilization() > self.compress_when_util_gt:
-            try:
-                self.backend.trigger_compression(self.utilization())
-            except Exception:
-                self._python_compress()
+            if current_util > self.compress_when_util_gt:
+                try:
+                    self.backend.trigger_compression(current_util)
+                except Exception:
+                    self._python_compress()
 
         return committed
 
     def read_slot(self, slot: int) -> Any:
-        if 0 <= slot < self.pool_size:
-            return self._pool[slot]
-        return None
+        with self._lock:
+            if 0 <= slot < self.pool_size:
+                return self._pool[slot]
+            return None
 
     def utilization(self) -> float:
-        filled = sum(1 for x in self._pool if x is not None)
-        return filled / self.pool_size if self.pool_size > 0 else 0.0
+        with self._lock:
+            filled = sum(1 for x in self._pool if x is not None)
+            return filled / self.pool_size if self.pool_size > 0 else 0.0
 
     def pool_snapshot(self) -> Dict[int, Any]:
         """Return a dict of {slot: data} for all non-None slots."""
-        return {i: v for i, v in enumerate(self._pool) if v is not None}
+        with self._lock:
+            return {i: v for i, v in enumerate(self._pool) if v is not None}
 
     def clear(self) -> None:
         with self._lock:

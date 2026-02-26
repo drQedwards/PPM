@@ -10,6 +10,9 @@ __pycache__/
 Q_promise_lib/test_promises
 pypm
 
+# CodeQL artifacts
+_codeql_detected_source_root
+
 # Distribution / packaging
 .Python
 build/
