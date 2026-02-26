@@ -265,7 +265,7 @@ def q_promise_write(chain_length: int, ttl_s: float = 60.0) -> str:
     each chain node becomes a promise that gets committed to the pool.
 
     Args:
-        chain_length: Number of Q-promise chain nodes (1-10000).
+        chain_length: Number of Q-promise chain nodes (0-10000).
         ttl_s: Time-to-live for each promise in seconds.
 
     Returns:
