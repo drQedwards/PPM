@@ -23,7 +23,7 @@ permissions:
   pull-requests: write
 
 env:
-  PPM_VERSION: "7.7.7"
+  PPM_VERSION: "0.0.3.dev0"
   # Optional publish secrets (set in repo/org secrets)
   PPM_REGISTRY_URL: ${{ secrets.PPM_REGISTRY_URL }}
   PPM_REGISTRY_TOKEN: ${{ secrets.PPM_REGISTRY_TOKEN }}
@@ -61,8 +61,17 @@ jobs:
         shell: bash
         run: |
           python -m pip install -U pip
-          # prefer a tagged release; fall back to git tag if needed
-          pip install "ppm==${PPM_VERSION}" || pip install "git+https://github.com/drQedwards/PPM@${PPM_VERSION}"
+          # install from local checkout
+          pip install -e .
+          pip install pytest mcp
+
+      - name: Build Q_promise_lib
+        shell: bash
+        run: make -C Q_promise_lib clean && make -C Q_promise_lib
+
+      - name: Run Q_promise + PMLL MCP tests
+        shell: bash
+        run: pytest tests/ -v
 
       - name: Prove plan (resolve → lock)
         shell: bash
@@ -116,7 +125,7 @@ jobs:
         shell: bash
         run: |
           python -m pip install -U pip
-          pip install "ppm==${PPM_VERSION}" || pip install "git+https://github.com/drQedwards/PPM@${PPM_VERSION}"
+          pip install -e .
 
       - name: Download lock
         uses: actions/download-artifact@v4
@@ -162,7 +171,12 @@ jobs:
         shell: bash
         run: |
           python -m pip install -U pip
-          pip install "ppm==${PPM_VERSION}" || pip install "git+https://github.com/drQedwards/PPM@${PPM_VERSION}"
+          pip install -e .
+          pip install pytest mcp
+
+      - name: Build Q_promise_lib
+        shell: bash
+        run: make -C Q_promise_lib clean && make -C Q_promise_lib
 
       - name: Download all wheelhouse artifacts
         uses: actions/download-artifact@v4
@@ -215,7 +229,7 @@ jobs:
         shell: bash
         run: |
           python -m pip install -U pip
-          pip install "ppm==${PPM_VERSION}" || pip install "git+https://github.com/drQedwards/PPM@${PPM_VERSION}"
+          pip install -e .
 
       - name: Doctor --fix (minimal relax to green)
         shell: bash
@@ -258,7 +272,7 @@ jobs:
         shell: bash
         run: |
           python -m pip install -U pip
-          pip install "ppm==${PPM_VERSION}" || pip install "git+https://github.com/drQedwards/PPM@${PPM_VERSION}"
+          pip install -e .
 
       - name: Download wheelhouse artifacts
         uses: actions/download-artifact@v4

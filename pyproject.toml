@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ppm"
+version = "0.0.3.dev0"
+description = "The Python Package Manager (PPM) — next-gen package management with C core"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [
+    {name = "Dr. Q (Josef K. Edwards)", email = "dr.q@example.com"},
+]
+keywords = ["python", "ppm", "package-management"]
+
+dependencies = [
+    "mcp>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.2.0",
+    "flake8>=6.0.0",
+]
+
+[project.scripts]
+ppm = "ppm_cli:main"
+
+[project.urls]
+Homepage = "https://github.com/drQedwards/PPM"
+Repository = "https://github.com/drQedwards/PPM"
+
+[tool.setuptools.packages.find]
+include = ["Ppm-lib*", "Q_promise_lib*"]
+
+[tool.setuptools]
+py-modules = ["ppm_cli"]

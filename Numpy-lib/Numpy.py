@@ -1,4 +1,4 @@
- Pure-Python (NumPy) fallback for environments where the Cython extension isn't built.
+"""Pure-Python (NumPy) fallback for environments where the Cython extension isn't built."""
 # This mirrors the public API of numpy-lib (vector_add, dot, scale_inplace).
 
 from typing import Iterable

@@ -43,8 +43,7 @@ _Q_SO_PATH = os.path.join(_REPO_ROOT, "Q_promise_lib", "q_promises.so")
 # ---------------------------------------------------------------------------
 mcp = FastMCP(
     "pmll-q-promise",
-    version="0.1.0",
-    description=(
+    instructions=(
         "Persistent Memory Logic Loop (PMLL) + Q-promise chain — "
         "MCP tool server for AI agents.  Provides memory write/read, "
         "promise processing, utilization queries, hashing, and "

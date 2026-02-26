@@ -1,7 +1,8 @@
 # ppm/resolver.py (inside resolve(requests))
-from ppm.hooks.transformers_policy import detect_backend
+from ppm.hooks.transformers_policy import detect_backend  # noqa: F401
 
-def expand_with_policy(reqs, user_gpu_flag=None):
+
+def expand_with_policy(reqs, cfg, add_requirement, user_gpu_flag=None):
     # If user asked for transformers (explicitly or via ensure), add torch.
     names = {r.name for r in reqs}
     if "transformers" in names and "torch" not in names:

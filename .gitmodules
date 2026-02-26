@@ -1,0 +1,3 @@
+[submodule "Ppm-lib/pnpm"]
+	path = Ppm-lib/pnpm
+	url = https://github.com/pnpm/pnpm.git
