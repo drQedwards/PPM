@@ -6,9 +6,12 @@ Delegates to the full CLI implementation in Ppm-lib/Ppm-cli.py.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import sys
+import urllib.request
+import urllib.error
 
 
 def _project_paths(root):
@@ -143,9 +146,173 @@ def cmd_run(args):
         sys.exit(1)
 
 
+def _read_toml_field(toml_path, section_prefix, key):
+    """Minimal TOML reader: extract a key from lines under [section_prefix]."""
+    if not os.path.exists(toml_path):
+        return None
+    in_section = False
+    with open(toml_path, "r") as f:
+        for line in f:
+            stripped = line.strip()
+            if stripped.startswith("["):
+                in_section = stripped.startswith(f"[{section_prefix}]")
+                continue
+            if in_section and "=" in stripped and not stripped.startswith("#"):
+                k, v = stripped.split("=", 1)
+                if k.strip() == key:
+                    return v.strip().strip('"').strip("'")
+    return None
+
+
+def _sha256_file(path):
+    """Compute SHA-256 hex digest of a file."""
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _discover_wheels(wheelhouse):
+    """Return sorted list of .whl file paths in the wheelhouse directory."""
+    if not os.path.isdir(wheelhouse):
+        return []
+    return sorted(
+        os.path.join(wheelhouse, f)
+        for f in os.listdir(wheelhouse)
+        if f.endswith(".whl")
+    )
+
+
+def _multipart_encode(fields, files):
+    """Build a multipart/form-data body from fields and files.
+
+    Returns (body_bytes, content_type).
+    """
+    boundary = "----PPMPublishBoundary"
+    parts = []
+    for key, value in fields.items():
+        parts.append(
+            f"--{boundary}\r\n"
+            f'Content-Disposition: form-data; name="{key}"\r\n\r\n'
+            f"{value}\r\n"
+        )
+    for key, (filename, data) in files.items():
+        parts.append(
+            f"--{boundary}\r\n"
+            f'Content-Disposition: form-data; name="{key}"; filename="{filename}"\r\n'
+            f"Content-Type: application/octet-stream\r\n\r\n"
+        )
+        parts.append(None)  # placeholder for binary data
+        parts.append("\r\n")
+    parts.append(f"--{boundary}--\r\n")
+
+    body = b""
+    file_iter = iter(files.values())
+    for part in parts:
+        if part is None:
+            _, data = next(file_iter)
+            body += data
+        else:
+            body += part.encode("utf-8")
+
+    content_type = f"multipart/form-data; boundary={boundary}"
+    return body, content_type
+
+
 def cmd_publish(args):
-    """Publish to registry (stub)."""
-    print("Publish: stub — no registry configured")
+    """Publish wheels to the PPM registry."""
+    root = args.root
+    toml_path = os.path.join(root, "PPM.toml")
+
+    # Resolve registry URL and token (CLI flags > env vars > PPM.toml)
+    registry = args.registry or os.environ.get("PPM_REGISTRY_URL")
+    token = args.token or os.environ.get("PPM_REGISTRY_TOKEN")
+    wheelhouse = args.wheelhouse or os.path.join(root, "dist")
+
+    if not registry:
+        # Try PPM.toml
+        registry = _read_toml_field(toml_path, "tool.ppm", "registry")
+    if not registry:
+        print("Error: no registry URL provided. "
+              "Use --registry, set PPM_REGISTRY_URL, "
+              "or configure [tool.ppm] registry in PPM.toml.",
+              file=sys.stderr)
+        sys.exit(1)
+
+    if not token:
+        print("Error: no registry token provided. "
+              "Use --token or set PPM_REGISTRY_TOKEN.",
+              file=sys.stderr)
+        sys.exit(1)
+
+    # Read project metadata
+    project_name = _read_toml_field(toml_path, "project", "name") or "unknown"
+    project_version = _read_toml_field(toml_path, "project", "version") or "0.0.0"
+
+    # Discover wheels
+    wheels = _discover_wheels(wheelhouse)
+    if not wheels:
+        print(f"No .whl files found in {wheelhouse}; nothing to publish.")
+        sys.exit(0)
+
+    print(f"Publishing {project_name}=={project_version} "
+          f"to {registry}")
+    print(f"Found {len(wheels)} wheel(s) in {wheelhouse}")
+
+    upload_url = registry.rstrip("/") + "/api/v1/upload"
+    ok_count = 0
+    fail_count = 0
+
+    for whl_path in wheels:
+        filename = os.path.basename(whl_path)
+        sha256 = _sha256_file(whl_path)
+        with open(whl_path, "rb") as f:
+            whl_data = f.read()
+
+        fields = {
+            "name": project_name,
+            "version": project_version,
+            "sha256": sha256,
+        }
+        files = {
+            "wheel": (filename, whl_data),
+        }
+
+        body, content_type = _multipart_encode(fields, files)
+
+        req = urllib.request.Request(
+            upload_url,
+            data=body,
+            method="POST",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": content_type,
+                "User-Agent": "ppm-cli/0.0.3",
+            },
+        )
+
+        print(f"  ⬆️  {filename} ({sha256[:12]}…) → {upload_url}")
+        try:
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                status = resp.status
+                resp_body = resp.read().decode("utf-8", errors="replace")
+            print(f"      ✅ {status} — {resp_body[:200]}")
+            ok_count += 1
+        except urllib.error.HTTPError as exc:
+            err_body = exc.read().decode("utf-8", errors="replace")
+            print(f"      ❌ HTTP {exc.code}: {err_body[:200]}",
+                  file=sys.stderr)
+            fail_count += 1
+        except urllib.error.URLError as exc:
+            print(f"      ❌ Connection error: {exc.reason}",
+                  file=sys.stderr)
+            fail_count += 1
+
+    print(f"\n🏁 Published {ok_count}/{len(wheels)} wheel(s)"
+          + (f" ({fail_count} failed)" if fail_count else ""))
+    if fail_count:
+        sys.exit(1)
 
 
 def build_parser():
