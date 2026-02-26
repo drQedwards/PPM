@@ -27,8 +27,9 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install flake8 pytest mcp
+        python -m pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        python -c "import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)" && pip install mcp || true
     - name: Build Q_promise_lib
       run: make -C Q_promise_lib clean && make -C Q_promise_lib
     - name: Lint with flake8
