@@ -26,8 +26,6 @@ from mcp.server.fastmcp import FastMCP
 
 from .pmll_core import (
     MemoryController,
-    PythonBackend,
-    Promise,
     deterministic_hash,
     make_backend,
 )
@@ -212,10 +210,12 @@ def q_promise_trace(chain_length: int) -> str:
     q_then(), and returns the resolved entries.
 
     Args:
-        chain_length: Number of nodes in the memory chain (1-{_MAX_CHAIN_LENGTH}).
+        chain_length: Number of nodes in the memory chain (0-10000).
+            If 0, an empty JSON array is returned.
 
     Returns:
-        JSON array of {index, payload} objects for each chain node.
+        JSON array of {index, payload} objects for each chain node, or an
+        empty JSON array if ``chain_length`` is 0.
     """
     if chain_length < 0 or chain_length > _MAX_CHAIN_LENGTH:
         return json.dumps({"error": f"chain_length must be between 0 and {_MAX_CHAIN_LENGTH}"})
