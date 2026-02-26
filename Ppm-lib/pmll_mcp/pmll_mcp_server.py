@@ -37,6 +37,7 @@ from .pmll_core import (
 # ---------------------------------------------------------------------------
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _Q_SO_PATH = os.path.join(_REPO_ROOT, "Q_promise_lib", "q_promises.so")
+_MAX_CHAIN_LENGTH = 10000
 
 # ---------------------------------------------------------------------------
 # MCP Server
@@ -211,13 +212,13 @@ def q_promise_trace(chain_length: int) -> str:
     q_then(), and returns the resolved entries.
 
     Args:
-        chain_length: Number of nodes in the memory chain (1-10000).
+        chain_length: Number of nodes in the memory chain (1-{_MAX_CHAIN_LENGTH}).
 
     Returns:
         JSON array of {index, payload} objects for each chain node.
     """
-    if chain_length < 0 or chain_length > 10000:
-        return json.dumps({"error": "chain_length must be between 0 and 10000"})
+    if chain_length < 0 or chain_length > _MAX_CHAIN_LENGTH:
+        return json.dumps({"error": f"chain_length must be between 0 and {_MAX_CHAIN_LENGTH}"})
 
     if chain_length == 0:
         return json.dumps([])
@@ -265,14 +266,14 @@ def q_promise_write(chain_length: int, ttl_s: float = 60.0) -> str:
     each chain node becomes a promise that gets committed to the pool.
 
     Args:
-        chain_length: Number of Q-promise chain nodes (1-10000).
+        chain_length: Number of Q-promise chain nodes (1-{_MAX_CHAIN_LENGTH}).
         ttl_s: Time-to-live for each promise in seconds.
 
     Returns:
         JSON with number of nodes written, committed, and utilization.
     """
-    if chain_length < 0 or chain_length > 10000:
-        return json.dumps({"error": "chain_length must be between 0 and 10000"})
+    if chain_length < 0 or chain_length > _MAX_CHAIN_LENGTH:
+        return json.dumps({"error": f"chain_length must be between 0 and {_MAX_CHAIN_LENGTH}"})
 
     if chain_length == 0:
         return json.dumps({"written": 0, "committed": 0, "utilization": 0.0})

@@ -20,7 +20,6 @@ import pytest
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 Q_LIB_DIR = os.path.join(REPO_ROOT, "Q_promise_lib")
 SO_PATH = os.path.join(Q_LIB_DIR, "q_promises.so")
-PROMISES_SRC = os.path.join(Q_LIB_DIR, "Promises.c")
 
 
 # ---------------------------------------------------------------------------
