@@ -6,7 +6,7 @@ Provides:
   - Stable hashing + JSONL persistence
   - PythonBackend (phi, utilization)
   - Promise queue + MemoryController
-  - Q-promise chain integration (delegates to Q_promise_lib C library)
+  - Backend interface and pure-Python core (Q-promise / Q_promise_lib integration lives in pmll_mcp_server.py)
 
 License: MIT
 """
