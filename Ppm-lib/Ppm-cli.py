@@ -292,6 +292,100 @@ def cmd_provenance(args):
             entries = [json.loads(x) for x in lines]
     print(json.dumps(entries, indent=2))
 
+def cmd_publish(args):
+    """
+    Reads project name/version from PPM.toml,
+    discovers .whl files in --wheelhouse,
+    computes SHA256 per wheel, and POSTs
+    multipart/form-data to {registry}/api/v1/upload
+    with Bearer auth.
+    """
+    import tomllib  # stdlib in Python 3.11+
+    import glob, http.client, urllib.parse
+
+    # 1. Read PPM.toml
+    toml_path = os.path.join(args.root, "PPM.toml")
+    if not os.path.exists(toml_path):
+        raise SystemExit(f"PPM.toml not found at {toml_path}")
+    with open(toml_path, "rb") as f:
+        config = tomllib.load(f)
+
+    name     = config["project"]["name"]
+    version  = config["project"]["version"]
+    registry = args.registry or config["tool"]["ppm"]["registry"]
+    token    = args.token
+
+    print(f"Publishing {name} v{version} → {registry}")
+
+    # 2. Discover .whl files
+    wheels = glob.glob(os.path.join(args.wheelhouse, "*.whl"))
+    if not wheels:
+        raise SystemExit(f"No .whl files found in {args.wheelhouse}")
+
+    for wheel_path in sorted(wheels):
+        # 3. Compute SHA256
+        with open(wheel_path, "rb") as wf:
+            wheel_bytes = wf.read()
+        sha256      = hashlib.sha256(wheel_bytes).hexdigest()
+        filename    = os.path.basename(wheel_path)
+        print(f"  {filename}  sha256={sha256}")
+
+        # 4. Build multipart/form-data body
+        boundary = uuid.uuid4().hex
+        def field(name_, value):
+            return (
+                f"--{boundary}\r\n"
+                f'Content-Disposition: form-data; name="{name_}"\r\n\r\n'
+                f"{value}\r\n"
+            ).encode()
+
+        body = (
+            field("name", name)
+            + field("version", version)
+            + field("sha256", sha256)
+            + (
+                f"--{boundary}\r\n"
+                f'Content-Disposition: form-data; name="content"; filename="{filename}"\r\n'
+                f"Content-Type: application/octet-stream\r\n\r\n"
+            ).encode()
+            + wheel_bytes
+            + f"\r\n--{boundary}--\r\n".encode()
+        )
+
+        # 5. POST to registry
+        parsed = urllib.parse.urlparse(registry)
+        ConnClass = (http.client.HTTPSConnection
+                     if parsed.scheme == "https"
+                     else http.client.HTTPConnection)
+        conn = ConnClass(parsed.netloc)
+        upload_path = parsed.path.rstrip("/") + "/api/v1/upload"
+        conn.request(
+            "POST",
+            upload_path,
+            body=body,
+            headers={
+                "Content-Type": f"multipart/form-data; boundary={boundary}",
+                "Authorization": f"Bearer {token}",
+                "Content-Length": str(len(body)),
+            },
+        )
+        resp = conn.getresponse()
+        resp_body = resp.read().decode(errors="replace")
+        conn.close()
+        if resp.status not in (200, 201):
+            raise SystemExit(
+                f"Upload failed for {filename}: HTTP {resp.status}\n{resp_body}"
+            )
+        print(f"  ✅ Uploaded {filename} (HTTP {resp.status})")
+
+        # 6. Record in ledger
+        append_entry(args.root, "publish", {
+            "name": name,
+            "version": version,
+            "wheel": filename,
+            "sha256": sha256,
+        })
+
 # ---------- Parser & main ----------
 
 def build_parser():
@@ -325,6 +419,12 @@ def build_parser():
     p = sub.add_parser("doctor"); p.set_defaults(func=cmd_doctor)
 
     p = sub.add_parser("provenance"); p.add_argument("--last", type=int, default=20); p.set_defaults(func=cmd_provenance)
+
+    p = sub.add_parser("publish", help="Publish wheels to PPM registry")
+    p.add_argument("--registry",   default=None,          help="Registry base URL (overrides PPM.toml [tool.ppm].registry)")
+    p.add_argument("--token",      required=True,          help="Bearer token for registry authentication")
+    p.add_argument("--wheelhouse", default="./wheelhouse", help="Directory containing .whl files to upload")
+    p.set_defaults(func=cmd_publish)
 
     return ap
 
