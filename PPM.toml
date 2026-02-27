@@ -50,6 +50,7 @@ numpy = "^1.24.3"
 pandas = "^2.0.1"
 flo-ai = "^0.1.0"
 mcp = "^1.0.0"
+pmll-memory-mcp = "^0.1.0"
 
 # Q Promise library (C-based thenable memory-chain, inspired by Q/flo-ai)
 [tool.ppm.dependencies.q-promise-lib]
