@@ -28,8 +28,16 @@ jobs:
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: gcc -Wall -Wextra -ldl -lcurl -o pypm pypm.c
+      run: gcc -Wall -Wextra -Wno-unused-function -o pypm Ppm.c -ldl -lcurl
 
     - name: Test
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: ./pypm doctor
+
+    - name: Build Q_promise_lib
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: make -C Q_promise_lib clean && make -C Q_promise_lib
+
+    - name: Test Q_promise_lib (C)
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: make -C Q_promise_lib test

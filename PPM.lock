@@ -1,0 +1,24 @@
+{
+  "metadata": {
+    "generator": "ppm",
+    "version": "0.0.3-dev"
+  },
+  "packages": {
+    "flo-ai": {
+      "resolved": true,
+      "version": "^0.1.0"
+    },
+    "numpy": {
+      "resolved": true,
+      "version": "^1.24.3"
+    },
+    "pandas": {
+      "resolved": true,
+      "version": "^2.0.1"
+    },
+    "requests": {
+      "resolved": true,
+      "version": "^2.28.1"
+    }
+  }
+}

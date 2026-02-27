@@ -316,7 +316,7 @@ def main() -> int:
     if args.cmd == "sign":
         root = os.path.abspath(args.root)
         out = args.out or os.path.join(root, ".ppm", "signatures.json")
-        from_matrix = (not args.no_matrix_input s)
+        from_matrix = (not args.no_matrix_inputs)
         sign_artifacts(root, args.mode, args.key, out,
                        filenames=args.filenames if args.filenames else None,
                        from_matrix_inputs=from_matrix)

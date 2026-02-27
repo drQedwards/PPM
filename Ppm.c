@@ -203,7 +203,8 @@ int main(int argc, char **argv)
 {
     if (argc < 2) { usage(); return 1; }
 
-    if (char *ws = find_workspace_root())
+    char *ws = find_workspace_root();
+    if (ws)
         printf("🗄️  Workspace root: %s\n", ws);
 
     const char *cmd = argv[1];
