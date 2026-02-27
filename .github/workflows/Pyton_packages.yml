@@ -30,6 +30,7 @@ jobs:
         python -m pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         python -c "import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)" && pip install mcp || true
+        python -c "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)" && pip install pmll-memory-mcp && pip install pmll-memory-mcp==0.1.0 || true
     - name: Build Q_promise_lib
       run: make -C Q_promise_lib clean && make -C Q_promise_lib
     - name: Lint with flake8

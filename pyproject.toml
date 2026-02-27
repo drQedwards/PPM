@@ -16,7 +16,7 @@ keywords = ["python", "ppm", "package-management"]
 
 dependencies = [
     "mcp>=1.0.0",
-    "pmll-memory-mcp>=0.1.0",
+    "pmll-memory-mcp>=0.1.0; python_version >= '3.11'",
 ]
 
 [project.optional-dependencies]
@@ -31,6 +31,10 @@ ppm = "ppm_cli:main"
 [project.urls]
 Homepage = "https://github.com/drQedwards/PPM"
 Repository = "https://github.com/drQedwards/PPM"
+Issues = "https://github.com/drQedwards/PPM/issues"
+Changelog = "https://github.com/drQedwards/PPM/releases"
+Funding = "https://github.com/sponsors/DrQedwards"
+Sponsor = "https://buymeacoffee.com/drqedwards"
 
 [tool.setuptools.packages.find]
 include = ["Ppm-lib*", "Q_promise_lib*"]
