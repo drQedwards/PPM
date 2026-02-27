@@ -16,7 +16,7 @@ keywords = ["python", "ppm", "package-management"]
 
 dependencies = [
     "mcp>=1.0.0",
-    "pmll-memory-mcp>=0.1.0",
+    "pmll-memory-mcp>=0.1.0; python_version >= '3.11'",
 ]
 
 [project.optional-dependencies]
