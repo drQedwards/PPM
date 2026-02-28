@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "pmll-memory-mcp": {
+      "command": "uvx",
+      "args": ["pmll-memory-mcp"]
+    },
+    "unstoppable-domains": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://api.unstoppabledomains.com/mcp/v1"]
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "unstoppable-domains",
+  "version": "1.0.0",
+  "description": "Unstoppable Domains MCP server — search, purchase, and manage Web3 domain names through natural conversation inside ChatGPT, Claude, or automated AI agents.",
+  "author": "Unstoppable Domains",
+  "license": "proprietary",
+  "transport": "http",
+  "endpoint": "https://api.unstoppabledomains.com/mcp/v1",
+  "openapi": "https://api.unstoppabledomains.com/mcp/v1/openapi.json",
+  "tools": [
+    "domain_search",
+    "domain_purchase",
+    "portfolio_read",
+    "dns_configure",
+    "marketplace_list",
+    "marketplace_offers",
+    "messaging"
+  ],
+  "category": "domains",
+  "authentication": {
+    "oauth2": {
+      "type": "oauth2",
+      "scopes": [
+        "domains:search",
+        "portfolio:read",
+        "portfolio:write",
+        "cart:read",
+        "cart:write",
+        "checkout"
+      ]
+    },
+    "api_key": {
+      "type": "bearer",
+      "header": "Authorization",
+      "format": "Bearer ud_mcp_*"
+    }
+  },
+  "models": ["claude-sonnet", "claude-opus", "gpt-4o", "gpt-4-turbo"],
+  "config_repository": "https://github.com/drQedwards/PPM",
+  "service_homepage": "https://unstoppabledomains.com",
+  "docs": "https://unstoppabledomains.com/docs/mcp"
+}
