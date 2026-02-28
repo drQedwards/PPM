@@ -1,0 +1,33 @@
+{
+  "name": "braiins-pool-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for Braiins Pool — monitor workers, track earnings, and manage your Bitcoin mining operation through natural conversation.",
+  "author": "Ryno Crypto Mining Services",
+  "license": "MIT",
+  "transport": "stdio",
+  "tools": [
+    "list_workers",
+    "get_worker_details",
+    "get_worker_hashrate",
+    "restart_worker",
+    "get_earnings_summary",
+    "get_payout_history",
+    "estimate_next_payout",
+    "get_pool_stats",
+    "get_block_history",
+    "get_network_difficulty",
+    "update_payout_threshold",
+    "set_notification_preferences"
+  ],
+  "category": "mining",
+  "authentication": {
+    "api_key": {
+      "type": "env",
+      "variable": "BRAIINS_API_KEY"
+    }
+  },
+  "models": ["claude-sonnet", "claude-opus"],
+  "repository": "https://github.com/drQedwards/PPM",
+  "npm_package": "@ryno-crypto/braiins-pool-mcp-server",
+  "docker_image": "rynocrypto/braiins-pool-mcp-server"
+}

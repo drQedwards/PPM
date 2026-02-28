@@ -1,0 +1,12 @@
+services:
+  braiins-pool-mcp:
+    build: .
+    image: braiins-pool-mcp-server
+    stdin_open: true
+    tty: false
+    environment:
+      - BRAIINS_API_KEY=${BRAIINS_API_KEY}
+      - BRAIINS_API_BASE_URL=${BRAIINS_API_BASE_URL:-https://pool.braiins.com/api/v1}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_FORMAT=${LOG_FORMAT:-pretty}
+    restart: unless-stopped

@@ -139,5 +139,4 @@ This server is structured for submission to the [Anthropic official MCP registry
 | Server | Directory | Transport | Description |
 |--------|-----------|-----------|-------------|
 | **Unstoppable Domains** | [`unstoppable-domains/`](./unstoppable-domains/) | HTTP (remote) | Search, purchase, and manage Web3 domain names via natural conversation. |
-
-Use both servers together for the best agent experience: Unstoppable Domains handles domain operations while `pmll-memory-mcp` caches API responses to eliminate redundant network calls.  See [`unstoppable-domains/claude_desktop_config.json`](./unstoppable-domains/claude_desktop_config.json) for a combined Claude Desktop config.
+| **Braiins Pool** | [`braiins-pool/`](./braiins-pool/) | stdio | Monitor workers, track earnings, and manage your Bitcoin mining operation. |
