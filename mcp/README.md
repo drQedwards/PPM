@@ -27,7 +27,7 @@ Modern Claude agent tasks routinely call Playwright, file-system tools, and othe
 ```
 Agent task start
   ├── 1st init: Playwright MCP
-  ├── 2nd init: (your domain tool)
+  ├── 2nd init: Unstoppable Domains MCP  (see unstoppable-domains/)
   └── 3rd init: pmll-memory-mcp   ← this server
         └── all subsequent tool calls go through peek() first
 ```
@@ -131,3 +131,13 @@ The server is **pure Python** — no C compilation is required at runtime.  The 
 ## Registry submission
 
 This server is structured for submission to the [Anthropic official MCP registry](https://github.com/modelcontextprotocol/servers).  See `mcp_manifest.json` for the registry manifest.
+
+---
+
+## Companion servers
+
+| Server | Directory | Transport | Description |
+|--------|-----------|-----------|-------------|
+| **Unstoppable Domains** | [`unstoppable-domains/`](./unstoppable-domains/) | HTTP (remote) | Search, purchase, and manage Web3 domain names via natural conversation. |
+
+Use both servers together for the best agent experience: Unstoppable Domains handles domain operations while `pmll-memory-mcp` caches API responses to eliminate redundant network calls.  See [`unstoppable-domains/claude_desktop_config.json`](./unstoppable-domains/claude_desktop_config.json) for a combined Claude Desktop config.
