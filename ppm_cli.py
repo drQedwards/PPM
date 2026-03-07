@@ -187,7 +187,8 @@ def cmd_validate_mcp(args):
         # Check description
         desc = _read_json_field(pkg_path, "description")
         if desc:
-            print(f"✅  package.json description: {desc[:60]}…" if len(desc or "") > 60 else f"✅  package.json description: {desc}")
+            display = f"{desc[:60]}…" if len(desc) > 60 else desc
+            print(f"✅  package.json description: {display}")
         else:
             msg = "package.json 'description' is empty"
             print(f"⚠️  {msg}")

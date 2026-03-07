@@ -61,7 +61,7 @@ class TestReadJsonField:
 
 class TestValidateMcpName:
     def test_valid_github_name(self):
-        assert _validate_mcp_name("io.github.drqedwards/pmll-memory-mcp") == []
+        assert _validate_mcp_name("io.github.user/server") == []
 
     def test_empty_name(self):
         errors = _validate_mcp_name("")
