@@ -286,7 +286,7 @@ def cmd_init_mcp(args):
     version = _read_json_field(pkg_path, "version") or "0.0.0"
     description = _read_json_field(pkg_path, "description") or ""
     repo_url = _read_json_field(pkg_path, "repository", "url") or ""
-    # Normalise git+https:// URLs to plain https://
+    # Normalize git+https:// URLs to plain https://
     if repo_url.startswith("git+"):
         repo_url = repo_url[4:]
     if repo_url.endswith(".git"):
