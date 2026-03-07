@@ -1,7 +1,8 @@
 {
   "name": "graphtech.dev",
   "version": "1.0.0",
-  "description": "",
+  "mcpName": "io.github.drqedwards/pmll-memory-mcp",
+  "description": "PPM — Python Package Manager with PMLL Memory MCP server for persistent KV context memory and Q-promise deduplication.",
   "scripts": {
     "clean": "rm -rf dist .11tycache .cache",
     "build:ts": "node esbuild.config.mjs",
@@ -16,15 +17,15 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PPM/PPM.dev.git"
+    "url": "git+https://github.com/drQedwards/PPM.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/PPM/PPM.dev/issues"
+    "url": "https://github.com/drQedwards/PPM/issues"
   },
-  "homepage": "https://github.com/PPM/PPM.dev#readme",
+  "homepage": "https://github.com/drQedwards/PPM#readme",
   "devDependencies": {
     "@11ty/eleventy": "^3.1.2",
     "@types/d3": "^7.4.3",

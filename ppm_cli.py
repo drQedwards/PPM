@@ -124,6 +124,115 @@ def cmd_doctor(args):
     print(f"\n🏁  Doctor complete ({len(issues)} issue{'s' if len(issues) != 1 else ''} found)")
 
 
+def _read_json_field(json_path, *keys):
+    """Read a nested field from a JSON file. Returns None if not found."""
+    if not os.path.exists(json_path):
+        return None
+    try:
+        with open(json_path, "r") as f:
+            data = json.load(f)
+        for key in keys:
+            if not isinstance(data, dict):
+                return None
+            data = data.get(key)
+            if data is None:
+                return None
+        return data
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def _validate_mcp_name(mcp_name):
+    """Validate an mcpName value.
+
+    Returns a list of error strings (empty if valid).
+    """
+    errors = []
+    if not mcp_name:
+        errors.append("mcpName is empty or missing")
+        return errors
+    if "/" not in mcp_name:
+        errors.append(
+            f"mcpName '{mcp_name}' must contain a '/' separator "
+            "(e.g. 'io.github.username/server-name')"
+        )
+    elif not mcp_name.startswith("io.github."):
+        errors.append(
+            f"mcpName '{mcp_name}' should start with 'io.github.<username>/' "
+            "for GitHub-based authentication"
+        )
+    return errors
+
+
+def cmd_validate_mcp(args):
+    """Validate MCP Registry metadata in package.json and mcp_manifest.json."""
+    root = args.root
+    issues = []
+
+    # Check package.json
+    pkg_path = os.path.join(root, "package.json")
+    mcp_name_pkg = _read_json_field(pkg_path, "mcpName")
+    if os.path.exists(pkg_path):
+        if mcp_name_pkg:
+            print(f"✅  package.json mcpName: {mcp_name_pkg}")
+            errs = _validate_mcp_name(mcp_name_pkg)
+            for e in errs:
+                print(f"❌  {e}")
+                issues.append(e)
+        else:
+            msg = "package.json missing 'mcpName' property"
+            print(f"❌  {msg}")
+            issues.append(msg)
+
+        # Check description
+        desc = _read_json_field(pkg_path, "description")
+        if desc:
+            display = f"{desc[:60]}…" if len(desc) > 60 else desc
+            print(f"✅  package.json description: {display}")
+        else:
+            msg = "package.json 'description' is empty"
+            print(f"⚠️  {msg}")
+            issues.append(msg)
+
+        # Check repository
+        repo_url = _read_json_field(pkg_path, "repository", "url")
+        if repo_url:
+            print(f"✅  package.json repository: {repo_url}")
+        else:
+            msg = "package.json missing 'repository.url'"
+            print(f"⚠️  {msg}")
+            issues.append(msg)
+    else:
+        msg = "package.json not found"
+        print(f"❌  {msg}")
+        issues.append(msg)
+
+    # Check mcp_manifest.json
+    manifest_path = os.path.join(root, "mcp", "mcp_manifest.json")
+    if os.path.exists(manifest_path):
+        mcp_name_manifest = _read_json_field(manifest_path, "mcpName")
+        if mcp_name_manifest:
+            print(f"✅  mcp_manifest.json mcpName: {mcp_name_manifest}")
+            if mcp_name_pkg and mcp_name_manifest != mcp_name_pkg:
+                msg = (
+                    f"mcpName mismatch: package.json has '{mcp_name_pkg}' "
+                    f"but mcp_manifest.json has '{mcp_name_manifest}'"
+                )
+                print(f"❌  {msg}")
+                issues.append(msg)
+        else:
+            print("⚠️  mcp_manifest.json missing 'mcpName' (optional)")
+    else:
+        print("ℹ️  mcp/mcp_manifest.json not found (optional)")
+
+    if issues:
+        print(f"\n📋  {len(issues)} issue(s) found")
+        if args.fail_on_error:
+            sys.exit(1)
+    else:
+        print("\n✅  MCP Registry metadata is valid")
+
+
 def cmd_build(args):
     """Build wheels (stub)."""
     out = args.out or "dist/"
@@ -348,6 +457,12 @@ def build_parser():
     p.add_argument("--token", default=None)
     p.add_argument("--wheelhouse", default=None)
     p.set_defaults(func=cmd_publish)
+
+    p = sub.add_parser("validate-mcp",
+                        help="Validate MCP Registry metadata")
+    p.add_argument("--fail-on-error", action="store_true",
+                   help="Exit with error if validation fails")
+    p.set_defaults(func=cmd_validate_mcp)
 
     return ap
 
