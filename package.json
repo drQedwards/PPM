@@ -26,6 +26,16 @@
     "url": "https://github.com/drQedwards/PPM/issues"
   },
   "homepage": "https://github.com/drQedwards/PPM#readme",
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/DrQedwards"
+    },
+    {
+      "type": "buymeacoffee",
+      "url": "https://buymeacoffee.com/drqedwards"
+    }
+  ],
   "devDependencies": {
     "@11ty/eleventy": "^3.1.2",
     "@types/d3": "^7.4.3",

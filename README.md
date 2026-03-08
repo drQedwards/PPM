@@ -6,6 +6,7 @@
 ![CI](https://img.shields.io/badge/build-passing-brightgreen)  
 ![License](https://img.shields.io/badge/license-MIT-blue)  
 ![Version](https://img.shields.io/badge/pypm-0.0.2-yellow)  
+[![Sponsor](https://img.shields.io/badge/sponsor-DrQedwards-ea4aaa?logo=github-sponsors)](https://github.com/sponsors/DrQedwards)  
 
 > **TL;DR**: `pypm` aims to be a **single command** that handles everything from creating a virtual-env to publishing wheels—fast, deterministic, and hackable.  
 > The current proof-of-concept is ~500 LOC of portable C that already boots a shell, diagnoses broken build chains, runs dynamically-loaded plugins, and produces hermetic bundles for air-gapped deploys.
@@ -713,6 +714,15 @@ Python’s packaging ecosystem is rich but fragmented:
 4. **Alignment with PMLL**:
    - Highlighted PMLL’s role in the SAT solver, tying it to the P = NP proof.
    - Proposed a PMLL plugin in the usage example, leveraging the prior Cython wrapper.
+
+---
+
+## 💖 Sponsors
+
+If you find PPM useful, consider supporting its development:
+
+- [**GitHub Sponsors**](https://github.com/sponsors/DrQedwards)
+- [**Buy Me a Coffee**](https://buymeacoffee.com/drqedwards)
 
 ---
 
