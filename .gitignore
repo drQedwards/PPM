@@ -200,6 +200,12 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
+# Node.js
+node_modules/
+dist/
+
 # TypeScript / MCP build artifacts
 mcp/dist/
-mcp/node_modules/
+
+# MCP Registry auth tokens (secrets!)
+.mcpregistry_*
