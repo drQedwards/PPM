@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.drqedwards/pmll-memory-mcp",
-  "description": "PMLL Memory MCP Server — persistent KV context memory, Q-promise deduplication, and Unstoppable Domains Web3 integration for Claude Sonnet/Opus agent tasks.",
+  "description": "PMLL Memory MCP server — persistent KV context memory and Q-promise deduplication for Claude agent tasks.",
   "repository": {
     "url": "https://github.com/drQedwards/PPM",
     "source": "github"
