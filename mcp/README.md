@@ -89,6 +89,8 @@ pmll-memory-mcp          # starts the stdio MCP server
 
 ### Claude Desktop / MCP config (`claude_desktop_config.json`)
 
+#### NPX
+
 ```json
 {
   "mcpServers": {
@@ -99,6 +101,99 @@ pmll-memory-mcp          # starts the stdio MCP server
   }
 }
 ```
+
+#### Docker
+
+```json
+{
+  "mcpServers": {
+    "pmll-memory-mcp": {
+      "command": "docker",
+      "args": [
+        "run", "-i",
+        "-v", "pmll_data:/app/data",
+        "-e", "MEMORY_FILE_PATH=/app/data/memory.jsonl",
+        "--rm", "pmll-memory-mcp"
+      ]
+    }
+  }
+}
+```
+
+---
+
+## Docker
+
+The MCP server ships as a multi-stage Docker image modelled on the
+[upstream `memory` server](https://github.com/modelcontextprotocol/servers/tree/main/src/memory)
+Dockerfile.
+
+### Build
+
+```bash
+# From the repository root
+docker build -f mcp/Dockerfile -t pmll-memory-mcp .
+```
+
+### Run
+
+```bash
+docker run --rm -i pmll-memory-mcp:latest
+```
+
+### Run (persistent KV memory via volume)
+
+```bash
+docker run --rm -i \
+  -v pmll_data:/app/data \
+  -e MEMORY_FILE_PATH=/app/data/memory.jsonl \
+  pmll-memory-mcp:latest
+```
+
+### VS Code MCP configuration
+
+Add to `.vscode/mcp.json` (or open **MCP: Open User Configuration** from the Command Palette):
+
+#### NPX
+
+```json
+{
+  "servers": {
+    "pmll-memory-mcp": {
+      "command": "npx",
+      "args": ["-y", "pmll-memory-mcp"]
+    }
+  }
+}
+```
+
+#### Docker
+
+```json
+{
+  "servers": {
+    "pmll-memory-mcp": {
+      "command": "docker",
+      "args": [
+        "run", "-i",
+        "-v", "pmll_data:/app/data",
+        "-e", "MEMORY_FILE_PATH=/app/data/memory.jsonl",
+        "--rm", "pmll-memory-mcp"
+      ]
+    }
+  }
+}
+```
+
+### Differences from the upstream `memory` Dockerfile
+
+| | Upstream `src/memory` | This `mcp/` |
+|---|---|---|
+| **Build source** | `COPY src/memory /app` + `COPY tsconfig.json` | `COPY mcp /app` only |
+| **tsconfig.json** | Extends root via `../../tsconfig.json` | Self-contained standalone |
+| **Build command** | `npm install` + `npm ci --omit-dev` in builder | `npm install` + `npm run build` |
+| **Persistence volume** | ❌ | ✅ `VOLUME ["/app/data"]` |
+| **Entry point** | `node dist/index.js` | `node dist/index.js` ✓ |
 
 ---
 
