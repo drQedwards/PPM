@@ -1,0 +1,10 @@
+{
+  "_comment": "This file registers pmll-memory-mcp as an MCP tool for GitHub Copilot's Coding Agent. Agents should call `init` once at task start, `peek` before every expensive tool call, `set` to cache results, and `flush` at task end. After flush, run `python scripts/pmll_to_copilot_memory.py --snapshot snapshot.json --repo owner/repo` to persist important KV pairs as GitHub Copilot repository memories.",
+  "mcpServers": {
+    "pmll-memory-mcp": {
+      "command": "npx",
+      "args": ["pmll-memory-mcp"],
+      "env": {}
+    }
+  }
+}
