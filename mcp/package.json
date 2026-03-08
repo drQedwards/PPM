@@ -33,6 +33,16 @@
     "type": "git",
     "url": "https://github.com/drQedwards/PPM.git"
   },
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/DrQedwards"
+    },
+    {
+      "type": "buymeacoffee",
+      "url": "https://buymeacoffee.com/drqedwards"
+    }
+  ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
     "zod": "^3.24.4"
