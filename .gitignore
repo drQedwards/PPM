@@ -199,3 +199,7 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# TypeScript / MCP build artifacts
+mcp/dist/
+mcp/node_modules/

@@ -4,7 +4,8 @@
 
 [![MCP Registry](https://img.shields.io/badge/MCP-Registry%20Submission-blue)](https://github.com/modelcontextprotocol/servers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](../LICENSE)
-[![Python ≥ 3.11](https://img.shields.io/badge/python-%3E%3D3.11-blue)](https://www.python.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-%3E%3D5.0-blue)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-green)](https://nodejs.org/)
 
 ---
 
@@ -38,22 +39,23 @@ Agent task start
 
 Before **every** expensive MCP tool invocation, agents call `peek` to check the cache:
 
-```python
-# Pseudocode — what the agent does automatically via MCP tool calls
+```typescript
+// Pseudocode — what the agent does automatically via MCP tool calls
 
-# 1. Check cache before navigating
-result = mcp.call("pmll-memory-mcp", "peek", {"session_id": sid, "key": "https://example.com"})
-if result["hit"]:
-    page_content = result["value"]          # ← served from PMLL silo, no browser needed
-else:
-    # 2. Cache miss — do the real work
-    page_content = mcp.call("playwright", "navigate", {"url": "https://example.com"})
-    # 3. Populate the cache for future agents / subtasks
+// 1. Check cache before navigating
+const result = mcp.call("pmll-memory-mcp", "peek", { session_id: sid, key: "https://example.com" });
+if (result.hit) {
+    const pageContent = result.value;          // ← served from PMLL silo, no browser needed
+} else {
+    // 2. Cache miss — do the real work
+    const pageContent = mcp.call("playwright", "navigate", { url: "https://example.com" });
+    // 3. Populate the cache for future agents / subtasks
     mcp.call("pmll-memory-mcp", "set", {
-        "session_id": sid,
-        "key": "https://example.com",
-        "value": page_content,
-    })
+        session_id: sid,
+        key: "https://example.com",
+        value: pageContent,
+    });
+}
 ```
 
 ---
@@ -72,16 +74,16 @@ else:
 
 ## Installation
 
-### Via `uvx` (recommended — no install needed)
+### Via `npx` (recommended — no install needed)
 
 ```bash
-uvx pmll-memory-mcp
+npx pmll-memory-mcp
 ```
 
-### Via pip
+### Via npm
 
 ```bash
-pip install pmll-memory-mcp
+npm install -g pmll-memory-mcp
 pmll-memory-mcp          # starts the stdio MCP server
 ```
 
@@ -91,7 +93,7 @@ pmll-memory-mcp          # starts the stdio MCP server
 {
   "mcpServers": {
     "pmll-memory-mcp": {
-      "command": "uvx",
+      "command": "npx",
       "args": ["pmll-memory-mcp"]
     }
   }
@@ -106,9 +108,9 @@ pmll-memory-mcp          # starts the stdio MCP server
 ┌─────────────────────────────────────────────────────┐
 │                  pmll-memory-mcp                    │
 │                                                     │
-│  server.py  ──►  peek_context()  ──►  kv_store.py  │
+│  index.ts   ──►  peekContext()   ──►  kv-store.ts   │
 │                       │                             │
-│                       └──────────►  q_promise_bridge│
+│                       └──────────►  q-promise-bridge│
 └─────────────────────────────────────────────────────┘
          │                    │
          ▼                    ▼
@@ -116,15 +118,15 @@ pmll-memory-mcp          # starts the stdio MCP server
    (memory_silo_t)       (QMemNode chain)
 ```
 
-The server is **pure Python** — no C compilation is required at runtime.  The KV store (`kv_store.py`) mirrors the semantics of `PMLL.c::init_silo()` and `update_silo()` in Python, and the promise registry (`q_promise_bridge.py`) mirrors the `QMemNode` chain from `Q_promise_lib/Q_promises.h`.  Both C foundations are documented inline throughout the source.
+The server is **pure TypeScript** — no C compilation is required at runtime.  The KV store (`kv-store.ts`) mirrors the semantics of `PMLL.c::init_silo()` and `update_silo()` in TypeScript, and the promise registry (`q-promise-bridge.ts`) mirrors the `QMemNode` chain from `Q_promise_lib/Q_promises.h`.  Both C foundations are documented inline throughout the source.
 
 ### C foundations
 
-| Python module           | Mirrors                              | Key C primitives                    |
-|-------------------------|--------------------------------------|-------------------------------------|
-| `kv_store.PMMemoryStore`| `PMLL.h::memory_silo_t`              | `init_silo()`, `update_silo()`      |
-| `q_promise_bridge`      | `Q_promises.h::QMemNode`             | `q_mem_create_chain()`, `q_then()`  |
-| `peek.peek_context()`   | Recursive conflict check in PMLL     | `check_conflict()`, `pml_refine()`  |
+| TypeScript module         | Mirrors                              | Key C primitives                    |
+|---------------------------|--------------------------------------|-------------------------------------|
+| `kv-store.PMMemoryStore`  | `PMLL.h::memory_silo_t`              | `init_silo()`, `update_silo()`      |
+| `q-promise-bridge`        | `Q_promises.h::QMemNode`             | `q_mem_create_chain()`, `q_then()`  |
+| `peek.peekContext()`      | Recursive conflict check in PMLL     | `check_conflict()`, `pml_refine()`  |
 
 ---
 

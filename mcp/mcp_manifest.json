@@ -11,5 +11,6 @@
   "models": ["claude-sonnet", "claude-opus"],
   "initializer_order": 3,
   "repository": "https://github.com/drQedwards/PPM",
-  "entry": "pmll_memory_mcp.server"
+  "entry": "dist/index.js",
+  "runtime": "node"
 }
