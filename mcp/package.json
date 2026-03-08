@@ -2,7 +2,7 @@
   "name": "pmll-memory-mcp",
   "version": "0.2.0",
   "mcpName": "io.github.drqedwards/pmll-memory-mcp",
-  "description": "PMLL Memory MCP Server — persistent KV context memory and Q-promise deduplication for Claude agent tasks",
+  "description": "PMLL Memory MCP Server — persistent KV context memory, Q-promise deduplication, and Unstoppable Domains Web3 integration for Claude Sonnet/Opus agent tasks",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
