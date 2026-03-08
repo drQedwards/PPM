@@ -5,7 +5,7 @@ COPY mcp /app
 WORKDIR /app
 
 RUN --mount=type=cache,target=/root/.npm npm install
-RUN npm run build          # tsc → dist/
+RUN npm run build          # tsc -> dist/
 
 # ── Stage 2: Release ──────────────────────────────────────────
 FROM node:22-alpine AS release
