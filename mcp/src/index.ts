@@ -40,7 +40,7 @@ import { peekContext } from "./peek.js";
 const server = new McpServer(
   {
     name: "pmll-memory-mcp",
-    version: "0.1.0",
+    version: "0.1.1",
   },
   {
     instructions:
