@@ -9,6 +9,8 @@ import argparse
 import hashlib
 import json
 import os
+import shutil
+import subprocess
 import sys
 import urllib.request
 import urllib.error
@@ -225,12 +227,162 @@ def cmd_validate_mcp(args):
     else:
         print("ℹ️  mcp/mcp_manifest.json not found (optional)")
 
+    # Check server.json
+    server_json_path = os.path.join(root, "server.json")
+    if os.path.exists(server_json_path):
+        server_name = _read_json_field(server_json_path, "name")
+        if server_name:
+            print(f"✅  server.json name: {server_name}")
+            if mcp_name_pkg and server_name != mcp_name_pkg:
+                msg = (
+                    f"server.json name mismatch: package.json mcpName is "
+                    f"'{mcp_name_pkg}' but server.json name is '{server_name}'"
+                )
+                print(f"❌  {msg}")
+                issues.append(msg)
+        else:
+            msg = "server.json missing 'name' property"
+            print(f"❌  {msg}")
+            issues.append(msg)
+    else:
+        print("ℹ️  server.json not found (run `ppm init-mcp` to generate)")
+
     if issues:
         print(f"\n📋  {len(issues)} issue(s) found")
         if args.fail_on_error:
             sys.exit(1)
     else:
         print("\n✅  MCP Registry metadata is valid")
+
+
+def cmd_init_mcp(args):
+    """Generate a server.json file for MCP Registry publishing.
+
+    Reads metadata from package.json and produces the server.json template
+    that ``mcp-publisher publish`` expects.
+    """
+    root = args.root
+    out_path = os.path.join(root, "server.json")
+
+    if os.path.exists(out_path) and not args.force:
+        print(f"server.json already exists at {out_path}")
+        print("Use --force to overwrite.")
+        sys.exit(1)
+
+    pkg_path = os.path.join(root, "package.json")
+    if not os.path.exists(pkg_path):
+        print("Error: package.json not found. Cannot generate server.json.",
+              file=sys.stderr)
+        sys.exit(1)
+
+    mcp_name = _read_json_field(pkg_path, "mcpName")
+    if not mcp_name:
+        print("Error: package.json missing 'mcpName'. "
+              "Add it before generating server.json.",
+              file=sys.stderr)
+        sys.exit(1)
+
+    pkg_name = _read_json_field(pkg_path, "name") or ""
+    version = _read_json_field(pkg_path, "version") or "0.0.0"
+    description = _read_json_field(pkg_path, "description") or ""
+    repo_url = _read_json_field(pkg_path, "repository", "url") or ""
+    # Normalize git+https:// URLs to plain https://
+    if repo_url.startswith("git+"):
+        repo_url = repo_url[4:]
+    if repo_url.endswith(".git"):
+        repo_url = repo_url[:-4]
+
+    server = {
+        "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+        "name": mcp_name,
+        "description": description,
+        "repository": {
+            "url": repo_url,
+            "source": "github",
+        },
+        "version": version,
+        "packages": [
+            {
+                "registryType": "npm",
+                "identifier": pkg_name,
+                "version": version,
+                "transport": {
+                    "type": "stdio",
+                },
+            }
+        ],
+    }
+
+    with open(out_path, "w") as f:
+        json.dump(server, f, indent=2)
+        f.write("\n")
+
+    print(f"✅  Generated {out_path}")
+    print(f"    name: {mcp_name}")
+    print(f"    version: {version}")
+    print(f"    package: {pkg_name}")
+    print("\nReview server.json, then run `ppm publish-mcp` to publish.")
+
+
+def cmd_publish_mcp(args):
+    """Publish the MCP server to the MCP Registry via mcp-publisher.
+
+    Pre-flight: validates metadata and checks for server.json, then
+    delegates to the external ``mcp-publisher publish`` CLI.
+    """
+    root = args.root
+
+    # --- pre-flight validation ------------------------------------------------
+    pkg_path = os.path.join(root, "package.json")
+    mcp_name = _read_json_field(pkg_path, "mcpName")
+    if not mcp_name:
+        print("Error: package.json missing 'mcpName'. "
+              "Run `ppm validate-mcp` for details.",
+              file=sys.stderr)
+        sys.exit(1)
+
+    server_json_path = os.path.join(root, "server.json")
+    if not os.path.exists(server_json_path):
+        print("Error: server.json not found. "
+              "Run `ppm init-mcp` to generate it.",
+              file=sys.stderr)
+        sys.exit(1)
+
+    server_name = _read_json_field(server_json_path, "name")
+    if server_name != mcp_name:
+        print(f"Error: server.json name '{server_name}' does not match "
+              f"package.json mcpName '{mcp_name}'.",
+              file=sys.stderr)
+        sys.exit(1)
+
+    # --- check mcp-publisher is available ------------------------------------
+    if not args.dry_run:
+        if shutil.which("mcp-publisher") is None:
+            print(
+                "Error: mcp-publisher not found in PATH.\n"
+                "Install it with:\n"
+                '  curl -L "https://github.com/modelcontextprotocol/registry/'
+                'releases/latest/download/mcp-publisher_$(uname -s | '
+                "tr '[:upper:]' '[:lower:]')_$(uname -m | "
+                "sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz\" "
+                "| tar xz mcp-publisher && sudo mv mcp-publisher /usr/local/bin/",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+    print(f"Publishing {mcp_name} to MCP Registry …")
+
+    if args.dry_run:
+        print("(dry-run) Would run: mcp-publisher publish")
+        print(f"  server.json: {server_json_path}")
+        print("Dry-run complete — no changes made.")
+        return
+
+    result = subprocess.run(
+        ["mcp-publisher", "publish"],
+        cwd=root,
+    )
+    sys.exit(result.returncode)
 
 
 def cmd_build(args):
@@ -463,6 +615,18 @@ def build_parser():
     p.add_argument("--fail-on-error", action="store_true",
                    help="Exit with error if validation fails")
     p.set_defaults(func=cmd_validate_mcp)
+
+    p = sub.add_parser("init-mcp",
+                        help="Generate server.json for MCP Registry publishing")
+    p.add_argument("--force", action="store_true",
+                   help="Overwrite existing server.json")
+    p.set_defaults(func=cmd_init_mcp)
+
+    p = sub.add_parser("publish-mcp",
+                        help="Publish MCP server to the MCP Registry")
+    p.add_argument("--dry-run", action="store_true",
+                   help="Validate and show what would be published without publishing")
+    p.set_defaults(func=cmd_publish_mcp)
 
     return ap
 

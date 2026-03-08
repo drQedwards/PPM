@@ -16,6 +16,8 @@ from ppm_cli import (  # noqa: E402
     _read_json_field,
     _validate_mcp_name,
     cmd_validate_mcp,
+    cmd_init_mcp,
+    cmd_publish_mcp,
     build_parser,
     main as ppm_main,
 )
@@ -198,3 +200,215 @@ class TestRealProjectMcpMetadata:
         manifest_name = _read_json_field(manifest_path, "mcpName")
         assert pkg_name == manifest_name, \
             f"mcpName mismatch: package.json={pkg_name}, manifest={manifest_name}"
+
+    def test_server_json_exists(self):
+        server_path = os.path.join(REPO_ROOT, "server.json")
+        assert os.path.exists(server_path), "server.json must exist for MCP Registry publishing"
+
+    def test_server_json_name_matches_package(self):
+        pkg_path = os.path.join(REPO_ROOT, "package.json")
+        server_path = os.path.join(REPO_ROOT, "server.json")
+        pkg_name = _read_json_field(pkg_path, "mcpName")
+        server_name = _read_json_field(server_path, "name")
+        assert server_name == pkg_name, \
+            f"server.json name mismatch: package.json={pkg_name}, server.json={server_name}"
+
+
+# ---------------------------------------------------------------------------
+# Integration tests — validate-mcp with server.json
+# ---------------------------------------------------------------------------
+
+class TestValidateMcpServerJson:
+    def _write_package_json(self, root, data):
+        pkg = root / "package.json"
+        pkg.write_text(json.dumps(data, indent=2))
+
+    def _write_server_json(self, root, data):
+        path = root / "server.json"
+        path.write_text(json.dumps(data, indent=2))
+
+    def test_server_json_name_shown(self, tmp_path, capsys):
+        self._write_package_json(tmp_path, {
+            "name": "test-pkg",
+            "mcpName": "io.github.user/server",
+            "description": "A test server",
+            "repository": {"type": "git", "url": "https://example.com"},
+        })
+        self._write_server_json(tmp_path, {
+            "name": "io.github.user/server",
+        })
+
+        ppm_main(["--root", str(tmp_path), "validate-mcp"])
+        captured = capsys.readouterr()
+        assert "server.json name: io.github.user/server" in captured.out
+
+    def test_server_json_name_mismatch(self, tmp_path, capsys):
+        self._write_package_json(tmp_path, {
+            "name": "test-pkg",
+            "mcpName": "io.github.user/server-a",
+            "description": "A test",
+            "repository": {"type": "git", "url": "https://example.com"},
+        })
+        self._write_server_json(tmp_path, {
+            "name": "io.github.user/server-b",
+        })
+
+        ppm_main(["--root", str(tmp_path), "validate-mcp"])
+        captured = capsys.readouterr()
+        assert "mismatch" in captured.out
+
+    def test_missing_server_json_info(self, tmp_path, capsys):
+        self._write_package_json(tmp_path, {
+            "name": "test-pkg",
+            "mcpName": "io.github.user/server",
+            "description": "A test",
+            "repository": {"type": "git", "url": "https://example.com"},
+        })
+
+        ppm_main(["--root", str(tmp_path), "validate-mcp"])
+        captured = capsys.readouterr()
+        assert "server.json not found" in captured.out
+
+
+# ---------------------------------------------------------------------------
+# Integration tests — init-mcp command
+# ---------------------------------------------------------------------------
+
+class TestInitMcpCommand:
+    def _write_package_json(self, root, data):
+        pkg = root / "package.json"
+        pkg.write_text(json.dumps(data, indent=2))
+
+    def test_generates_server_json(self, tmp_path, capsys):
+        self._write_package_json(tmp_path, {
+            "name": "@user/my-server",
+            "version": "1.2.3",
+            "mcpName": "io.github.user/my-server",
+            "description": "Test MCP server",
+            "repository": {"type": "git", "url": "git+https://github.com/user/repo.git"},
+        })
+
+        ppm_main(["--root", str(tmp_path), "init-mcp"])
+        captured = capsys.readouterr()
+        assert "Generated" in captured.out
+
+        server_path = tmp_path / "server.json"
+        assert server_path.exists()
+        with open(server_path) as f:
+            server = json.load(f)
+        assert server["name"] == "io.github.user/my-server"
+        assert server["version"] == "1.2.3"
+        assert server["description"] == "Test MCP server"
+        assert server["repository"]["url"] == "https://github.com/user/repo"
+        assert server["repository"]["source"] == "github"
+        assert server["packages"][0]["registryType"] == "npm"
+        assert server["packages"][0]["identifier"] == "@user/my-server"
+
+    def test_refuses_overwrite_without_force(self, tmp_path):
+        self._write_package_json(tmp_path, {
+            "name": "test",
+            "mcpName": "io.github.user/test",
+        })
+        (tmp_path / "server.json").write_text("{}")
+
+        with pytest.raises(SystemExit) as exc_info:
+            ppm_main(["--root", str(tmp_path), "init-mcp"])
+        assert exc_info.value.code == 1
+
+    def test_force_overwrites(self, tmp_path, capsys):
+        self._write_package_json(tmp_path, {
+            "name": "test",
+            "version": "1.0.0",
+            "mcpName": "io.github.user/test",
+            "description": "d",
+            "repository": {"type": "git", "url": "https://github.com/user/test"},
+        })
+        (tmp_path / "server.json").write_text("{}")
+
+        ppm_main(["--root", str(tmp_path), "init-mcp", "--force"])
+        captured = capsys.readouterr()
+        assert "Generated" in captured.out
+
+    def test_fails_without_package_json(self, tmp_path):
+        with pytest.raises(SystemExit) as exc_info:
+            ppm_main(["--root", str(tmp_path), "init-mcp"])
+        assert exc_info.value.code == 1
+
+    def test_fails_without_mcp_name(self, tmp_path):
+        self._write_package_json(tmp_path, {"name": "test"})
+
+        with pytest.raises(SystemExit) as exc_info:
+            ppm_main(["--root", str(tmp_path), "init-mcp"])
+        assert exc_info.value.code == 1
+
+    def test_strips_git_prefix_and_suffix(self, tmp_path):
+        self._write_package_json(tmp_path, {
+            "name": "test",
+            "version": "1.0.0",
+            "mcpName": "io.github.user/test",
+            "description": "d",
+            "repository": {"type": "git", "url": "git+https://github.com/user/repo.git"},
+        })
+
+        ppm_main(["--root", str(tmp_path), "init-mcp"])
+        with open(tmp_path / "server.json") as f:
+            server = json.load(f)
+        assert server["repository"]["url"] == "https://github.com/user/repo"
+
+
+# ---------------------------------------------------------------------------
+# Integration tests — publish-mcp command
+# ---------------------------------------------------------------------------
+
+class TestPublishMcpCommand:
+    def _write_package_json(self, root, data):
+        pkg = root / "package.json"
+        pkg.write_text(json.dumps(data, indent=2))
+
+    def _write_server_json(self, root, data):
+        path = root / "server.json"
+        path.write_text(json.dumps(data, indent=2))
+
+    def test_dry_run_succeeds(self, tmp_path, capsys):
+        self._write_package_json(tmp_path, {
+            "name": "test",
+            "mcpName": "io.github.user/test",
+        })
+        self._write_server_json(tmp_path, {
+            "name": "io.github.user/test",
+        })
+
+        ppm_main(["--root", str(tmp_path), "publish-mcp", "--dry-run"])
+        captured = capsys.readouterr()
+        assert "dry-run" in captured.out
+        assert "io.github.user/test" in captured.out
+
+    def test_fails_without_mcp_name(self, tmp_path):
+        self._write_package_json(tmp_path, {"name": "test"})
+
+        with pytest.raises(SystemExit) as exc_info:
+            ppm_main(["--root", str(tmp_path), "publish-mcp", "--dry-run"])
+        assert exc_info.value.code == 1
+
+    def test_fails_without_server_json(self, tmp_path):
+        self._write_package_json(tmp_path, {
+            "name": "test",
+            "mcpName": "io.github.user/test",
+        })
+
+        with pytest.raises(SystemExit) as exc_info:
+            ppm_main(["--root", str(tmp_path), "publish-mcp", "--dry-run"])
+        assert exc_info.value.code == 1
+
+    def test_fails_on_name_mismatch(self, tmp_path):
+        self._write_package_json(tmp_path, {
+            "name": "test",
+            "mcpName": "io.github.user/server-a",
+        })
+        self._write_server_json(tmp_path, {
+            "name": "io.github.user/server-b",
+        })
+
+        with pytest.raises(SystemExit) as exc_info:
+            ppm_main(["--root", str(tmp_path), "publish-mcp", "--dry-run"])
+        assert exc_info.value.code == 1
