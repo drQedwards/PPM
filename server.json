@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.drqedwards/pmll-memory-mcp",
-  "description": "PPM — Python Package Manager with PMLL Memory MCP server for persistent KV context memory and Q-promise deduplication.",
+  "description": "PMLL Memory MCP server — persistent KV context memory and Q-promise deduplication for Claude agent tasks.",
   "repository": {
     "url": "https://github.com/drQedwards/PPM",
     "source": "github"
   },
-  "version": "1.0.0",
+  "version": "0.1.0",
   "packages": [
     {
       "registryType": "npm",
-      "identifier": "graphtech.dev",
-      "version": "1.0.0",
+      "identifier": "pmll-memory-mcp",
+      "version": "0.1.0",
       "transport": {
         "type": "stdio"
       }

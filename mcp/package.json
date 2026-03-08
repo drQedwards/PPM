@@ -1,0 +1,40 @@
+{
+  "name": "pmll-memory-mcp",
+  "version": "0.1.0",
+  "description": "PMLL Memory MCP Server — persistent KV context memory and Q-promise deduplication for Claude agent tasks",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "pmll-memory-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "pmll",
+    "memory",
+    "kv-store",
+    "q-promise"
+  ],
+  "author": "drQedwards",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drQedwards/PPM"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.1.4"
+  }
+}
