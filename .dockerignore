@@ -1,0 +1,11 @@
+# Only mcp/ is needed by the Dockerfile (COPY mcp /app).
+# Exclude everything else at the repo root, then allowlist mcp/.
+*
+!mcp/
+
+# Inside mcp/, exclude build artifacts, deps, and tests
+mcp/dist/
+mcp/node_modules/
+mcp/__tests__/
+mcp/tests/
+mcp/.env
