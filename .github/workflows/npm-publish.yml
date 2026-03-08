@@ -51,7 +51,24 @@ jobs:
 
       - name: Install mcp-publisher
         run: |
-          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+          set -euo pipefail
+          MCP_PUBLISHER_VERSION="v0.1.0"
+          OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+          ARCH="$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
+          TARBALL="mcp-publisher_${OS}_${ARCH}.tar.gz"
+          BASE_URL="https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}"
+
+          echo "Downloading ${TARBALL} for mcp-publisher ${MCP_PUBLISHER_VERSION}..."
+          curl -L "${BASE_URL}/${TARBALL}" -o "${TARBALL}"
+
+          echo "Downloading checksums for mcp-publisher ${MCP_PUBLISHER_VERSION}..."
+          curl -L "${BASE_URL}/checksums.txt" -o checksums.txt
+
+          echo "Verifying checksum for ${TARBALL}..."
+          grep " ${TARBALL}\$" checksums.txt | sha256sum -c -
+
+          echo "Extracting mcp-publisher..."
+          tar xzf "${TARBALL}" mcp-publisher
           sudo mv mcp-publisher /usr/local/bin/
 
       - name: Publish to MCP Registry
