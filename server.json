@@ -15,6 +15,14 @@
       "transport": {
         "type": "stdio"
       }
+    },
+    {
+      "registryType": "pypi",
+      "identifier": "pmll-memory-mcp",
+      "version": "0.2.0",
+      "transport": {
+        "type": "stdio"
+      }
     }
   ]
 }
