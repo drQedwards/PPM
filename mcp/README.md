@@ -87,6 +87,36 @@ npm install -g pmll-memory-mcp
 pmll-memory-mcp          # starts the stdio MCP server
 ```
 
+### Via pip (Python ≥ 3.11)
+
+```bash
+pip install pmll-memory-mcp
+```
+
+To install a specific version, use one of the following commands:
+
+```bash
+pip install pmll-memory-mcp==0.1.0
+pip install pmll-memory-mcp==0.2.0
+```
+
+> **Notes:**
+> - If you run both commands, the second will upgrade/replace 0.1.0 with 0.2.0 (you'll end up on 0.2.0).
+> - To switch versions, explicitly install the version you want (or uninstall first):
+>
+> ```bash
+> pip uninstall -y pmll-memory-mcp
+> pip install pmll-memory-mcp==0.1.0
+> ```
+
+Once installed, start the server with:
+
+```bash
+pmll-memory-mcp          # stdio transport (default)
+# or
+python -m pmll_memory_mcp.server
+```
+
 ### Claude Desktop / MCP config (`claude_desktop_config.json`)
 
 #### NPX
@@ -97,6 +127,18 @@ pmll-memory-mcp          # starts the stdio MCP server
     "pmll-memory-mcp": {
       "command": "npx",
       "args": ["pmll-memory-mcp"]
+    }
+  }
+}
+```
+
+#### pip
+
+```json
+{
+  "mcpServers": {
+    "pmll-memory-mcp": {
+      "command": "pmll-memory-mcp"
     }
   }
 }
@@ -162,6 +204,18 @@ Add to `.vscode/mcp.json` (or open **MCP: Open User Configuration** from the Com
     "pmll-memory-mcp": {
       "command": "npx",
       "args": ["-y", "pmll-memory-mcp"]
+    }
+  }
+}
+```
+
+#### pip
+
+```json
+{
+  "servers": {
+    "pmll-memory-mcp": {
+      "command": "pmll-memory-mcp"
     }
   }
 }
