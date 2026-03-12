@@ -479,6 +479,7 @@ If you find PPM or `pmll-memory-mcp` useful, please consider supporting developm
 
 [![GitHub Sponsors](https://img.shields.io/badge/Sponsor-DrQedwards-ea4aaa?logo=github-sponsors&style=for-the-badge)](https://github.com/sponsors/DrQedwards)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-drqedwards-FFDD00?logo=buy-me-a-coffee&style=for-the-badge)](https://buymeacoffee.com/drqedwards)
+[![CoinGecko Portfolio](https://img.shields.io/badge/CoinGecko-Portfolio-8DC63F?logo=coingecko&style=for-the-badge)](https://www.coingecko.com/en/portfolios/public/jkdrq)
 
 ---
 
