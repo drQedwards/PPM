@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PPM — Python Package Manager</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header>
+    <h1>PPM — Python Package Manager</h1>
+    <p class="tagline">C-powered · reproducible · plugin-friendly · workspace-aware</p>
+  </header>
+
+  <main>
+    <section id="graph-section">
+      <h2>Dependency Graph</h2>
+      <p>Interactive visualisation of your PPM dependency lattice.</p>
+      <div id="graph-container" aria-label="Dependency graph"></div>
+    </section>
+
+    <!-- Serialised graph data injected server-side by Eleventy -->
+    <script id="graph-data" type="application/json">
+      {{ graphData | dump | safe }}
+    </script>
+  </main>
+
+  <footer>
+    <p>
+      <a href="https://github.com/drQedwards/PPM">GitHub</a> ·
+      <a href="https://github.com/sponsors/DrQedwards">Sponsor</a>
+    </p>
+  </footer>
+
+  <script type="module" src="/js/bundle.js"></script>
+</body>
+</html>

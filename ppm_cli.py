@@ -386,15 +386,58 @@ def cmd_publish_mcp(args):
 
 
 def cmd_build(args):
-    """Build wheels (stub)."""
+    """Build wheels from the current project using pip wheel."""
     out = args.out or "dist/"
+    root = getattr(args, "root", ".")
     os.makedirs(out, exist_ok=True)
-    print(f"Build output → {out} (stub — no packages to build yet)")
+
+    # Run pip wheel to produce a .whl for the local project
+    cmd = [sys.executable, "-m", "pip", "wheel", "--no-deps", "--wheel-dir", out, root]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"Build failed:\n{result.stderr}", file=sys.stderr)
+        sys.exit(result.returncode)
+
+    wheels = [f for f in os.listdir(out) if f.endswith(".whl")]
+    print(f"Built {len(wheels)} wheel(s) → {out}")
 
 
 def cmd_install(args):
-    """Install from lock (stub)."""
-    print("Install: reading lock file... (stub)")
+    """Install packages from PPM.lock, optionally preferring a local wheelhouse."""
+    root = getattr(args, "root", ".")
+    lock_path = os.path.join(root, "PPM.lock")
+    prefer = getattr(args, "prefer", None)
+
+    if not os.path.exists(lock_path):
+        print(f"No PPM.lock found at {lock_path}. Run `ppm resolve` first.")
+        sys.exit(1)
+
+    with open(lock_path, "r") as f:
+        lock = json.load(f)
+
+    packages = lock.get("packages", {})
+    if not packages:
+        print("Lock file contains no packages.")
+        return
+
+    # Build a spec list: "name==version" where a version is recorded
+    specs = []
+    for name, meta in packages.items():
+        version = meta.get("version", "") if isinstance(meta, dict) else ""
+        specs.append(f"{name}=={version}" if version else name)
+
+    cmd = [sys.executable, "-m", "pip", "install"]
+    if prefer and os.path.isdir(prefer):
+        # Prefer pre-built wheels from the wheelhouse (offline-first)
+        cmd += ["--find-links", prefer, "--prefer-binary"]
+    cmd += specs
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"Install failed:\n{result.stderr}", file=sys.stderr)
+        sys.exit(result.returncode)
+
+    print(f"Installed {len(specs)} package(s)")
 
 
 def cmd_run(args):
