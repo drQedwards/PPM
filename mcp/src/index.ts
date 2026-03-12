@@ -33,6 +33,7 @@ import { z } from "zod";
 import { getStore, dropStore } from "./kv-store.js";
 import { QPromiseRegistry } from "./q-promise-bridge.js";
 import { peekContext } from "./peek.js";
+import { executeGraphQL, GRAPHQL_QUERY, GRAPHQL_MUTATION, GRAPHQL_DEFAULT_VARIABLES } from "./graphql.js";
 
 // ---------------------------------------------------------------------------
 // MCP server instance
@@ -212,6 +213,124 @@ server.tool(
         {
           type: "text" as const,
           text: JSON.stringify({ status: "flushed", cleared_count: cleared }),
+        },
+      ],
+    };
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Tool: graphql
+// ---------------------------------------------------------------------------
+server.tool(
+  "graphql",
+  "Execute a GraphQL query or mutation against a remote endpoint, with " +
+    "optional PMLL cache integration. " +
+    "Supply `operation` as a GraphQL document string and `variables` as a " +
+    "JSON object.  Pass `cache_key` to store/retrieve the result from the " +
+    "PMLL silo so redundant network calls are avoided on subsequent `peek` " +
+    "checks.  The `operation` defaults to the pre-built canonical Query " +
+    "document when omitted.  Use `use_mutation` to switch the default to the " +
+    "canonical Mutation document.",
+  {
+    session_id: z.string().describe("The session identifier (from `init`)."),
+    endpoint: z.string().url().describe("Full URL of the GraphQL endpoint."),
+    operation: z
+      .string()
+      .optional()
+      .describe(
+        "GraphQL operation document.  Defaults to the canonical Query " +
+          "when omitted (or the canonical Mutation when `use_mutation` is true).",
+      ),
+    variables: z
+      .record(z.unknown())
+      .optional()
+      .default({})
+      .describe("Variables to pass with the operation (JSON object)."),
+    headers: z
+      .record(z.string())
+      .optional()
+      .default({})
+      .describe("Additional HTTP headers, e.g. { Authorization: 'Bearer <token>' }."),
+    cache_key: z
+      .string()
+      .optional()
+      .describe(
+        "When provided, the result is stored under this key in the PMLL silo. " +
+          "A subsequent `peek` with the same key will return the cached value " +
+          "without re-executing the operation.",
+      ),
+    use_mutation: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "When true and `operation` is omitted, use the canonical Mutation " +
+          "document instead of the canonical Query document.",
+      ),
+  },
+  async ({ session_id, endpoint, operation, variables, headers, cache_key, use_mutation }) => {
+    const store = getStore(session_id);
+
+    // Check PMLL cache first when a cache key is provided.
+    if (cache_key) {
+      const cached = peekContext(cache_key, session_id, store, _promiseRegistry);
+      if (cached.hit && "value" in cached) {
+        let parsedData: unknown = cached.value;
+        try {
+          parsedData = JSON.parse(cached.value);
+        } catch {
+          // Cached value is not JSON; return as a raw string.
+        }
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify({ cached: true, data: parsedData }),
+            },
+          ],
+        };
+      }
+    }
+
+    // Resolve the operation document.
+    const doc =
+      operation ?? (use_mutation ? GRAPHQL_MUTATION : GRAPHQL_QUERY);
+
+    // Merge caller variables on top of the default (all-null) variable set
+    // so the operation document receives every declared variable.
+    const mergedVariables: Record<string, unknown> = {
+      ...GRAPHQL_DEFAULT_VARIABLES,
+      ...variables,
+    };
+
+    let result: unknown;
+    try {
+      result = await executeGraphQL(endpoint, doc, mergedVariables, headers);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify({ error: message }),
+          },
+        ],
+      };
+    }
+
+    const resultStr = JSON.stringify(result);
+
+    // Populate the PMLL silo so future peek calls return a cache hit.
+    if (cache_key) {
+      store.set(cache_key, resultStr);
+    }
+
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify({ cached: false, data: result }),
         },
       ],
     };
