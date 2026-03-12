@@ -5,7 +5,7 @@
   "description": "Persistent Memory Linked List MCP tool — short-term KV context memory and Q-promise deduplication layer for Claude Sonnet/Opus agent tasks. Eliminates redundant MCP tool initializations via peek() and recursive KV slot caching.",
   "author": "drQedwards",
   "license": "MIT",
-  "tools": ["init", "peek", "set", "resolve", "flush"],
+  "tools": ["init", "peek", "set", "resolve", "flush", "graphql"],
   "category": "memory",
   "tier": "premium",
   "models": ["claude-sonnet", "claude-opus"],

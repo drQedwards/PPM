@@ -34,6 +34,10 @@
     {
       "type": "buymeacoffee",
       "url": "https://buymeacoffee.com/drqedwards"
+    },
+    {
+      "type": "coingecko",
+      "url": "https://www.coingecko.com/en/portfolios/public/jkdrq"
     }
   ],
   "devDependencies": {
