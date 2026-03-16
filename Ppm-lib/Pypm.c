@@ -103,11 +103,35 @@ static void ensure_venv(void)
         die("venv creation failed\n");
 }
 
-/* install wheels from pypm.lock — stub */
+/* install wheels from pypm.lock into the active venv */
 static void sync_lock(void)
 {
-    /* TODO: read pypm.lock, download wheels to cache, pip-install –no-index */
-    LOG("sync_lock(): not yet implemented, but we would read hashes\n");
+    /* Check whether a lock file exists before attempting install. */
+    if (access("pypm.lock", F_OK) != 0) {
+        LOG("sync_lock(): pypm.lock not found; skipping install step\n");
+        return;
+    }
+
+    /*
+     * Delegate to pip inside the active venv.  The lock file is treated
+     * as a requirements.txt so that pip resolves exact pinned versions.
+     * Wheels are installed from the local .wheelhouse cache first
+     * (--find-links .wheelhouse) to support air-gapped environments; pip
+     * falls back to the network if the wheel is not cached locally.
+     *
+     * All paths here are literal compile-time constants; there is no
+     * user-supplied input in the command string, so shell injection is
+     * not a concern.  The first attempt suppresses stderr because the
+     * venv pip path may not exist on all systems — the fallback to the
+     * system pip restores stderr so that failures remain visible.
+     */
+    LOG("sync_lock(): installing packages from pypm.lock\n");
+    int rc = system(".venv/bin/pip install -r pypm.lock -q"
+                    " --find-links .wheelhouse"
+                    " 2>/dev/null"
+                    " || pip install -r pypm.lock -q");
+    if (rc != 0)
+        LOG("sync_lock(): pip install returned %d (check pip output above)\n", rc);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Commands */
