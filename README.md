@@ -276,7 +276,23 @@ npx pmll-memory-mcp
 # Via npm
 npm install -g pmll-memory-mcp
 pmll-memory-mcp          # starts the stdio MCP server
+
+# Via pip (Python ≥ 3.11) — latest release
+pip install pmll-memory-mcp
+
+# Pin to a specific version (choose one)
+pip install pmll-memory-mcp==0.1.0
+# OR
+pip install pmll-memory-mcp==0.2.0
 ```
+
+> **Notes**
+> - If you run both pip commands, the second upgrades/replaces 0.1.0 with 0.2.0.
+> - To switch versions, uninstall the current one first:
+>   ```bash
+>   pip uninstall -y pmll-memory-mcp
+>   pip install pmll-memory-mcp==0.1.0
+>   ```
 
 ### Claude Desktop / MCP config
 
