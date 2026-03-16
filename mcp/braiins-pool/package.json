@@ -1,0 +1,64 @@
+{
+  "name": "@ryno-crypto/braiins-pool-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for Braiins Pool — monitor workers, track earnings, and manage your Bitcoin mining operation through natural conversation.",
+  "author": "Ryno Crypto Mining Services",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "braiins-pool-mcp-server": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern=tests/",
+    "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --watch --testPathPattern=tests/",
+    "lint": "eslint src/ tests/",
+    "format": "prettier --write src/ tests/",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "axios": "^1.7.0",
+    "redis": "^4.7.0",
+    "winston": "^3.13.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "axios-mock-adapter": "^1.22.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.4.0"
+  },
+  "jest": {
+    "preset": "ts-jest/presets/default-esm",
+    "testEnvironment": "node",
+    "extensionsToTreatAsEsm": [".ts"],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "transform": {
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "useESM": true
+        }
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drQedwards/PPM.git"
+  },
+  "keywords": [
+    "mcp",
+    "braiins",
+    "bitcoin",
+    "mining",
+    "model-context-protocol"
+  ]
+}
