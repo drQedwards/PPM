@@ -203,3 +203,9 @@ cython_debug/
 # TypeScript / MCP build artifacts
 mcp/dist/
 mcp/node_modules/
+
+# Root site build artifacts
+dist/
+node_modules/
+.11tycache/
+.cache/
