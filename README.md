@@ -265,36 +265,126 @@ export CUDA_VISIBLE_DEVICES=0               # control GPU usage
 
 ## 🧠 PMLL Memory MCP Server
 
-`pmll-memory-mcp` (v1.0.0) is a **Model Context Protocol (MCP) server** that gives
-Claude Sonnet / Opus agents a persistent memory logic loop with **short-term KV
-context memory**, **Q-promise deduplication**, and **[Context+](https://github.com/ForLoopCodes/contextplus)
-long-term semantic memory graph** for 99% accuracy.
+> **Persistent memory logic loop with short-term KV context memory, Q-promise
+> deduplication, and [Context+](https://github.com/ForLoopCodes/contextplus) long-term
+> semantic memory graph for 99% accuracy in Claude Sonnet/Opus agent tasks.**
 
-It is designed as the **3rd initializer** alongside Playwright and other MCP tools.
+[![npm](https://img.shields.io/npm/v/pmll-memory-mcp?label=pmll-memory-mcp)](https://www.npmjs.com/package/pmll-memory-mcp)
+[![PyPI](https://img.shields.io/pypi/v/pmll-memory-mcp)](https://pypi.org/project/pmll-memory-mcp/)
+[![MCP Registry](https://img.shields.io/badge/MCP-Registry%20Submission-blue)](https://github.com/modelcontextprotocol/servers)
 
-> **Context+ integration** — The long-term memory graph and solution engine tools are
-> adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by
-> [@ForLoopCodes](https://github.com/ForLoopCodes), which provides semantic
-> intelligence for large-scale engineering through RAG, graph traversal, and
-> Obsidian-style linking. PMLL integrates the Context+ memory graph architecture to
-> bridge short-term KV cache with long-term semantic knowledge.
+`pmll-memory-mcp` (v1.0.1) is a **Model Context Protocol (MCP) server** that gives
+Claude Sonnet / Opus agents a persistent memory logic loop with two complementary
+memory layers:
+
+- **Short-term KV cache** (5 tools) — session-isolated key-value memory with Q-promise deduplication, mirroring `PMLL.c::memory_silo_t`.
+- **Long-term memory graph** (6 tools) — adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing a persistent property graph with typed nodes, weighted edges, temporal decay scoring (e^(-λt)), and semantic search via TF-IDF embeddings.
+- **Solution engine** (3 tools) — bridges both layers with unified context resolution (short-term → long-term → miss), auto-promotion of frequently accessed entries, and unified memory status views.
+
+The server is designed to be the **3rd initializer** alongside Playwright and other MCP tools — loaded once at the start of every agent task. Agents call `init` once at task start, then use `peek` before any expensive MCP tool invocation to avoid redundant calls. Frequently accessed entries are promoted to the long-term memory graph for persistent semantic retrieval.
+
+The server exposes **15 tools** total across four categories.
+
+### Why it's a premium 3rd initializer
+
+Modern Claude agent tasks routinely call Playwright, file-system tools, and other MCP servers.  Without a shared memory layer, every subtask re-initializes the same context from scratch.  `pmll-memory-mcp` eliminates this overhead with two complementary memory layers:
+
+```
+Agent task start
+  ├── 1st init: Playwright MCP
+  ├── 2nd init: Unstoppable Domains MCP  (see unstoppable-domains/)
+  └── 3rd init: pmll-memory-mcp   ← this server
+        ├── Short-term: all tool calls go through peek() first
+        └── Long-term: frequently accessed entries auto-promote to graph
+```
+
+### The `peek()` pattern
+
+Before **every** expensive MCP tool invocation, agents call `peek` to check the cache:
+
+```typescript
+// Pseudocode — what the agent does automatically via MCP tool calls
+
+// 1. Check cache before navigating
+const result = mcp.call("pmll-memory-mcp", "peek", { session_id: sid, key: "https://example.com" });
+if (result.hit) {
+    const pageContent = result.value;          // ← served from PMLL silo, no browser needed
+} else {
+    // 2. Cache miss — do the real work
+    const pageContent = mcp.call("playwright", "navigate", { url: "https://example.com" });
+    // 3. Populate the cache for future agents / subtasks
+    mcp.call("pmll-memory-mcp", "set", {
+        session_id: sid,
+        key: "https://example.com",
+        value: pageContent,
+    });
+}
+```
+
+### Tools reference (15 tools)
+
+#### Short-term KV memory (5 tools)
+
+| Tool      | Input                                              | Output                                                      | Description                                       |
+|-----------|----------------------------------------------------|-------------------------------------------------------------|---------------------------------------------------|
+| `init`    | `session_id: str`, `silo_size: int = 256`          | `{status, session_id, silo_size}`                           | Set up PMLL silo + Q-promise chain for session    |
+| `peek`    | `session_id: str`, `key: str`                      | `{hit, value?, index?}` or `{hit, status, promise_id}`      | Non-destructive cache + promise check             |
+| `set`     | `session_id: str`, `key: str`, `value: str`        | `{status: "stored", index}`                                 | Store KV pair in the silo                         |
+| `resolve` | `session_id: str`, `promise_id: str`               | `{status: "resolved"\|"pending", payload?}`                 | Check/resolve a Q-promise continuation            |
+| `flush`   | `session_id: str`                                  | `{status: "flushed", cleared_count}`                        | Clear all silo slots at task completion           |
+
+#### GraphQL (1 tool)
+
+| Tool      | Input                                                         | Output                  | Description                                              |
+|-----------|---------------------------------------------------------------|-------------------------|----------------------------------------------------------|
+| `graphql` | `query: str`, `variables?: object`, `operationName?: str`     | `{data}` or `{errors}`  | Execute GraphQL queries/mutations against the memory store |
+
+#### Long-term memory graph (6 tools — adapted from [Context+](https://github.com/ForLoopCodes/contextplus))
+
+These tools are adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing persistent semantic memory with graph traversal, decay scoring, and cosine similarity search.
+
+| Tool                      | Input                                                           | Output                                                | Description                                                                        |
+|---------------------------|-----------------------------------------------------------------|-------------------------------------------------------|------------------------------------------------------------------------------------|
+| `upsert_memory_node`      | `session_id`, `type`, `label`, `content`, `metadata?`           | `{node}`                                              | Create or update a memory node with auto-generated TF-IDF embeddings               |
+| `create_relation`         | `session_id`, `source_id`, `target_id`, `relation`, `weight?`, `metadata?` | `{edge}`                                   | Create typed edges (relates_to, depends_on, implements, references, similar_to, contains) |
+| `search_memory_graph`     | `session_id`, `query`, `max_depth?`, `top_k?`, `edge_filter?`  | `{direct, neighbors, totalNodes, totalEdges}`         | Semantic search with graph traversal — direct matches + neighbor walk              |
+| `prune_stale_links`       | `session_id`, `threshold?`                                      | `{removed, remaining}`                                | Remove decayed edges (e^(-λt) below threshold) and orphan nodes with low access    |
+| `add_interlinked_context` | `session_id`, `items[]`, `auto_link?`                           | `{nodes, edges}`                                      | Bulk-add nodes with auto-similarity linking (cosine ≥ 0.72 creates edges)          |
+| `retrieve_with_traversal` | `session_id`, `start_node_id`, `max_depth?`, `edge_filter?`    | `[{node, depth, pathRelations, relevanceScore}]`      | Walk outward from a node — returns reachable neighbors scored by decay & depth     |
+
+#### Solution engine (3 tools)
+
+| Tool                   | Input                                             | Output                                                 | Description                                                           |
+|------------------------|---------------------------------------------------|--------------------------------------------------------|-----------------------------------------------------------------------|
+| `resolve_context`      | `session_id`, `key`                               | `{source, value, score}`                               | Unified context lookup: short-term KV → long-term graph → miss        |
+| `promote_to_long_term` | `session_id`, `key`, `value`, `node_type?`, `metadata?` | `{promoted, nodeId}`                              | Promote a short-term KV entry to the long-term memory graph           |
+| `memory_status`        | `session_id`                                      | `{shortTerm, longTerm, promotionThreshold}`            | Unified view of short-term KV and long-term graph memory status       |
 
 ### Installation
 
-```bash
-# Via npx (no install required)
-npx pmll-memory-mcp
+#### Via `npx` (recommended — no install needed)
 
-# Via npm
+```bash
+npx pmll-memory-mcp
+```
+
+#### Via npm
+
+```bash
 npm install -g pmll-memory-mcp
 pmll-memory-mcp          # starts the stdio MCP server
+```
 
-# Via pip (Python)
+#### Via pip (Python)
+
+```bash
 pip install pmll-memory-mcp
 pmll-memory-mcp          # starts the stdio MCP server
 ```
 
-### Claude Desktop / MCP config
+### Claude Desktop / MCP config (`claude_desktop_config.json`)
+
+#### NPX
 
 ```json
 {
@@ -325,67 +415,63 @@ pmll-memory-mcp          # starts the stdio MCP server
 }
 ```
 
-### Tools reference (15 tools)
+### VS Code MCP configuration
 
-#### Short-term KV memory (original 5 tools)
+Add to `.vscode/mcp.json` (or open **MCP: Open User Configuration** from the Command Palette):
 
-| Tool      | Inputs                                          | Output                                              | Description                                       |
-|-----------|-------------------------------------------------|-----------------------------------------------------|---------------------------------------------------|
-| `init`    | `session_id`, `silo_size = 256`                 | `{status, session_id, silo_size}`                   | Set up PMLL silo + Q-promise chain for session    |
-| `peek`    | `session_id`, `key`                             | `{hit, value?, index?}` or `{hit, promise_id}`      | Non-destructive cache + promise check             |
-| `set`     | `session_id`, `key`, `value`                    | `{status: "stored", index}`                         | Store KV pair in the silo                         |
-| `resolve` | `session_id`, `promise_id`                      | `{status: "resolved"\|"pending", payload?}`         | Check / resolve a Q-promise continuation          |
-| `flush`   | `session_id`                                    | `{status: "flushed", cleared_count}`                | Clear all silo slots at task completion           |
+#### NPX
 
-#### GraphQL
-
-| Tool      | Inputs                                          | Output                                              | Description                                       |
-|-----------|-------------------------------------------------|-----------------------------------------------------|---------------------------------------------------|
-| `graphql` | `query`, `variables?`, `operationName?`         | `{data}` or `{errors}`                              | Execute GraphQL queries/mutations against the memory store |
-
-#### Long-term memory graph (6 tools — adapted from [Context+](https://github.com/ForLoopCodes/contextplus))
-
-| Tool                      | Inputs                                                  | Output                                                | Description                                                                        |
-|---------------------------|---------------------------------------------------------|-------------------------------------------------------|------------------------------------------------------------------------------------|
-| `upsert_memory_node`      | `session_id`, `type`, `label`, `content`, `metadata?`   | `{node}`                                              | Create or update a memory node with auto-generated embeddings                      |
-| `create_relation`         | `session_id`, `source_id`, `target_id`, `relation`, `weight?` | `{edge}`                                        | Create typed edges between nodes (relates_to, depends_on, implements, etc.)        |
-| `search_memory_graph`     | `session_id`, `query`, `max_depth?`, `top_k?`           | `{direct, neighbors, totalNodes, totalEdges}`         | Semantic search with graph traversal — direct matches + 1st/2nd-degree neighbors   |
-| `prune_stale_links`       | `session_id`, `threshold?`                               | `{removed, remaining}`                                | Remove decayed edges (e^(-λt) below threshold) and orphan nodes                    |
-| `add_interlinked_context` | `session_id`, `items[]`, `auto_link?`                    | `{nodes, edges}`                                      | Bulk-add nodes with auto-similarity linking (cosine ≥ 0.72 creates edges)          |
-| `retrieve_with_traversal` | `session_id`, `start_node_id`, `max_depth?`              | `[{node, depth, pathRelations, relevanceScore}]`      | Walk outward from a node — returns all reachable neighbors scored by decay & depth |
-
-#### Solution engine (2 tools + 1 status tool)
-
-| Tool                   | Inputs                                             | Output                                                 | Description                                                           |
-|------------------------|----------------------------------------------------|--------------------------------------------------------|-----------------------------------------------------------------------|
-| `resolve_context`      | `session_id`, `key`                                | `{source, value, score}`                               | Unified context lookup: short-term KV → long-term graph → miss        |
-| `promote_to_long_term` | `session_id`, `key`, `value`, `node_type?`         | `{promoted, nodeId}`                                   | Promote a short-term KV entry to the long-term memory graph           |
-| `memory_status`        | `session_id`                                       | `{shortTerm, longTerm, promotionThreshold}`            | Unified view of both short-term and long-term memory status           |
-
-### The `peek()` pattern
-
-```
-Agent task start
-  ├── 1st init: Playwright MCP
-  ├── 2nd init: Unstoppable Domains MCP
-  └── 3rd init: pmll-memory-mcp   ← this server
-        └── all subsequent tool calls go through peek() first
-        └── frequently accessed entries auto-promote to long-term graph
+```json
+{
+  "servers": {
+    "pmll-memory-mcp": {
+      "command": "npx",
+      "args": ["-y", "pmll-memory-mcp"]
+    }
+  }
+}
 ```
 
-### Docker build
+#### Docker
+
+```json
+{
+  "servers": {
+    "pmll-memory-mcp": {
+      "command": "docker",
+      "args": [
+        "run", "-i",
+        "-v", "pmll_data:/app/data",
+        "-e", "MEMORY_FILE_PATH=/app/data/memory.jsonl",
+        "--rm", "pmll-memory-mcp"
+      ]
+    }
+  }
+}
+```
+
+### Docker
 
 ```bash
-# From the repository root
+# Build from the repository root
 docker build -f mcp/Dockerfile -t pmll-memory-mcp .
+
+# Run
 docker run --rm -i pmll-memory-mcp:latest
 
-# With persistent KV memory
+# Run with persistent KV memory via volume
 docker run --rm -i \
   -v pmll_data:/app/data \
   -e MEMORY_FILE_PATH=/app/data/memory.jsonl \
   pmll-memory-mcp:latest
 ```
+
+### Companion servers & integrations
+
+| Server / Integration | Directory / Source | Transport | Description |
+|--------|-----------|-----------|-------------|
+| **Unstoppable Domains** | [`unstoppable-domains/`](./unstoppable-domains/) | HTTP (remote) | Search, purchase, and manage Web3 domain names via natural conversation. |
+| **Context+** | [github.com/ForLoopCodes/contextplus](https://github.com/ForLoopCodes/contextplus) | Integrated | Long-term semantic memory graph, adapted into `memory-graph.ts` and `solution-engine.ts`. By [@ForLoopCodes](https://github.com/ForLoopCodes). |
 
 Full MCP server documentation: [`mcp/README.md`](mcp/README.md)
 
@@ -411,7 +497,7 @@ Full MCP server documentation: [`mcp/README.md`](mcp/README.md)
                        └──────────┘       └────────────┘
 
 ┌─────────────────────────────────────────────────────┐
-│                  pmll-memory-mcp v1.0.0              │
+│                  pmll-memory-mcp v1.0.1              │
 │                                                     │
 │  ┌──────────── Short-term (5 tools) ──────────┐    │
 │  │ index.ts → peekContext() → kv-store.ts      │    │
@@ -494,6 +580,12 @@ Full MCP server documentation: [`mcp/README.md`](mcp/README.md)
 - WASI/Rust/OpenSSL checks are informational stubs only.
 
 ---
+
+### pmll-memory-mcp 1.0.1
+
+- **Version bump** — bumped from 1.0.0 to 1.0.1 to fix PyPI publishing (1.0.0 already existed on PyPI).
+- **Updated project descriptions** — PyPI and npm package descriptions now include "in Claude Sonnet/Opus agent tasks" to match the mcp/README.md tagline.
+- **README refresh** — PPM README.md MCP section updated with full tool reference, `peek()` pattern with TypeScript example, VS Code MCP configuration, and companion servers table from mcp/README.md.
 
 ### pmll-memory-mcp 1.0.0
 
