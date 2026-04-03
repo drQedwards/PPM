@@ -2,13 +2,40 @@
 name = "pmll-memory-mcp"
 version = "1.0.0"
 description = "PMLL Memory MCP Server — persistent KV context memory and Q-promise deduplication for Claude agent tasks"
+readme = "README.md"
 authors = [{ name = "drQedwards" }]
 license = { text = "MIT" }
 requires-python = ">=3.11"
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "pmll",
+    "memory",
+    "kv-store",
+    "q-promise",
+    "claude",
+    "agent",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+]
 dependencies = [
     "mcp>=1.0.0",
     "anyio>=4.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/drQedwards/PPM"
+Repository = "https://github.com/drQedwards/PPM"
+Issues = "https://github.com/drQedwards/PPM/issues"
+Changelog = "https://github.com/drQedwards/PPM/releases"
 
 [project.scripts]
 pmll-memory-mcp = "pmll_memory_mcp.server:main"
