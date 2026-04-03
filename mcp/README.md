@@ -235,7 +235,7 @@ Add to `.vscode/mcp.json` (or open **MCP: Open User Configuration** from the Com
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                pmll-memory-mcp v1.0.0               │
+│                pmll-memory-mcp v1.0.1               │
 │                                                     │
 │  ┌────────── Short-term (5 tools) ────────────┐    │
 │  │ index.ts  ──► peekContext()  ──► kv-store.ts│    │

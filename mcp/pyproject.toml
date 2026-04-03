@@ -1,7 +1,7 @@
 [project]
 name = "pmll-memory-mcp"
-version = "1.0.0"
-description = "PMLL Memory MCP Server — persistent memory logic loop with short-term KV context memory, Q-promise deduplication, and Context+ long-term semantic memory graph for 99% accuracy"
+version = "1.0.1"
+description = "PMLL Memory MCP Server — persistent memory logic loop with short-term KV context memory, Q-promise deduplication, and Context+ long-term semantic memory graph for 99% accuracy in Claude Sonnet/Opus agent tasks"
 readme = "README.md"
 authors = [{ name = "drQedwards" }]
 license = { text = "MIT" }
