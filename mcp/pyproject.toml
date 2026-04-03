@@ -1,7 +1,7 @@
 [project]
 name = "pmll-memory-mcp"
 version = "1.0.0"
-description = "PMLL Memory MCP Server — persistent KV context memory and Q-promise deduplication for Claude agent tasks"
+description = "PMLL Memory MCP Server — persistent memory logic loop with short-term KV context memory, Q-promise deduplication, and Context+ long-term semantic memory graph for 99% accuracy"
 readme = "README.md"
 authors = [{ name = "drQedwards" }]
 license = { text = "MIT" }
@@ -13,6 +13,10 @@ keywords = [
     "memory",
     "kv-store",
     "q-promise",
+    "context-plus",
+    "memory-graph",
+    "semantic-search",
+    "solution-engine",
     "claude",
     "agent",
 ]

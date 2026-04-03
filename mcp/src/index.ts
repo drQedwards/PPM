@@ -2,22 +2,43 @@
 /**
  * index.ts — PMLL Memory MCP Server entrypoint.
  *
- * Exposes five MCP tools for Claude Sonnet/Opus agents:
+ * Exposes 15 MCP tools for Claude Sonnet/Opus agents:
  *
+ * Short-term KV memory (5 tools):
  *   init    — Set up the PMLL memory silo and Q-promise chain for a session.
  *   peek    — Non-destructive context check (core deduplication primitive).
  *   set     — Store a KV pair in the session's PMLL silo.
  *   resolve — Resolve a pending Q-promise continuation.
  *   flush   — Clear all short-term KV slots at agent task completion.
  *
+ * GraphQL (1 tool):
+ *   graphql — Execute GraphQL queries/mutations against the memory store.
+ *
+ * Long-term memory graph (6 tools — adapted from Context+ by @ForLoopCodes):
+ *   upsert_memory_node      — Create/update memory nodes with TF-IDF embeddings.
+ *   create_relation          — Create typed edges between nodes.
+ *   search_memory_graph      — Semantic search with graph traversal.
+ *   prune_stale_links        — Remove decayed edges and orphan nodes.
+ *   add_interlinked_context  — Bulk-add nodes with auto-similarity linking.
+ *   retrieve_with_traversal  — Walk outward from a node.
+ *
+ * Solution engine (3 tools):
+ *   resolve_context      — Unified short-term → long-term context lookup.
+ *   promote_to_long_term — Promote KV entries to the memory graph.
+ *   memory_status        — Unified memory view across both layers.
+ *
  * The server is designed as the **3rd initializer** alongside Playwright and
  * other MCP tools.  Agents call `init` once at task start, then use
  * `peek` before any expensive MCP tool invocation to avoid redundant calls.
+ *
+ * Context+ integration by @ForLoopCodes (https://github.com/ForLoopCodes/contextplus).
  *
  * Architecture:
  *     - KV layer  → `PMMemoryStore` (mirrors PMLL.c memory_silo_t)
  *     - Async layer → `QPromiseRegistry` (mirrors Q_promise_lib QMemNode chain)
  *     - Guard function → `peekContext()` (peek.ts)
+ *     - Long-term → `memory-graph.ts` (adapted from Context+)
+ *     - Engine → `solution-engine.ts` (bridges short-term + long-term)
  *
  * Usage:
  *     npx pmll-memory-mcp                        # stdio transport

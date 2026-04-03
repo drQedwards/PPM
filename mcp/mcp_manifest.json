@@ -1,11 +1,18 @@
 {
   "name": "pmll-memory-mcp",
   "mcpName": "io.github.drqedwards/pmll-memory-mcp",
-  "version": "0.2.0",
-  "description": "Persistent Memory Linked List MCP tool — short-term KV context memory and Q-promise deduplication layer for Claude Sonnet/Opus agent tasks. Eliminates redundant MCP tool initializations via peek() and recursive KV slot caching.",
+  "version": "1.0.0",
+  "description": "PMLL Memory MCP server — persistent memory logic loop with short-term KV context memory, Q-promise deduplication, and Context+ long-term semantic memory graph for 99% accuracy. 15 tools: init, peek, set, resolve, flush, graphql, upsert_memory_node, create_relation, search_memory_graph, prune_stale_links, add_interlinked_context, retrieve_with_traversal, resolve_context, promote_to_long_term, memory_status.",
   "author": "drQedwards",
+  "contributors": ["ForLoopCodes (Context+ memory graph integration)"],
   "license": "MIT",
-  "tools": ["init", "peek", "set", "resolve", "flush", "graphql"],
+  "tools": [
+    "init", "peek", "set", "resolve", "flush",
+    "graphql",
+    "upsert_memory_node", "create_relation", "search_memory_graph",
+    "prune_stale_links", "add_interlinked_context", "retrieve_with_traversal",
+    "resolve_context", "promote_to_long_term", "memory_status"
+  ],
   "category": "memory",
   "tier": "premium",
   "models": ["claude-sonnet", "claude-opus"],
