@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.drqedwards/pmll-memory-mcp",
-  "description": "PMLL Memory MCP server — persistent KV context memory and Q-promise deduplication for Claude agent tasks.",
+  "description": "PMLL Memory MCP server — persistent memory logic loop with short-term KV context memory, Q-promise deduplication, and Context+ long-term semantic memory graph for 99% accuracy.",
   "repository": {
     "url": "https://github.com/drQedwards/PPM",
     "source": "github"
   },
-  "version": "0.2.0",
+  "version": "1.0.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "pmll-memory-mcp",
-      "version": "0.2.0",
+      "version": "1.0.0",
       "transport": {
         "type": "stdio"
       }

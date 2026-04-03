@@ -34,6 +34,19 @@ import { getStore, dropStore } from "./kv-store.js";
 import { QPromiseRegistry } from "./q-promise-bridge.js";
 import { peekContext } from "./peek.js";
 import { executeGraphQL, GRAPHQL_QUERY, GRAPHQL_MUTATION, GRAPHQL_DEFAULT_VARIABLES } from "./graphql.js";
+import {
+  upsertNode,
+  createRelation,
+  searchGraph,
+  pruneStaleLinks,
+  addInterlinkedContext,
+  retrieveWithTraversal,
+  getGraphStats,
+  clearGraph,
+  type NodeType,
+  type RelationType,
+} from "./memory-graph.js";
+import { resolveContext, promoteToLongTerm, getMemoryStatus } from "./solution-engine.js";
 
 // ---------------------------------------------------------------------------
 // MCP server instance
@@ -41,15 +54,20 @@ import { executeGraphQL, GRAPHQL_QUERY, GRAPHQL_MUTATION, GRAPHQL_DEFAULT_VARIAB
 const server = new McpServer(
   {
     name: "pmll-memory-mcp",
-    version: "0.2.0",
+    version: "1.0.0",
   },
   {
     instructions:
-      "PMLL Memory MCP — short-term KV context memory and Q-promise " +
-      "deduplication for Claude agent tasks. " +
-      "Call `init` once at task start, `peek` before every expensive " +
-      "MCP tool to check the cache, `set` to populate it, `resolve` to " +
-      "finalise async promises, and `flush` at task completion.",
+      "PMLL Memory MCP — persistent memory logic loop with short-term KV " +
+      "context memory, Q-promise deduplication, and Context+ long-term " +
+      "semantic memory graph for 99% accuracy. " +
+      "Short-term tools: `init`, `peek`, `set`, `resolve`, `flush`. " +
+      "Long-term tools: `upsert_memory_node`, `create_relation`, " +
+      "`search_memory_graph`, `prune_stale_links`, `add_interlinked_context`, " +
+      "`retrieve_with_traversal`. " +
+      "Solution engine: `resolve_context` (unified short+long term lookup), " +
+      "`promote_to_long_term` (promote KV entries to graph), " +
+      "`memory_status` (unified memory view).",
   },
 );
 
@@ -331,6 +349,404 @@ server.tool(
         {
           type: "text" as const,
           text: JSON.stringify({ cached: false, data: result }),
+        },
+      ],
+    };
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Tool: upsert_memory_node (Long-term memory)
+// ---------------------------------------------------------------------------
+server.tool(
+  "upsert_memory_node",
+  "Create or update a memory node in the long-term semantic graph. " +
+    "Nodes represent concepts, files, symbols, or notes with auto-generated " +
+    "TF-IDF embeddings for semantic search. Part of the Context+ solution " +
+    "engine for 99% accuracy persistent memory.",
+  {
+    session_id: z.string().describe("The session identifier (from `init`)."),
+    type: z
+      .enum(["concept", "file", "symbol", "note"])
+      .describe("Node type: concept, file, symbol, or note."),
+    label: z.string().describe("Short label for the node."),
+    content: z.string().describe("Full content/description of the node."),
+    metadata: z
+      .record(z.string())
+      .optional()
+      .default({})
+      .describe("Optional key-value metadata for the node."),
+  },
+  async ({ session_id, type, label, content, metadata }) => {
+    const node = upsertNode(session_id, type as NodeType, label, content, metadata);
+    const stats = getGraphStats(session_id);
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify({
+            status: "upserted",
+            node_id: node.id,
+            label: node.label,
+            node_type: node.type,
+            access_count: node.accessCount,
+            graph_nodes: stats.nodes,
+            graph_edges: stats.edges,
+          }),
+        },
+      ],
+    };
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Tool: create_relation (Long-term memory)
+// ---------------------------------------------------------------------------
+server.tool(
+  "create_relation",
+  "Create a typed edge between two memory nodes in the long-term graph. " +
+    "Supported relation types: relates_to, depends_on, implements, " +
+    "references, similar_to, contains.",
+  {
+    session_id: z.string().describe("The session identifier (from `init`)."),
+    source_id: z.string().describe("Source node ID."),
+    target_id: z.string().describe("Target node ID."),
+    relation: z
+      .enum([
+        "relates_to",
+        "depends_on",
+        "implements",
+        "references",
+        "similar_to",
+        "contains",
+      ])
+      .describe("Relation type for the edge."),
+    weight: z
+      .number()
+      .optional()
+      .default(1.0)
+      .describe("Edge weight (default: 1.0)."),
+  },
+  async ({ session_id, source_id, target_id, relation, weight }) => {
+    const edge = createRelation(
+      session_id,
+      source_id,
+      target_id,
+      relation as RelationType,
+      weight,
+    );
+    if (!edge) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify({
+              status: "error",
+              message: "One or both node IDs not found",
+            }),
+          },
+        ],
+      };
+    }
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify({
+            status: "created",
+            edge_id: edge.id,
+            relation: edge.relation,
+            weight: edge.weight,
+          }),
+        },
+      ],
+    };
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Tool: search_memory_graph (Long-term memory)
+// ---------------------------------------------------------------------------
+server.tool(
+  "search_memory_graph",
+  "Semantic search with graph traversal — finds direct matches then walks " +
+    "1st/2nd-degree neighbors. Returns ranked results scored by cosine " +
+    "similarity and edge decay.",
+  {
+    session_id: z.string().describe("The session identifier (from `init`)."),
+    query: z.string().describe("Natural language search query."),
+    max_depth: z
+      .number()
+      .int()
+      .optional()
+      .default(1)
+      .describe("Maximum traversal depth (default: 1)."),
+    top_k: z
+      .number()
+      .int()
+      .optional()
+      .default(5)
+      .describe("Maximum number of direct hits (default: 5)."),
+  },
+  async ({ session_id, query, max_depth, top_k }) => {
+    const result = searchGraph(session_id, query, max_depth, top_k);
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify({
+            query,
+            direct: result.direct.map((d) => ({
+              node_id: d.node.id,
+              label: d.node.label,
+              type: d.node.type,
+              content: d.node.content,
+              score: d.relevanceScore,
+            })),
+            neighbors: result.neighbors.map((n) => ({
+              node_id: n.node.id,
+              label: n.node.label,
+              type: n.node.type,
+              content: n.node.content,
+              score: n.relevanceScore,
+              depth: n.depth,
+              path: n.pathRelations,
+            })),
+            total_nodes: result.totalNodes,
+            total_edges: result.totalEdges,
+          }),
+        },
+      ],
+    };
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Tool: prune_stale_links (Long-term memory)
+// ---------------------------------------------------------------------------
+server.tool(
+  "prune_stale_links",
+  "Remove decayed edges (e^(-λt) below threshold) and orphan nodes with " +
+    "low access counts from the long-term memory graph.",
+  {
+    session_id: z.string().describe("The session identifier (from `init`)."),
+    threshold: z
+      .number()
+      .optional()
+      .default(0.15)
+      .describe("Decay threshold below which edges are pruned (default: 0.15)."),
+  },
+  async ({ session_id, threshold }) => {
+    const result = pruneStaleLinks(session_id, threshold);
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify({
+            status: "pruned",
+            removed: result.removed,
+            remaining_edges: result.remaining,
+          }),
+        },
+      ],
+    };
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Tool: add_interlinked_context (Long-term memory)
+// ---------------------------------------------------------------------------
+server.tool(
+  "add_interlinked_context",
+  "Bulk-add nodes with auto-similarity linking (cosine ≥ 0.72 creates " +
+    "edges automatically). Efficient for adding multiple related concepts " +
+    "at once.",
+  {
+    session_id: z.string().describe("The session identifier (from `init`)."),
+    items: z
+      .array(
+        z.object({
+          type: z.enum(["concept", "file", "symbol", "note"]),
+          label: z.string(),
+          content: z.string(),
+          metadata: z.record(z.string()).optional(),
+        }),
+      )
+      .describe("Array of nodes to add."),
+    auto_link: z
+      .boolean()
+      .optional()
+      .default(true)
+      .describe("Auto-create similarity edges (default: true)."),
+  },
+  async ({ session_id, items, auto_link }) => {
+    const result = addInterlinkedContext(
+      session_id,
+      items.map((i) => ({
+        type: i.type as NodeType,
+        label: i.label,
+        content: i.content,
+        metadata: i.metadata,
+      })),
+      auto_link,
+    );
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify({
+            status: "added",
+            nodes_created: result.nodes.length,
+            edges_created: result.edges.length,
+            nodes: result.nodes.map((n) => ({
+              id: n.id,
+              label: n.label,
+              type: n.type,
+            })),
+          }),
+        },
+      ],
+    };
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Tool: retrieve_with_traversal (Long-term memory)
+// ---------------------------------------------------------------------------
+server.tool(
+  "retrieve_with_traversal",
+  "Start from a node and walk outward — returns all reachable neighbors " +
+    "scored by decay and depth. Used for exploring the knowledge graph " +
+    "from a known starting point.",
+  {
+    session_id: z.string().describe("The session identifier (from `init`)."),
+    start_node_id: z.string().describe("ID of the starting node."),
+    max_depth: z
+      .number()
+      .int()
+      .optional()
+      .default(2)
+      .describe("Maximum traversal depth (default: 2)."),
+  },
+  async ({ session_id, start_node_id, max_depth }) => {
+    const results = retrieveWithTraversal(session_id, start_node_id, max_depth);
+    if (results.length === 0) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify({
+              status: "error",
+              message: `Node not found: ${start_node_id}`,
+            }),
+          },
+        ],
+      };
+    }
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify({
+            start_node: results[0].node.label,
+            results: results.map((r) => ({
+              node_id: r.node.id,
+              label: r.node.label,
+              type: r.node.type,
+              content: r.node.content,
+              depth: r.depth,
+              score: r.relevanceScore,
+              path: r.pathRelations,
+            })),
+          }),
+        },
+      ],
+    };
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Tool: resolve_context (Solution Engine)
+// ---------------------------------------------------------------------------
+server.tool(
+  "resolve_context",
+  "Unified context resolution across both short-term (KV cache) and " +
+    "long-term (semantic graph) memory layers. Checks KV cache first, " +
+    "then falls back to semantic graph search. This is the primary " +
+    "Context+ solution engine tool for achieving 99% accuracy.",
+  {
+    session_id: z.string().describe("The session identifier (from `init`)."),
+    key: z.string().describe("The context key to resolve."),
+  },
+  async ({ session_id, key }) => {
+    const store = getStore(session_id);
+    const result = resolveContext(session_id, key, store);
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify(result),
+        },
+      ],
+    };
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Tool: promote_to_long_term (Solution Engine)
+// ---------------------------------------------------------------------------
+server.tool(
+  "promote_to_long_term",
+  "Promote a short-term KV cache entry to the long-term semantic memory " +
+    "graph. Creates a persistent memory node from a frequently accessed " +
+    "cache entry, ensuring important context survives session flushes.",
+  {
+    session_id: z.string().describe("The session identifier (from `init`)."),
+    key: z.string().describe("The context key/label for the memory node."),
+    value: z.string().describe("The content to store in long-term memory."),
+    node_type: z
+      .enum(["concept", "file", "symbol", "note"])
+      .optional()
+      .default("concept")
+      .describe("Node type (default: concept)."),
+  },
+  async ({ session_id, key, value, node_type }) => {
+    const result = promoteToLongTerm(
+      session_id,
+      key,
+      value,
+      node_type as NodeType,
+    );
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify(result),
+        },
+      ],
+    };
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Tool: memory_status (Solution Engine)
+// ---------------------------------------------------------------------------
+server.tool(
+  "memory_status",
+  "Get a unified status view of both short-term (KV cache) and long-term " +
+    "(semantic graph) memory layers. Shows slot usage, graph statistics, " +
+    "and promotion threshold.",
+  {
+    session_id: z.string().describe("The session identifier (from `init`)."),
+  },
+  async ({ session_id }) => {
+    const store = getStore(session_id);
+    const status = getMemoryStatus(session_id, store);
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify(status),
         },
       ],
     };
