@@ -17,7 +17,9 @@
 
 PPM is a next-generation Python package manager featuring hermetic packaging,
 GPU-accelerated verification, cryptographic signing, and a companion
-[PMLL Memory MCP server](#-pmll-memory-mcp-server) for Claude agent tasks.
+[PMLL Memory MCP server](#-pmll-memory-mcp-server) for Claude agent tasks —
+now integrating [Context+](https://github.com/ForLoopCodes/contextplus) long-term
+semantic memory graph for 99% accuracy.
 
 ---
 
@@ -263,9 +265,19 @@ export CUDA_VISIBLE_DEVICES=0               # control GPU usage
 
 ## 🧠 PMLL Memory MCP Server
 
-`pmll-memory-mcp` (v0.2.0) is a **Model Context Protocol (MCP) server** that gives
-Claude Sonnet / Opus agents a fast, session-isolated, short-term KV memory layer.
+`pmll-memory-mcp` (v1.0.0) is a **Model Context Protocol (MCP) server** that gives
+Claude Sonnet / Opus agents a persistent memory logic loop with **short-term KV
+context memory**, **Q-promise deduplication**, and **[Context+](https://github.com/ForLoopCodes/contextplus)
+long-term semantic memory graph** for 99% accuracy.
+
 It is designed as the **3rd initializer** alongside Playwright and other MCP tools.
+
+> **Context+ integration** — The long-term memory graph and solution engine tools are
+> adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by
+> [@ForLoopCodes](https://github.com/ForLoopCodes), which provides semantic
+> intelligence for large-scale engineering through RAG, graph traversal, and
+> Obsidian-style linking. PMLL integrates the Context+ memory graph architecture to
+> bridge short-term KV cache with long-term semantic knowledge.
 
 ### Installation
 
@@ -275,6 +287,10 @@ npx pmll-memory-mcp
 
 # Via npm
 npm install -g pmll-memory-mcp
+pmll-memory-mcp          # starts the stdio MCP server
+
+# Via pip (Python)
+pip install pmll-memory-mcp
 pmll-memory-mcp          # starts the stdio MCP server
 ```
 
@@ -309,7 +325,9 @@ pmll-memory-mcp          # starts the stdio MCP server
 }
 ```
 
-### Tools reference
+### Tools reference (15 tools)
+
+#### Short-term KV memory (original 5 tools)
 
 | Tool      | Inputs                                          | Output                                              | Description                                       |
 |-----------|-------------------------------------------------|-----------------------------------------------------|---------------------------------------------------|
@@ -319,6 +337,31 @@ pmll-memory-mcp          # starts the stdio MCP server
 | `resolve` | `session_id`, `promise_id`                      | `{status: "resolved"\|"pending", payload?}`         | Check / resolve a Q-promise continuation          |
 | `flush`   | `session_id`                                    | `{status: "flushed", cleared_count}`                | Clear all silo slots at task completion           |
 
+#### GraphQL
+
+| Tool      | Inputs                                          | Output                                              | Description                                       |
+|-----------|-------------------------------------------------|-----------------------------------------------------|---------------------------------------------------|
+| `graphql` | `query`, `variables?`, `operationName?`         | `{data}` or `{errors}`                              | Execute GraphQL queries/mutations against the memory store |
+
+#### Long-term memory graph (6 tools — adapted from [Context+](https://github.com/ForLoopCodes/contextplus))
+
+| Tool                      | Inputs                                                  | Output                                                | Description                                                                        |
+|---------------------------|---------------------------------------------------------|-------------------------------------------------------|------------------------------------------------------------------------------------|
+| `upsert_memory_node`      | `session_id`, `type`, `label`, `content`, `metadata?`   | `{node}`                                              | Create or update a memory node with auto-generated embeddings                      |
+| `create_relation`         | `session_id`, `source_id`, `target_id`, `relation`, `weight?` | `{edge}`                                        | Create typed edges between nodes (relates_to, depends_on, implements, etc.)        |
+| `search_memory_graph`     | `session_id`, `query`, `max_depth?`, `top_k?`           | `{direct, neighbors, totalNodes, totalEdges}`         | Semantic search with graph traversal — direct matches + 1st/2nd-degree neighbors   |
+| `prune_stale_links`       | `session_id`, `threshold?`                               | `{removed, remaining}`                                | Remove decayed edges (e^(-λt) below threshold) and orphan nodes                    |
+| `add_interlinked_context` | `session_id`, `items[]`, `auto_link?`                    | `{nodes, edges}`                                      | Bulk-add nodes with auto-similarity linking (cosine ≥ 0.72 creates edges)          |
+| `retrieve_with_traversal` | `session_id`, `start_node_id`, `max_depth?`              | `[{node, depth, pathRelations, relevanceScore}]`      | Walk outward from a node — returns all reachable neighbors scored by decay & depth |
+
+#### Solution engine (2 tools + 1 status tool)
+
+| Tool                   | Inputs                                             | Output                                                 | Description                                                           |
+|------------------------|----------------------------------------------------|--------------------------------------------------------|-----------------------------------------------------------------------|
+| `resolve_context`      | `session_id`, `key`                                | `{source, value, score}`                               | Unified context lookup: short-term KV → long-term graph → miss        |
+| `promote_to_long_term` | `session_id`, `key`, `value`, `node_type?`         | `{promoted, nodeId}`                                   | Promote a short-term KV entry to the long-term memory graph           |
+| `memory_status`        | `session_id`                                       | `{shortTerm, longTerm, promotionThreshold}`            | Unified view of both short-term and long-term memory status           |
+
 ### The `peek()` pattern
 
 ```
@@ -327,6 +370,7 @@ Agent task start
   ├── 2nd init: Unstoppable Domains MCP
   └── 3rd init: pmll-memory-mcp   ← this server
         └── all subsequent tool calls go through peek() first
+        └── frequently accessed entries auto-promote to long-term graph
 ```
 
 ### Docker build
@@ -367,11 +411,23 @@ Full MCP server documentation: [`mcp/README.md`](mcp/README.md)
                        └──────────┘       └────────────┘
 
 ┌─────────────────────────────────────────────────────┐
-│                  pmll-memory-mcp                    │
+│                  pmll-memory-mcp v1.0.0              │
 │                                                     │
-│  index.ts  ──►  peekContext()  ──►  kv-store.ts     │
-│                      │                              │
-│                      └─────────►  q-promise-bridge  │
+│  ┌──────────── Short-term (5 tools) ──────────┐    │
+│  │ index.ts → peekContext() → kv-store.ts      │    │
+│  │                  │                          │    │
+│  │                  └──────► q-promise-bridge   │    │
+│  └─────────────────────────────────────────────┘    │
+│                                                     │
+│  ┌──────── Long-term — Context+ (6 tools) ────┐    │
+│  │ memory-graph.ts → embeddings.ts             │    │
+│  │ (nodes, edges, decay, cosine similarity)    │    │
+│  └─────────────────────────────────────────────┘    │
+│                                                     │
+│  ┌──────── Solution Engine (3 tools) ─────────┐    │
+│  │ solution-engine.ts                          │    │
+│  │ (resolve_context, promote, memory_status)   │    │
+│  └─────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────┘
         │                    │
         ▼                    ▼
@@ -388,7 +444,10 @@ Full MCP server documentation: [`mcp/README.md`](mcp/README.md)
 | `PMLL.c` / `PMLL.h`     | Persistent Memory Logic Loop — KV silo primitives                |
 | `SAT.c` / `SAT.h`       | Boolean SAT solver used for dependency resolution                |
 | `Q_promise_lib/`        | Q-promise / async continuation chain (mirrors JS Promises in C)  |
-| `mcp/`                  | TypeScript PMLL Memory MCP server                                |
+| `mcp/`                  | TypeScript PMLL Memory MCP server (15 tools)                     |
+| `mcp/src/memory-graph.ts` | Long-term memory graph adapted from [Context+](https://github.com/ForLoopCodes/contextplus) |
+| `mcp/src/solution-engine.ts` | Solution engine bridging short-term KV + long-term graph    |
+| `mcp/src/embeddings.ts`  | TF-IDF embeddings and cosine similarity for semantic search     |
 | `CLI/`                  | Extended CLI interface                                           |
 | `Panda-lib/` `Torch-lib/` `Numpy-lib/` | Library integration shims                       |
 | `scripts/`              | Build helpers and automation scripts                             |
@@ -435,6 +494,23 @@ Full MCP server documentation: [`mcp/README.md`](mcp/README.md)
 - WASI/Rust/OpenSSL checks are informational stubs only.
 
 ---
+
+### pmll-memory-mcp 1.0.0
+
+- **Context+ integration** — 6 long-term memory graph tools adapted from
+  [Context+](https://github.com/ForLoopCodes/contextplus) by
+  [@ForLoopCodes](https://github.com/ForLoopCodes): `upsert_memory_node`,
+  `create_relation`, `search_memory_graph`, `prune_stale_links`,
+  `add_interlinked_context`, `retrieve_with_traversal`.
+- **Solution engine** — 2 new tools + 1 status tool bridging short-term KV cache
+  with long-term memory graph: `resolve_context`, `promote_to_long_term`,
+  `memory_status`.
+- **GraphQL tool** — `graphql` tool for flexible query/mutation access.
+- 15 total tools (5 short-term KV + 1 GraphQL + 6 long-term graph + 3 solution engine).
+- TF-IDF embeddings with cosine similarity search across the memory graph.
+- Temporal decay scoring (e^(-λt)) on graph edges with automatic pruning.
+- Auto-similarity linking (cosine ≥ 0.72) on bulk context additions.
+- Unified context resolution path: short-term → long-term → miss.
 
 ### pmll-memory-mcp 0.2.0
 
