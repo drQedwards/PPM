@@ -1,6 +1,6 @@
 {
   "name": "pmll-memory-mcp",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "mcpName": "io.github.drqedwards/pmll-memory-mcp",
   "description": "PMLL Memory MCP Server — persistent KV context memory and Q-promise deduplication for Claude agent tasks",
   "type": "module",

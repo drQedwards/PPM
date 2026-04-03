@@ -1,6 +1,6 @@
 [project]
 name = "pmll-memory-mcp"
-version = "0.2.1"
+version = "1.0.0"
 description = "PMLL Memory MCP Server — persistent KV context memory and Q-promise deduplication for Claude agent tasks"
 authors = [{ name = "drQedwards" }]
 license = { text = "MIT" }
