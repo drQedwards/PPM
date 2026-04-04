@@ -113,7 +113,7 @@ The PMLL short-term KV memory tools (`init`, `peek`, `set`, `resolve`, `flush`) 
 | **TypeScript total (avg)** | 651ms | 651ms | Same (test harness overhead dominates) |
 | **TypeScript test execution (avg)** | 80ms | 80ms | Same (all 156 tests pass) |
 | **Python total (avg)** | 60ms | 60ms | Same (all 63 tests pass) |
-| **Single `peek` cache hit** | N/A (re-executes) | 0ms | **∞ (eliminated)** |
+| **Single `peek` cache hit** | N/A (re-executes) | 0ms | **100% (eliminated)** |
 | **Single `set` + `peek` round-trip** | N/A | ≤2ms | **O(1) vs O(n) external call** |
 | **Redundant MCP tool call** | Full re-execution | 0ms (cache hit) | **100% elimination** |
 
