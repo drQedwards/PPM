@@ -1,29 +1,32 @@
 # Context+ MCP - Agent Workflow
 
-## TODO for copilot
-
-- [ ] Do this todo exactly in order from top to bottom
-- [ ] Use `forloopscode/contextplus` or the fork `drqedwards/contextplus` repos as reference alongside this repo always
-- [ ] Include PMLL 5 MCP TOOLS. Use `mcp/readme.md` to find the specific tool names and use that information to update this `agent_instructions.md` so that PMLL's MCP short term memory tools such as `peek[...]`
-- [ ] Compare test runtime speed using only Context+'s MCP tools using the original baseline of no tools at all to start. It is to be expected Context+ runs faster than baseline (see contextplus's documentation)
-- [ ] Read this article found in quotations as food for thought:
-
-  > "> Think of what I’m about to say as if we have three “agents”/“persons” that are about to go into committee to collaborate with their separate project contexts, but all three have the same role: software engineers. we directly compare the vectorized matricies of memory (the memory sheets) and overlay them and mark the differences in the context. There is also a separate short term cache of the semantic graph that works in parallel with long term ones. We will now discuss why we need both to maintain not only accuracy, but why this slaps better than a stateless group of Claudes who can never truly learn from each other, but also not learn the “wrong” things.
-
-> 
-> So let us say you give the same prompt and the chain of reasoning of commands kick off. Say, you tell the Claudes to update your NPMJS package on the registry. One agent does one solution that takes longer than the other two, but it provides alternatives, and meanwhile the other Claude resolves at the quickest pace but no fallback alternatives to call back on if that solution were to somehow to ever fail. All three derive their solutions. During the chain of reasoning of commands, semantics are happening (NLP) and they get graphed. There will be differences in how big one graph is to the other. Depending on how you want to fine tune, you can completely throw out and bin the fallbacks for the fastest iteration, or not: this is where a “Q” promise handles that as an MCP tool on the backend.
-
-> 
-> However, we have yet to discuss separate project context memory: aka, different prompts. For this one, we want to peek in short term instead of committing to long term that memory: that way you avoid dataset poisoning and false memory hallucinations. It gets stored still (a cache is a cache), so the comparison can still occur and Q promises can be stored in order to be binned or handled to fulfillment asynchronously via vectorization from the cache— thus , allowing for the vectorized semantic store (aka, the past context) to be used to deliberate what should be resolved as the formal “solution”.
-
-> 
-> This is for abstracted contexts without any means of scoring. The last part is Boolean: whether your context is abstract or concrete. So that means… semantically speaking, if your three claudes are deriving scores for, say, arc-agi-3, then the highest scored version of the three becomes the leader, which gets rewarded by literally weighing the vector store up (it weighs more). If there are no score derivations, then we have an abstracted context for our memory comparisons. That is how how mathematically the graphs can be used to resolve semantics without creating memory bloat: things can be thrown out and forgotten after the meeting of the Claudes (or their memory banks) while giving 99% accuracy that the memory we have committed is 99% what we wanted to achieve as our Solution."
-
-- [ ] Once all four TODOs are complete, complete this final todo by deleting the TODO section completely for the PR
-
 ## Purpose
 
 Context+ gives you structural awareness of the entire codebase without reading every file. These tools replace your default search and read operations — use them as your primary interface to the codebase.
+
+## PMLL Short-Term KV Memory (5 Tools)
+
+Before every expensive MCP tool invocation, agents MUST use the PMLL short-term KV memory tools to check the cache. This eliminates redundant calls and accelerates task execution. These tools are provided by the [`pmll-memory-mcp`](https://www.npmjs.com/package/pmll-memory-mcp) server (see [mcp/README.md](./README.md)).
+
+| Tool      | Input                                              | Description                                                |
+|-----------|----------------------------------------------------|------------------------------------------------------------|
+| `init`    | `session_id: str`, `silo_size: int = 256`          | Initialize a PMLL silo and Q-promise chain for the session |
+| `peek`    | `session_id: str`, `key: str`                      | Non-destructive cache lookup + Q-promise check (call before every expensive tool) |
+| `set`     | `session_id: str`, `key: str`, `value: str`        | Store a key-value pair in the silo after a cache miss      |
+| `resolve` | `session_id: str`, `promise_id: str`               | Check or resolve a Q-promise continuation                  |
+| `flush`   | `session_id: str`                                  | Clear all silo slots at task completion                    |
+
+### The `peek()` Pattern
+
+Call `peek` before every expensive tool invocation:
+
+1. **`init`** once at task start to set up the session silo
+2. **`peek`** before each expensive call — if hit, use the cached value; if pending, wait on the Q-promise
+3. **`set`** after a cache miss to populate the silo for future agents/subtasks
+4. **`resolve`** to check or fulfill Q-promise continuations
+5. **`flush`** at task end to clear all session slots
+
+This pattern ensures that Context+ tool results, Playwright page contents, and other expensive outputs are cached and reused across subtasks rather than re-fetched.
 
 ## Tool Priority (Mandatory)
 
