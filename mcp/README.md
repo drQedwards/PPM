@@ -28,7 +28,7 @@
 
 ## Benchmark Results (v2.0.0)
 
-Four-way speed comparison across both languages. Full details in [`benchmarks/three-way-speed-comparison.md`](./benchmarks/three-way-speed-comparison.md).
+Four-way speed comparison across both languages. Full details in [`benchmarks/three-way-speed-comparison.md`](./benchmarks/three-way-speed-comparison.md) (updated from 3-way to 4-way in v2.0.0).
 
 ### TypeScript — Average Test Execution (5 runs)
 
