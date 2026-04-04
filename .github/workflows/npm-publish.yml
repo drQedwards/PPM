@@ -1,6 +1,7 @@
 name: Publish pmll-memory-mcp to npm
 
 on:
+  pull_request:
   release:
     types: [published]
   workflow_dispatch:
@@ -34,6 +35,7 @@ jobs:
         run: npm test
 
       - name: Publish to npm
+        if: github.event_name == 'release'
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
