@@ -1,9 +1,13 @@
-# PMLL Memory MCP Server
+# PMLL Memory MCP Server v2.0.0
 
-> **Persistent memory logic loop with short-term KV context memory, Q-promise
+> **Persistent memory logic loop with short-term KV cache (peek pattern), Q-promise
 > deduplication, and [Context+](https://github.com/ForLoopCodes/contextplus) long-term
 > semantic memory graph for 99% accuracy in Claude Sonnet/Opus agent tasks.**
+>
+> **v2.0.0** — Four-way benchmarked, agent_instructions workflow, combined Context+ + PMLL/peek.
 
+[![npm](https://img.shields.io/npm/v/pmll-memory-mcp)](https://www.npmjs.com/package/pmll-memory-mcp)
+[![PyPI](https://img.shields.io/pypi/v/pmll-memory-mcp)](https://pypi.org/project/pmll-memory-mcp/)
 [![MCP Registry](https://img.shields.io/badge/MCP-Registry%20Submission-blue)](https://github.com/modelcontextprotocol/servers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](../LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-%3E%3D5.0-blue)](https://www.typescriptlang.org/)
@@ -11,7 +15,93 @@
 
 ---
 
-## What it does
+## What's New in v2.0.0
+
+- **Four-way speed benchmarks** — baseline, Context+-only, PMLL/peek-only, and combined (Context+ + PMLL/peek) configurations benchmarked in both TypeScript and Python with 5-run averages
+- **Combined speed tests** — new `combined-speed.test.ts` (14 tests) and `test_combined_speed.py` (14 tests) proving both layers work together
+- **Context+ standalone speed tests** — isolated `contextplus-speed.test.ts` (27 tests) and `test_contextplus_speed.py` (27 tests) benchmarking pure graph operations
+- **agent_instructions.md** — mandatory agent workflow documentation defining the `peek()` pattern, tool priority, and Context+ tool reference for all 15 tools
+- **Expanded test suites** — 197 TypeScript tests (8 files), 104 Python tests (6 files)
+- **npm + PyPI dual publishing** — automated CI/CD for both registries on release
+
+---
+
+## Benchmark Results (v2.0.0)
+
+Four-way speed comparison across both languages. Full details in [`benchmarks/three-way-speed-comparison.md`](./benchmarks/three-way-speed-comparison.md).
+
+### TypeScript — Average Test Execution (5 runs)
+
+| Configuration | Avg Test Time | Tests | Per-test |
+|---------------|--------------|-------|----------|
+| **Baseline (full suite)** | 302ms | 197 | 1.53ms |
+| **Context+ only (no peek)** | 63ms | 27 | 2.33ms |
+| **PMLL/peek only** | 26ms | 32 | 0.81ms |
+| ⭐ **Combined (Context+ + PMLL/peek)** | **36ms** | 14 | 2.57ms |
+
+### Python — Total Duration Averages (5 runs)
+
+| Configuration | Avg Duration | Tests | Per-test |
+|---------------|-------------|-------|----------|
+| **Baseline (full suite)** | 250ms | 104 | 2.40ms |
+| **Context+ only (no peek)** | 142ms | 27 | 5.26ms |
+| **PMLL/peek only** | 92ms | 32 | 2.88ms |
+| ⭐ **Combined (Context+ + PMLL/peek)** | **78ms** | 14 | 5.57ms |
+
+### Per-Operation Highlights
+
+| Operation | TypeScript | Python | Layer |
+|-----------|-----------|--------|-------|
+| `peek` cache hit | **0ms** | **<1ms** | PMLL/KV |
+| `set` + `peek` round-trip | **≤2ms** | **≤3ms** | PMLL/KV |
+| `upsert_memory_node` (100 nodes) | **6–7ms** | **~8ms** | Context+ graph |
+| `search_memory_graph` (100 nodes, depth-2) | **7–8ms** | **~10ms** | Context+ graph |
+| ⭐ **Graph search + cache + 50 peeks** | **≤8ms total** | **≤10ms total** | **Combined** |
+
+### Key Findings
+
+1. **Combined is the fastest total in Python** at 78ms — beating PMLL/peek-only (92ms) and Context+-only (142ms)
+2. **In TypeScript**, combined (36ms) finishes nearly as fast as PMLL/peek-only (26ms) despite doing far more work per test
+3. **The cache elimination pattern works**: 1 graph search (2–8ms) + 50 peek hits (0ms each) = 8ms total vs 50 × 8ms = 400ms without caching
+4. **Both languages benefit equally** from the combined approach
+
+---
+
+## Agent Instructions (`agent_instructions.md`)
+
+Every agent using this server **must** follow the workflow defined in [`agent_instructions.md`](./agent_instructions.md). Key requirements:
+
+### The `peek()` Pattern (Mandatory)
+
+1. **`init`** once at task start to set up the session silo
+2. **`peek`** before every expensive MCP tool call — if hit, use cached value
+3. **`set`** after a cache miss to populate the silo
+4. **`resolve`** to check Q-promise continuations
+5. **`flush`** at task end to clear session slots
+
+### Tool Priority (Mandatory)
+
+Agents MUST use Context+ tools instead of native equivalents:
+
+| Instead of… | MUST use… | Why |
+|---|---|---|
+| `grep`, `rg` | `semantic_code_search` | Finds by meaning, not string match |
+| `find`, `ls` | `get_context_tree` | Structure with symbols + line ranges |
+| `cat`, read file | `get_file_skeleton` first | Signatures without wasting context |
+| manual symbol tracing | `get_blast_radius` | Traces all usages across codebase |
+
+### Execution Rules
+
+- Think less, execute sooner: smallest safe change, validate quickly
+- Batch independent reads/searches in parallel
+- If a command fails, diagnose once, pivot strategy, cap retries to 1–2
+- Start every task with `get_context_tree` or `get_file_skeleton`
+- Run `get_blast_radius` BEFORE modifying or deleting any symbol
+- Use `search_memory_graph` at task start, `upsert_memory_node` after completing work
+
+See the full [agent_instructions.md](./agent_instructions.md) for the complete 15-tool reference and anti-patterns.
+
+---
 
 `pmll-memory-mcp` is a **Model Context Protocol (MCP) server** that gives Claude Sonnet/Opus agents a persistent memory logic loop with two complementary memory layers:
 
@@ -235,7 +325,7 @@ Add to `.vscode/mcp.json` (or open **MCP: Open User Configuration** from the Com
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                pmll-memory-mcp v1.0.1               │
+│                pmll-memory-mcp v2.0.0               │
 │                                                     │
 │  ┌────────── Short-term (5 tools) ────────────┐    │
 │  │ index.ts  ──► peekContext()  ──► kv-store.ts│    │
