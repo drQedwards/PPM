@@ -19,6 +19,9 @@ keywords = [
     "solution-engine",
     "claude",
     "agent",
+    "agent-instructions",
+    "benchmarks",
+    "peek-cache",
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",

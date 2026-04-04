@@ -9,7 +9,9 @@
     "pmll-memory-mcp": "dist/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "agent_instructions.md",
+    "benchmarks"
   ],
   "scripts": {
     "build": "tsc",
@@ -29,7 +31,10 @@
     "context-plus",
     "memory-graph",
     "semantic-search",
-    "solution-engine"
+    "solution-engine",
+    "agent-instructions",
+    "benchmarks",
+    "peek-cache"
   ],
   "author": "drQedwards",
   "license": "MIT",
