@@ -9,7 +9,7 @@ on:
 jobs:
   publish-npm:
     runs-on: ubuntu-latest
-    environment: Npm token environment
+    environment: ${{ github.event_name == 'release' && 'Npm token environment' || '' }}
     permissions:
       contents: read
       id-token: write
