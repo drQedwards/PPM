@@ -165,7 +165,7 @@ describe("Context+ create_relation — standalone speed", () => {
     }
   });
 
-  it("create 50 edges in a fully connected cluster of 10 nodes", () => {
+  it("create 45 edges in a fully connected cluster of 10 nodes", () => {
     const nodes = [];
     for (let i = 0; i < 10; i++) {
       nodes.push(upsertNode("bench", "concept", `cluster-${i}`, `cluster node ${i}`));
