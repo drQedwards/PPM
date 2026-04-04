@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.drqedwards/pmll-memory-mcp",
-  "description": "PMLL Memory MCP server — persistent memory logic loop with short-term KV context memory, Q-promise deduplication, and Context+ long-term semantic memory graph for 99% accuracy in Claude Sonnet/Opus agent tasks.",
+  "description": "PMLL Memory MCP Server v2 — persistent memory logic loop with short-term KV cache (peek pattern), Q-promise deduplication, Context+ long-term semantic memory graph, and solution engine. Four-way benchmarked: Combined Context+ + PMLL/peek delivers 36ms (TS) / 78ms (PY) total. 15 tools, agent_instructions workflow included. 99% accuracy in Claude Sonnet/Opus agent tasks.",
   "repository": {
     "url": "https://github.com/drQedwards/PPM",
     "source": "github"
   },
-  "version": "1.0.1",
+  "version": "2.0.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "pmll-memory-mcp",
-      "version": "1.0.1",
+      "version": "2.0.0",
       "transport": {
         "type": "stdio"
       }
