@@ -8,13 +8,16 @@
 - [ ] Compare test runtime speed using only Context+'s MCP tools using the original baseline of no tools at all to start. It is to be expected Context+ runs faster than baseline (see contextplus's documentation)
 - [ ] Read this article found in quotations as food for thought:
 
-  > "Think of what I'm about to say as if we have three "agents"/"persons" that are about to go into committee to collaborate with the same goal in mind.
-  >
-  > So let us say you give the same prompt and the chain of reasoning of commands kick off. Say, you tell the Claudes to update your NPMJS package on the registry. One agent does one solution that takes one path, while another agent does another solution taking another path.
-  >
-  > However, we have yet to discuss separate project context memory: aka, different prompts. For this one, we want to peek in short term instead of committing to long term that memory: that way you avoid overwriting valuable long-term memory.
-  >
-  > This is for abstracted contexts without any means of scoring. The last part is Boolean: whether your context is abstract or concrete. So that means… semantically speaking, if your three Claudes [...]"
+  > "> Think of what I’m about to say as if we have three “agents”/“persons” that are about to go into committee to collaborate with their separate project contexts, but all three have the same role: software engineers. we directly compare the vectorized matricies of memory (the memory sheets) and overlay them and mark the differences in the context. There is also a separate short term cache of the semantic graph that works in parallel with long term ones. We will now discuss why we need both to maintain not only accuracy, but why this slaps better than a stateless group of Claudes who can never truly learn from each other, but also not learn the “wrong” things.
+
+> 
+> So let us say you give the same prompt and the chain of reasoning of commands kick off. Say, you tell the Claudes to update your NPMJS package on the registry. One agent does one solution that takes longer than the other two, but it provides alternatives, and meanwhile the other Claude resolves at the quickest pace but no fallback alternatives to call back on if that solution were to somehow to ever fail. All three derive their solutions. During the chain of reasoning of commands, semantics are happening (NLP) and they get graphed. There will be differences in how big one graph is to the other. Depending on how you want to fine tune, you can completely throw out and bin the fallbacks for the fastest iteration, or not: this is where a “Q” promise handles that as an MCP tool on the backend.
+
+> 
+> However, we have yet to discuss separate project context memory: aka, different prompts. For this one, we want to peek in short term instead of committing to long term that memory: that way you avoid dataset poisoning and false memory hallucinations. It gets stored still (a cache is a cache), so the comparison can still occur and Q promises can be stored in order to be binned or handled to fulfillment asynchronously via vectorization from the cache— thus , allowing for the vectorized semantic store (aka, the past context) to be used to deliberate what should be resolved as the formal “solution”.
+
+> 
+> This is for abstracted contexts without any means of scoring. The last part is Boolean: whether your context is abstract or concrete. So that means… semantically speaking, if your three claudes are deriving scores for, say, arc-agi-3, then the highest scored version of the three becomes the leader, which gets rewarded by literally weighing the vector store up (it weighs more). If there are no score derivations, then we have an abstracted context for our memory comparisons. That is how how mathematically the graphs can be used to resolve semantics without creating memory bloat: things can be thrown out and forgotten after the meeting of the Claudes (or their memory banks) while giving 99% accuracy that the memory we have committed is 99% what we wanted to achieve as our Solution."
 
 - [ ] Once all four TODOs are complete, complete this final todo by deleting the TODO section completely for the PR
 
