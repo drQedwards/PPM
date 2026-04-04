@@ -59,6 +59,24 @@ You MUST use Context+ tools instead of native equivalents. Only fall back to nat
 
 ## Tool Reference
 
+### PMLL Short-Term KV Memory
+
+| Tool      | When to Use                                                                  |
+|-----------|------------------------------------------------------------------------------|
+| `init`    | Once at task start. Set up the PMLL silo and Q-promise chain for the session.|
+| `peek`    | Before every expensive MCP tool call. Non-destructive cache + Q-promise check.|
+| `set`     | After a cache miss. Store the result so future agents/subtasks skip the call. |
+| `resolve` | When a Q-promise is pending. Check or fulfill the continuation.              |
+| `flush`   | At task end. Clear all silo slots for the session.                           |
+
+### GraphQL
+
+| Tool      | When to Use                                                                  |
+|-----------|------------------------------------------------------------------------------|
+| `graphql` | Execute GraphQL queries/mutations against the memory store with optional PMLL cache integration. |
+
+### Context+ Structural Tools
+
 | Tool                        | When to Use                                                  |
 |-----------------------------|--------------------------------------------------------------|
 | `get_context_tree`          | Start of every task. Map files + symbols with line ranges.   |
@@ -72,6 +90,11 @@ You MUST use Context+ tools instead of native equivalents. Only fall back to nat
 | `propose_commit`            | Validate and save file changes.                              |
 | `list_restore_points`       | See undo history.                                            |
 | `undo_change`               | Revert a change without touching git.                        |
+
+### Long-Term Memory Graph
+
+| Tool                        | When to Use                                                  |
+|-----------------------------|--------------------------------------------------------------|
 | `upsert_memory_node`        | Create/update memory nodes (concept, file, symbol, note).    |
 | `create_relation`           | Create typed edges between memory nodes.                     |
 | `search_memory_graph`       | Semantic search + graph traversal across neighbors.          |
@@ -79,9 +102,22 @@ You MUST use Context+ tools instead of native equivalents. Only fall back to nat
 | `add_interlinked_context`   | Bulk-add nodes with auto-similarity linking.                 |
 | `retrieve_with_traversal`   | Walk outward from a node, return scored neighbors.           |
 
+### Solution Engine
+
+| Tool                   | When to Use                                                           |
+|------------------------|-----------------------------------------------------------------------|
+| `resolve_context`      | Unified context lookup — checks short-term KV first, falls back to long-term semantic graph. |
+| `promote_to_long_term` | Promote a frequently-accessed short-term KV entry to the long-term memory graph. |
+| `memory_status`        | Get a unified view of both short-term (KV cache) and long-term (semantic graph) memory layers. |
+
 ## Anti-Patterns
 
 1. Reading entire files without checking the skeleton first
 2. Deleting functions without checking blast radius
 3. Running independent commands sequentially when they can be parallelized
 4. Repeating failed commands without changing approach
+5. Calling expensive MCP tools without calling `peek` first to check the cache
+6. Forgetting to call `init` at task start or `flush` at task end, causing silent cache misses or stale data across sessions
+7. Storing frequently-accessed payloads only in short-term KV instead of promoting them to long-term memory with `promote_to_long_term`
+8. Calling `search_memory_graph` or `retrieve_with_traversal` directly instead of using `resolve_context`, which checks both memory layers in one call
+9. Ignoring Q-promise `pending` status from `peek` and re-issuing the same expensive call instead of waiting with `resolve`
