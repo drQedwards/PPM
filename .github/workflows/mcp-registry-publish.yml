@@ -12,6 +12,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    defaults:
+      run:
+        working-directory: mcp/
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,8 +38,10 @@ jobs:
             exit 1
           fi
           echo "mcpName: $MCP_NAME"
+          echo "version: $(node -e "console.log(require('./package.json').version)")"
 
       - name: Install mcp-publisher
+        working-directory: .  # mcp-publisher installs globally from repo root
         run: |
           curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
           sudo mv mcp-publisher /usr/local/bin/

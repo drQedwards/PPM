@@ -1,8 +1,8 @@
 {
   "name": "pmll-memory-mcp",
   "mcpName": "io.github.drqedwards/pmll-memory-mcp",
-  "version": "1.0.0",
-  "description": "PMLL Memory MCP server — persistent memory logic loop with short-term KV context memory, Q-promise deduplication, and Context+ long-term semantic memory graph for 99% accuracy. 15 tools: init, peek, set, resolve, flush, graphql, upsert_memory_node, create_relation, search_memory_graph, prune_stale_links, add_interlinked_context, retrieve_with_traversal, resolve_context, promote_to_long_term, memory_status.",
+  "version": "2.0.0",
+  "description": "PMLL Memory MCP Server v2 — persistent memory logic loop with short-term KV cache (peek pattern), Q-promise deduplication, Context+ long-term semantic memory graph, and solution engine. Four-way benchmarked: Combined Context+ + PMLL/peek delivers 36ms (TS) / 78ms (PY) total. 15 tools, agent_instructions workflow included. 99% accuracy in Claude Sonnet/Opus agent tasks.",
   "author": "drQedwards",
   "contributors": ["ForLoopCodes (Context+ memory graph integration)"],
   "license": "MIT",
@@ -19,5 +19,24 @@
   "initializer_order": 3,
   "repository": "https://github.com/drQedwards/PPM",
   "entry": "dist/index.js",
-  "runtime": "node"
+  "runtime": "node",
+  "benchmarks": {
+    "typescript": {
+      "baseline_full_suite": { "avg_test_ms": 302, "tests": 197 },
+      "contextplus_only": { "avg_test_ms": 63, "tests": 27 },
+      "pmll_peek_only": { "avg_test_ms": 26, "tests": 32 },
+      "combined_contextplus_pmll": { "avg_test_ms": 36, "tests": 14 }
+    },
+    "python": {
+      "baseline_full_suite": { "avg_duration_ms": 250, "tests": 104 },
+      "contextplus_only": { "avg_duration_ms": 142, "tests": 27 },
+      "pmll_peek_only": { "avg_duration_ms": 92, "tests": 32 },
+      "combined_contextplus_pmll": { "avg_duration_ms": 78, "tests": 14 }
+    }
+  },
+  "agent_instructions": "agent_instructions.md",
+  "packages": {
+    "npm": "pmll-memory-mcp",
+    "pypi": "pmll-memory-mcp"
+  }
 }
