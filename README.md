@@ -388,13 +388,221 @@ pmll-memory-mcp          # starts the stdio MCP server
 
 ```json
 {
-  "mcpServers": {
-    "pmll-memory-mcp": {
-      "command": "npx",
-      "args": ["pmll-memory-mcp"]
+  "tools": [
+    {
+      "name": "init",
+      "description": "Set up PMLL silo and Q-promise chain for a session. Call once at task start.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session_id": { "type": "string" },
+          "silo_size": { "type": "integer", "default": 256 }
+        },
+        "required": ["session_id"]
+      }
+    },
+    {
+      "name": "peek",
+      "description": "Non-destructive cache lookup + Q-promise check. Call before every expensive MCP tool invocation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session_id": { "type": "string" },
+          "key": { "type": "string" }
+        },
+        "required": ["session_id", "key"]
+      }
+    },
+    {
+      "name": "set",
+      "description": "Store a key-value pair in the session silo. Call after a cache miss.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session_id": { "type": "string" },
+          "key": { "type": "string" },
+          "value": { "type": "string" }
+        },
+        "required": ["session_id", "key", "value"]
+      }
+    },
+    {
+      "name": "resolve",
+      "description": "Check or resolve a Q-promise continuation by promise ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session_id": { "type": "string" },
+          "promise_id": { "type": "string" }
+        },
+        "required": ["session_id", "promise_id"]
+      }
+    },
+    {
+      "name": "flush",
+      "description": "Clear all silo slots for a session. Call at task completion.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session_id": { "type": "string" }
+        },
+        "required": ["session_id"]
+      }
+    },
+    {
+      "name": "graphql",
+      "description": "Execute GraphQL queries or mutations against the memory store.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string" },
+          "variables": { "type": "object" },
+          "operationName": { "type": "string" }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "upsert_memory_node",
+      "description": "Create or update a memory node with auto-generated TF-IDF embeddings.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session_id": { "type": "string" },
+          "type": { "type": "string" },
+          "label": { "type": "string" },
+          "content": { "type": "string" },
+          "metadata": { "type": "object" }
+        },
+        "required": ["session_id", "type", "label", "content"]
+      }
+    },
+    {
+      "name": "create_relation",
+      "description": "Create a typed, weighted edge between two memory nodes.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session_id": { "type": "string" },
+          "source_id": { "type": "string" },
+          "target_id": { "type": "string" },
+          "relation": {
+            "type": "string",
+            "enum": ["relates_to", "depends_on", "implements", "references", "similar_to", "contains"]
+          },
+          "weight": { "type": "number" },
+          "metadata": { "type": "object" }
+        },
+        "required": ["session_id", "source_id", "target_id", "relation"]
+      }
+    },
+    {
+      "name": "search_memory_graph",
+      "description": "Semantic search with graph traversal — returns direct matches and neighbor walk.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session_id": { "type": "string" },
+          "query": { "type": "string" },
+          "max_depth": { "type": "integer" },
+          "top_k": { "type": "integer" },
+          "edge_filter": { "type": "string" }
+        },
+        "required": ["session_id", "query"]
+      }
+    },
+    {
+      "name": "prune_stale_links",
+      "description": "Remove decayed edges (e^(-λt) below threshold) and orphan nodes with low access count.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session_id": { "type": "string" },
+          "threshold": { "type": "number" }
+        },
+        "required": ["session_id"]
+      }
+    },
+    {
+      "name": "add_interlinked_context",
+      "description": "Bulk-add nodes with auto-similarity linking (cosine >= 0.72 creates edges).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session_id": { "type": "string" },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string" },
+                "label": { "type": "string" },
+                "content": { "type": "string" },
+                "metadata": { "type": "object" }
+              },
+              "required": ["type", "label", "content"]
+            }
+          },
+          "auto_link": { "type": "boolean" }
+        },
+        "required": ["session_id", "items"]
+      }
+    },
+    {
+      "name": "retrieve_with_traversal",
+      "description": "Walk outward from a node, returning reachable neighbors scored by temporal decay and depth.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session_id": { "type": "string" },
+          "start_node_id": { "type": "string" },
+          "max_depth": { "type": "integer" },
+          "edge_filter": { "type": "string" }
+        },
+        "required": ["session_id", "start_node_id"]
+      }
+    },
+    {
+      "name": "resolve_context",
+      "description": "Unified context lookup: short-term KV -> long-term graph -> miss. Returns source and score.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session_id": { "type": "string" },
+          "key": { "type": "string" }
+        },
+        "required": ["session_id", "key"]
+      }
+    },
+    {
+      "name": "promote_to_long_term",
+      "description": "Promote a short-term KV entry to the long-term memory graph.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session_id": { "type": "string" },
+          "key": { "type": "string" },
+          "value": { "type": "string" },
+          "node_type": { "type": "string" },
+          "metadata": { "type": "object" }
+        },
+        "required": ["session_id", "key", "value"]
+      }
+    },
+    {
+      "name": "memory_status",
+      "description": "Unified view of short-term KV and long-term graph memory status for a session.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session_id": { "type": "string" }
+        },
+        "required": ["session_id"]
+      }
     }
-  }
+  ]
 }
+
 ```
 
 #### Docker
