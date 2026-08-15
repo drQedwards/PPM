@@ -1,0 +1,18 @@
+# PPM stellar.toml — placeholder for Soroban contract deployment
+# This file provides basic network and placeholder contract info for the PPM project.
+# Replace values below with the real deployed contract ID and any production network settings.
+
+# Network passphrase (testnet by default here)
+NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+NETWORK = "TESTNET"
+
+# Link back to the repository
+PROJECT_REPO = "https://github.com/drQedwards/PPM"
+
+[contracts]
+# Soroban contract placeholder — replace with the actual contract ID (G... account ID owning the contract or the contract id string)
+pmll_anchor = "REPLACE_WITH_PMll_ANCHOR_CONTRACT_ID"
+
+[notes]
+# Example: after deploying the WASM and creating the contract on testnet, set pmll_anchor to the returned contract ID.
+# If you prefer, you can add separate keys for mainnet/testnet, or include the deployed WASM hash here.
