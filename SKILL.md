@@ -1,4 +1,3 @@
-cat > /home/workdir/artifacts/ppm-SKILL.md.txt << 'EOF'
 ---
 name: ppm
 description: Python Package Manager with persistent memory MCP tools for Context+, supermodeltools, and agent workflows. Use when working with PPM, pmll-memory-mcp via PPM, Context+ pipelines, context stitching, or packaging/agent memory tooling under drQedwards/ppm.
@@ -49,6 +48,3 @@ pip install pmll-memory-mcp
 - PMLL spatial memory skill: https://github.com/drQedwards/pmll/blob/main/SKILL.md
 - This repo: https://github.com/drQedwards/ppm
 - Planned on-chain commitments (32-byte hashes only): `pmll-anchor` under drQedwards/pmll — not part of the PPM package surface.
-EOF
-wc -l /home/workdir/artifacts/ppm-SKILL.md.txt
-ls -la /home/workdir/artifacts/ppm-SKILL.md.txt
