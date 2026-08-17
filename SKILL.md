@@ -1,25 +1,54 @@
+cat > /home/workdir/artifacts/ppm-SKILL.md.txt << 'EOF'
 ---
-title: PMLL
-description: Persistent spatial memory for AI agents (Stellar commitment anchoring planned)
+name: ppm
+description: Python Package Manager with persistent memory MCP tools for Context+, supermodeltools, and agent workflows. Use when working with PPM, pmll-memory-mcp via PPM, Context+ pipelines, context stitching, or packaging/agent memory tooling under drQedwards/ppm.
 ---
 
-# PMLL
+# PPM
 
-Gives AI agents persistent spatial memory so they can retain long-term context, form symbiotic memory layers, and maintain durable state across sessions.
+Python Package Manager oriented around **persistent memory MCP tools** for agentic workflows — Context+ pipelines, supermodeltools/cli analysis, and structured memory ingestion/retrieval.
 
-PMLL provides durable, structured memory primitives useful for agentic workflows. It supports the PPM project, Context+ pipelines, and supermodeltools/cli for analysis and visualization. **On-chain commitment anchoring on Stellar (storing 32-byte hashes of off-chain memory via a Soroban contract) is planned.**
+PPM is the packaging and tool surface that sits alongside PMLL-style spatial memory. Memory payloads stay **off-chain** by default; any on-chain commitment anchoring is handled by the separate **PMLL / `pmll-anchor`** path, not by this skill.
 
 ## Highlights
 
-- Persistent, addressable spatial memory (off-chain today).
-- PPM-based context stitching and MCP tools for memory ingestion and retrieval.
-- Integration with forloopcodes/contextplus for hierarchical indexing and supermodeltools/cli for graphing and analysis.
-- Planned: atomic Soroban `pmll-anchor` contract that stores only a 32-byte commitment + emits events (full payload stays off-chain).
+- PPM-based context stitching for agent memory and tool graphs.
+- MCP tools for memory ingestion and retrieval (`init`, `peek`, `set`, `resolve`, `flush`, graph ops).
+- Works with forloopcodes/contextplus hierarchical indexing and supermodeltools/cli for graphing and analysis.
+- Complements [drQedwards/pmll](https://github.com/drQedwards/pmll) spatial memory; does not claim Stellar storage of full memory payloads.
 
 ## Quick start
 
-1. Install the memory MCP package:
+1. Install the memory MCP package (shared with the PMLL memory stack):
 
 ```bash
 pip install pmll-memory-mcp
 # or via npm: npx pmll-memory-mcp
+# or: npm install -g pmll-memory-mcp
+```
+
+2. Register it with your MCP client (Claude Desktop example — `claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "pmll-memory-mcp": {
+      "command": "npx",
+      "args": ["pmll-memory-mcp"]
+    }
+  }
+}
+```
+
+(If installed via pip you can use `"command": "pmll-memory-mcp"` instead.)
+
+3. Restart the client / start a fresh session. Call `init` once at the start of a task, then `peek` before expensive operations.
+
+## Related
+
+- PMLL spatial memory skill: https://github.com/drQedwards/pmll/blob/main/SKILL.md
+- This repo: https://github.com/drQedwards/ppm
+- Planned on-chain commitments (32-byte hashes only): `pmll-anchor` under drQedwards/pmll — not part of the PPM package surface.
+EOF
+wc -l /home/workdir/artifacts/ppm-SKILL.md.txt
+ls -la /home/workdir/artifacts/ppm-SKILL.md.txt
