@@ -1,5 +1,7 @@
 # PPM — Python Package Manager
 
+coder rabbit test
+
 **pypm** – the "npm-style" package manager for Python  
 *C-powered core · reproducible installs · plugin-friendly · workspace-aware*
 
