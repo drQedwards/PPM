@@ -1,22 +1,27 @@
-# PERSISTENT NFT (testnet commemorative)
+# PERSISTENT / vvNFT (Stellar Quest side quest)
 
-Stellar Quest [side quest 2](https://quest.stellar.org/side-quests/2) plaque for the live `pmll-anchor` milestone. **Not an oracle input.** Mainnet `pmll-anchor` still stores only 32-byte SHA-256 commitments.
+Official checker (`ssq_01` / gist `803b72492199ef62f5f4333cfefc5e2f`) requires a SEP-39 NFT:
 
-GitBook (hosted): https://pmll-persistent.vercel.app/
+1. Quest account holds a non-XLM balance of exactly `0.0000001`.
+2. That asset's **issuer** has `manageData` key `ipfshash`.
+3. `https://ipfs.io/ipfs/<cid>` returns **JSON** with `issuer` + `code` matching the trustline.
+4. That JSON's `url` fetches `200` (GitBook is used here).
+
+A JPEG CID or an unpinned CID makes the checker throw **HTTP 500** (`Internal Server Error`) because `res.json()` rejects.
+
+## Live mint (testnet, exact 3 ops)
 
 | | |
 |---|---|
-| Network | **TESTNET** |
-| Asset code | `PERSISTENT` |
+| Asset | `vvNFT` |
 | Amount | `0.0000001` |
-| Issuer | `GDDXIJYA67VDS7EMN5OZKV7P6RCDNMV3SMYVLBPSRCNRXRYRFO5MVY4B` |
-| Receiver (quest account) | `GBNU76JVH7DC2HXFX2OCO4LEGJSBGQOLUFI7UAQGN4RD22W2LDI5ODBB` |
-| `ipfshash` | `QmRgvFjDY7JAChw2D7Y7MHdMjbNFDsUjta4kkWPYqmZVNH` |
-| Issuer `home_domain` | `pmll-persistent.vercel.app` |
-| Mint tx | [`eccc575f…`](https://stellar.expert/explorer/testnet/tx/eccc575fae9d6cb9f26607f65a24339f5693e2748dde7084d63db07accf01a80) |
-| SEP-1 | https://pmll-persistent.vercel.app/.well-known/stellar.toml |
-| Metadata | https://pmll-persistent.vercel.app/nft/metadata.json |
+| Issuer | `GBAKCSWCLLKGQUV2GYDAA7ETUYTVNUU5XQV4Y4PDICG255CODCB2WSK5` |
+| Receiver | `GBNU76JVH7DC2HXFX2OCO4LEGJSBGQOLUFI7UAQGN4RD22W2LDI5ODBB` |
+| ipfshash | `QmPKSEs7KXychweSp364bC3p62DQ4ZeFVheRXi7rFCsYad` |
+| Metadata | [ipfs.io](https://ipfs.io/ipfs/QmPKSEs7KXychweSp364bC3p62DQ4ZeFVheRXi7rFCsYad) |
+| url | https://pmll-persistent.vercel.app/ |
+| Mint tx | [`98924533…`](https://stellar.expert/explorer/testnet/tx/98924533489e0c9ca2bd3437e10022d6685bcc1205d28e1a4d0a79d392acc8db) |
 
-Issuer secret is **not** in this repo. Local operator file (chmod 600): `~/.stellar/persistent-nft-issuer.json`.
+Ops: `manageData(ipfshash)` + `changeTrust` + `payment`. No `setOptions` (quest notes say not to use flags for this one).
 
-Quest account secret was used once to sign `changeTrust` + receive. **Rotate that key** if it was pasted into chat.
+GitBook: https://pmll-persistent.vercel.app/
