@@ -41,14 +41,12 @@ jobs:
           if "docs/STELLAR.md" not in t.split("Table of Contents")[0]:
               t = t.replace(needle, insert, 1)
           toc_old = (
-              "7. [PMLL Memory MCP Server](#-pmll-memory-mcp-server)\n"
               "8. [Architecture](#-architecture)\n"
               "9. [Release Notes](#-release-notes)\n"
               "10. [Roadmap](#-roadmap)\n"
               "11. [Contributing & Sponsors](#-contributing--sponsors)\n"
           )
           toc_new = (
-              "7. [PMLL Memory MCP Server](#-pmll-memory-mcp-server)\n"
               "8. [Stellar commitments](#-stellar-commitments-pmll-anchor)\n"
               "9. [Architecture](#-architecture)\n"
               "10. [Release Notes](#-release-notes)\n"
@@ -58,15 +56,37 @@ jobs:
           if toc_old not in t:
               raise SystemExit("toc block not found")
           t = t.replace(toc_old, toc_new, 1)
-          section = """\n---\n\n## ⚓ Stellar commitments (`pmll-anchor`)\n\nMemory payloads stay **off-chain**. Optional 32-byte SHA-256 commitments are **live on Stellar mainnet** via [`drQedwards/pmll`](https://github.com/drQedwards/pmll) (`pmll-anchor`). Full payloads are never stored on-chain.\n\n| Network | Contract ID | Explorer |\n|---------|-------------|---------|\n| **mainnet** | `CCF3B64AXLS4OLY5RN4H4K2CFZAYNZCJQY5MKCKCVAKMZNH7G7F7XUUF` | [stellar.expert](https://stellar.expert/explorer/public/contract/CCF3B64AXLS4OLY5RN4H4K2CFZAYNZCJQY5MKCKCVAKMZNH7G7F7XUUF) |\n| testnet | `CDLQR24LLFWXTNGGJVJCRXAF3ZRDWFZRUFTDZ5SJOT2J33CS7DDYP7IU` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CDLQR24LLFWXTNGGJVJCRXAF3ZRDWFZRUFTDZ5SJOT2J33CS7DDYP7IU) |\n\nAdmin: `GBFOFCD3XDANQWSGMHKJJ2V3YXS2QQD7RNC4LMDBVNBTUJOQZ3RLSB3E` · wasm hash `1b6ad9c574e0f5c9e39968f836a410c03adcf057afa93a63d2710bd30fdd53ba`\n\nSkill (API + invoke): [pmll/SKILL.md](https://github.com/drQedwards/pmll/blob/main/SKILL.md)\n"""
-          marker = "\n## 🏭 Architecture\n"
-          if marker not in t:
+          section = (
+              "## ⚓ Stellar commitments (`pmll-anchor`)\n"
+              "\n"
+              "Memory payloads stay **off-chain**. Optional 32-byte SHA-256 commitments are **live on Stellar mainnet** via [`drQedwards/pmll`](https://github.com/drQedwards/pmll) (`pmll-anchor`). Full payloads are never stored on-chain.\n"
+              "\n"
+              "| Network | Contract ID | Explorer |\n"
+              "|---------|-------------|---------|
+"
+              "| **mainnet** | `CCF3B64AXLS4OLY5RN4H4K2CFZAYNZCJQY5MKCKCVAKMZNH7G7F7XUUF` | [stellar.expert](https://stellar.expert/explorer/public/contract/CCF3B64AXLS4OLY5RN4H4K2CFZAYNZCJQY5MKCKCVAKMZNH7G7F7XUUF) |\n"
+              "| testnet | `CDLQR24LLFWXTNGGJVJCRXAF3ZRDWFZRUFTDZ5SJOT2J33CS7DDYP7IU` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CDLQR24LLFWXTNGGJVJCRXAF3ZRDWFZRUFTDZ5SJOT2J33CS7DDYP7IU) |\n"
+              "\n"
+              "Admin: `GBFOFCD3XDANQWSGMHKJJ2V3YXS2QQD7RNC4LMDBVNBTUJOQZ3RLSB3E` · wasm hash `1b6ad9c574e0f5c9e39968f836a410c03adcf057afa93a63d2710bd30fdd53ba`\n"
+              "\n"
+              "Skill (API + invoke): [pmll/SKILL.md](https://github.com/drQedwards/pmll/blob/main/SKILL.md)\n"
+              "\n"
+              "---\n"
+              "\n"
+          )
+          lines = t.splitlines(keepends=True)
+          try:
+              arch_i = next(i for i, line in enumerate(lines) if line.startswith("## ") and "Architecture" in line)
+          except StopIteration:
               raise SystemExit("architecture heading not found")
-          if "## ⚓ Stellar commitments" not in t:
-              t = t.replace(marker, "\n" + section + marker, 1)
+          if "Stellar commitments (`pmll-anchor`)" not in t:
+              lines[arch_i:arch_i] = [section]
+              t = "".join(lines)
           p.write_text(t)
           if "CCF3B64AXLS4OLY5RN4H4K2CFZAYNZCJQY5MKCKCVAKMZNH7G7F7XUUF" not in t:
               raise SystemExit("mainnet contract ID missing after patch")
+          if t.startswith("# PLACEHOLDER"):
+              raise SystemExit("placeholder still present")
           print("README bytes", len(t.encode()), "lines", t.count(chr(10)))
           PY
           git config user.name "github-actions[bot]"
