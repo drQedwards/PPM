@@ -7,7 +7,7 @@ description: Python Package Manager with persistent memory MCP tools for Context
 
 Python Package Manager oriented around **persistent memory MCP tools** for agentic workflows — Context+ pipelines, supermodeltools/cli analysis, and structured memory ingestion/retrieval.
 
-PPM is the packaging and tool surface that sits alongside PMLL-style spatial memory. Memory payloads stay **off-chain** by default; any on-chain commitment anchoring is handled by the separate **PMLL / `pmll-anchor`** path, not by this skill.
+PPM is the packaging and tool surface that sits alongside PMLL-style spatial memory. Memory payloads stay **off-chain** by default. On-chain commitment anchoring (32-byte hashes only) is live on Stellar via **PMLL / `pmll-anchor`**, not via this package surface.
 
 ## Highlights
 
@@ -47,4 +47,7 @@ pip install pmll-memory-mcp
 
 - PMLL spatial memory skill: https://github.com/drQedwards/pmll/blob/main/SKILL.md
 - This repo: https://github.com/drQedwards/ppm
-- Planned on-chain commitments (32-byte hashes only): `pmll-anchor` under drQedwards/pmll — not part of the PPM package surface.
+- Live on-chain commitments (32-byte hashes only) via `pmll-anchor`:
+  - mainnet `CCF3B64AXLS4OLY5RN4H4K2CFZAYNZCJQY5MKCKCVAKMZNH7G7F7XUUF`
+  - testnet `CDLQR24LLFWXTNGGJVJCRXAF3ZRDWFZRUFTDZ5SJOT2J33CS7DDYP7IU`
+  - not part of the PPM package surface

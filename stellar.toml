@@ -1,18 +1,24 @@
-# PPM stellar.toml — placeholder for Soroban contract deployment
-# This file provides basic network and placeholder contract info for the PPM project.
-# Replace values below with the real deployed contract ID and any production network settings.
+# PPM stellar.toml — network + pmll-anchor contract metadata
+# Memory payloads stay off-chain. This file only records the 32-byte commitment surface.
 
-# Network passphrase (testnet by default here)
-NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
-NETWORK = "TESTNET"
+NETWORK_PASSPHRASE = "Public Global Stellar Network ; September 2015"
+NETWORK = "PUBLIC"
 
-# Link back to the repository
 PROJECT_REPO = "https://github.com/drQedwards/PPM"
+PMLL_SKILL = "https://github.com/drQedwards/pmll/blob/main/SKILL.md"
 
 [contracts]
-# Soroban contract placeholder — replace with the actual contract ID (G... account ID owning the contract or the contract id string)
-pmll_anchor = "REPLACE_WITH_PMll_ANCHOR_CONTRACT_ID"
+# Verified mainnet deploy 2026-08-31. Confirm on explorer before relying on it.
+# https://stellar.expert/explorer/public/contract/CCF3B64AXLS4OLY5RN4H4K2CFZAYNZCJQY5MKCKCVAKMZNH7G7F7XUUF
+pmll_anchor = "CCF3B64AXLS4OLY5RN4H4K2CFZAYNZCJQY5MKCKCVAKMZNH7G7F7XUUF"
+# Testnet (still live):
+# https://stellar.expert/explorer/testnet/contract/CDLQR24LLFWXTNGGJVJCRXAF3ZRDWFZRUFTDZ5SJOT2J33CS7DDYP7IU
+pmll_anchor_testnet = "CDLQR24LLFWXTNGGJVJCRXAF3ZRDWFZRUFTDZ5SJOT2J33CS7DDYP7IU"
 
 [notes]
-# Example: after deploying the WASM and creating the contract on testnet, set pmll_anchor to the returned contract ID.
-# If you prefer, you can add separate keys for mainnet/testnet, or include the deployed WASM hash here.
+# Build target MUST be wasm32v1-none (Rust 1.84+). Never wasm32-unknown-unknown on 1.82+.
+# Admin: GBFOFCD3XDANQWSGMHKJJ2V3YXS2QQD7RNC4LMDBVNBTUJOQZ3RLSB3E
+# Wasm hash: 1b6ad9c574e0f5c9e39968f836a410c03adcf057afa93a63d2710bd30fdd53ba
+# Mainnet deploy tx: d76e622d641b2465d480470f851f604a8284427a4e680c872b3ff8209c825943
+# Mainnet init tx:   ecf3a637077d998febeac9ed5edd1a12582b5fc38db855633f2b48d40a5ba7a5
+# Contract source and invoke docs live in drQedwards/pmll, not this package surface.
