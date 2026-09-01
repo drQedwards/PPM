@@ -51,7 +51,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-import { getStore, dropStore } from "./kv-store.js";
+import { getStore, dropStore, resetStore } from "./kv-store.js";
 import { QPromiseRegistry } from "./q-promise-bridge.js";
 import { peekContext } from "./peek.js";
 import { executeGraphQL, GRAPHQL_QUERY, GRAPHQL_MUTATION, GRAPHQL_DEFAULT_VARIABLES } from "./graphql.js";
@@ -81,7 +81,7 @@ const server = new McpServer(
     instructions:
       "PMLL Memory MCP — persistent memory logic loop with short-term KV " +
       "context memory, Q-promise deduplication, and Context+ long-term " +
-      "semantic memory graph for 99% accuracy. " +
+      "semantic memory graph designed to improve context retention and retrieval for coding agents. " +
       "Short-term tools: `init`, `peek`, `set`, `resolve`, `flush`. " +
       "Long-term tools: `upsert_memory_node`, `create_relation`, " +
       "`search_memory_graph`, `prune_stale_links`, `add_interlinked_context`, " +
@@ -118,9 +118,8 @@ server.tool(
       .describe("Maximum number of KV slots (mirrors memory_silo_t.size)."),
   },
   async ({ session_id, silo_size }) => {
-    // Lazily create the store; also resets an existing session's silo.
-    const store = getStore(session_id, silo_size);
-    store.siloSize = silo_size;
+    // clear_on_init: re-initing the same session resets the short-term KV silo.
+    resetStore(session_id, silo_size);
     _activeSessions.set(session_id, silo_size);
 
     return {
@@ -131,6 +130,7 @@ server.tool(
             status: "initialized",
             session_id,
             silo_size,
+            cleared: true,
           }),
         },
       ],
@@ -384,7 +384,7 @@ server.tool(
   "Create or update a memory node in the long-term semantic graph. " +
     "Nodes represent concepts, files, symbols, or notes with auto-generated " +
     "TF-IDF embeddings for semantic search. Part of the Context+ solution " +
-    "engine for 99% accuracy persistent memory.",
+    "engine for durable context retention and retrieval.",
   {
     session_id: z.string().describe("The session identifier (from `init`)."),
     type: z
@@ -694,7 +694,7 @@ server.tool(
   "Unified context resolution across both short-term (KV cache) and " +
     "long-term (semantic graph) memory layers. Checks KV cache first, " +
     "then falls back to semantic graph search. This is the primary " +
-    "Context+ solution engine tool for achieving 99% accuracy.",
+    "Context+ solution engine tool for unified KV + graph retrieval.",
   {
     session_id: z.string().describe("The session identifier (from `init`)."),
     key: z.string().describe("The context key to resolve."),

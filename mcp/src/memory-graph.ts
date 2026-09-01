@@ -9,7 +9,10 @@
  *   - Nodes: concept, file, symbol, note — each with TF-IDF embeddings
  *   - Edges: typed relations with temporal decay (e^(-λt))
  *   - Search: cosine similarity + graph neighbor traversal
- *   - Persistence: JSON serialization to session-level storage
+ *   - Persistence: in-process Map + JSON export/import (Python package uses SQLite;
+ *     TS durable backend may follow). Session IDs namespace the graph.
+ *
+ * Process-local / single-threaded MCP assumption: no cross-process locking.
  *
  * The graph serves as the long-term memory layer complementing the existing
  * short-term KV store (init/peek/set/resolve/flush tools).

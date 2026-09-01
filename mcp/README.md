@@ -2,7 +2,7 @@
 
 > **Persistent memory logic loop with short-term KV cache (peek pattern), Q-promise
 > deduplication, and [Context+](https://github.com/ForLoopCodes/contextplus) long-term
-> semantic memory graph for 99% accuracy in Claude Sonnet/Opus agent tasks.**
+> memory graph designed to improve context retention and retrieval for coding agents.**
 >
 > **v2.0.0** — Four-way benchmarked, agent_instructions workflow, combined Context+ + PMLL/peek.
 
@@ -106,10 +106,10 @@ See the full [agent_instructions.md](./agent_instructions.md) for the complete 1
 `pmll-memory-mcp` is a **Model Context Protocol (MCP) server** that gives Claude Sonnet/Opus agents a persistent memory logic loop with two complementary memory layers:
 
 - **Short-term KV cache** (5 tools) — session-isolated key-value memory with Q-promise deduplication, mirroring `PMLL.c::memory_silo_t`.
-- **Long-term memory graph** (6 tools) — adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing a persistent property graph with typed nodes, weighted edges, temporal decay scoring (e^(-λt)), and semantic search via TF-IDF embeddings.
+- **Long-term memory graph** (6 tools) — adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing a SQLite-backed property graph with typed nodes, weighted edges, temporal decay scoring (e^(-λt)), and semantic search via stable hashing embeddings.
 - **Solution engine** (3 tools) — bridges both layers with unified context resolution (short-term → long-term → miss), auto-promotion of frequently accessed entries, and unified memory status views.
 
-The server is designed to be the **3rd initializer** alongside Playwright and other MCP tools — loaded once at the start of every agent task. Agents call `init` once at task start, then use `peek` before any expensive MCP tool invocation to avoid redundant calls. Frequently accessed entries are promoted to the long-term memory graph for persistent semantic retrieval.
+The server is designed to be the **3rd initializer** alongside Playwright and other MCP tools — loaded once at the start of every agent task. Agents call `init` once at task start, then use `peek` before any expensive MCP tool invocation to avoid redundant calls. Frequently accessed entries are promoted to the long-term memory graph for semantic retrieval across sessions (SQLite-backed graph).
 
 The server exposes **15 tools** total across four categories.
 
@@ -175,11 +175,11 @@ if (result.hit) {
 
 ### Long-term memory graph (6 tools — adapted from [Context+](https://github.com/ForLoopCodes/contextplus))
 
-These tools are adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing persistent semantic memory with graph traversal, decay scoring, and cosine similarity search.
+These tools are adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing SQLite-backed semantic memory with graph traversal, decay scoring, and cosine similarity search.
 
 | Tool                      | Input                                                           | Output                                                | Description                                                                        |
 |---------------------------|-----------------------------------------------------------------|-------------------------------------------------------|------------------------------------------------------------------------------------|
-| `upsert_memory_node`      | `session_id`, `type`, `label`, `content`, `metadata?`           | `{node}`                                              | Create or update a memory node with auto-generated TF-IDF embeddings               |
+| `upsert_memory_node`      | `session_id`, `type`, `label`, `content`, `metadata?`           | `{node}`                                              | Create or update a memory node with auto-generated stable hashing embeddings               |
 | `create_relation`         | `session_id`, `source_id`, `target_id`, `relation`, `weight?`, `metadata?` | `{edge}`                                   | Create typed edges (relates_to, depends_on, implements, references, similar_to, contains) |
 | `search_memory_graph`     | `session_id`, `query`, `max_depth?`, `top_k?`, `edge_filter?`  | `{direct, neighbors, totalNodes, totalEdges}`         | Semantic search with graph traversal — direct matches + neighbor walk              |
 | `prune_stale_links`       | `session_id`, `threshold?`                                      | `{removed, remaining}`                                | Remove decayed edges (e^(-λt) below threshold) and orphan nodes with low access    |
@@ -355,7 +355,7 @@ Add to `.vscode/mcp.json` (or open **MCP: Open User Configuration** from the Com
 
 The server is **pure TypeScript** — no C compilation is required at runtime.  The KV store (`kv-store.ts`) mirrors the semantics of `PMLL.c::init_silo()` and `update_silo()` in TypeScript, and the promise registry (`q-promise-bridge.ts`) mirrors the `QMemNode` chain from `Q_promise_lib/Q_promises.h`.
 
-The long-term memory graph (`memory-graph.ts`) is adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing an in-memory property graph with typed nodes, weighted edges, temporal decay scoring (e^(-λt)), and semantic search via TF-IDF embeddings. The solution engine (`solution-engine.ts`) bridges both layers, enabling unified context resolution and auto-promotion of frequently accessed short-term entries to the long-term graph.
+The long-term memory graph (`memory-graph.ts`) is adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing an in-memory property graph with typed nodes, weighted edges, temporal decay scoring (e^(-λt)), and semantic search via stable hashing embeddings. The solution engine (`solution-engine.ts`) bridges both layers, enabling unified context resolution and auto-promotion of frequently accessed short-term entries to the long-term graph.
 
 ### C foundations & Context+ integration
 

@@ -322,7 +322,7 @@ export CUDA_VISIBLE_DEVICES=0               # control GPU usage
 
 > **Persistent memory logic loop with short-term KV context memory, Q-promise
 > deduplication, and [Context+](https://github.com/ForLoopCodes/contextplus) long-term
-> optional long-term semantic memory graph for agent tasks.**
+> memory graph designed to improve context retention and retrieval for coding agents.**
 
 [![npm](https://img.shields.io/npm/v/pmll-memory-mcp?label=pmll-memory-mcp)](https://www.npmjs.com/package/pmll-memory-mcp)
 [![PyPI](https://img.shields.io/pypi/v/pmll-memory-mcp)](https://pypi.org/project/pmll-memory-mcp/)
@@ -341,10 +341,10 @@ A ctypes demo in `Ppm-lib/pmll_mcp/` loads `libqpromise.so` via `qpromise_*`.
 Memory layers:
 
 - **Short-term KV cache** (5 tools) — session-isolated key-value memory with Q-promise deduplication, mirroring `PMLL.c::memory_silo_t`.
-- **Long-term memory graph** (6 tools) — adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing a persistent property graph with typed nodes, weighted edges, temporal decay scoring (e^(-λt)), and semantic search via TF-IDF embeddings.
+- **Long-term memory graph** (6 tools) — adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing a SQLite-backed property graph with typed nodes, weighted edges, temporal decay scoring (e^(-λt)), and semantic search via stable hashing embeddings.
 - **Solution engine** (3 tools) — bridges both layers with unified context resolution (short-term → long-term → miss), auto-promotion of frequently accessed entries, and unified memory status views.
 
-The server is designed to be the **3rd initializer** alongside Playwright and other MCP tools — loaded once at the start of every agent task. Agents call `init` once at task start, then use `peek` before any expensive MCP tool invocation to avoid redundant calls. Frequently accessed entries are promoted to the long-term memory graph for persistent semantic retrieval.
+The server is designed to be the **3rd initializer** alongside Playwright and other MCP tools — loaded once at the start of every agent task. Agents call `init` once at task start, then use `peek` before any expensive MCP tool invocation to avoid redundant calls. Frequently accessed entries are promoted to the long-term memory graph for semantic retrieval across sessions (SQLite-backed graph).
 
 Tool counts differ by implementation (TS 15 incl. `graphql`; Python 14 — see note above). Historical docs below list the TypeScript tool surface.
 
@@ -404,7 +404,7 @@ if (result.hit) {
 
 #### Long-term memory graph (6 tools — adapted from [Context+](https://github.com/ForLoopCodes/contextplus))
 
-These tools are adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing persistent semantic memory with graph traversal, decay scoring, and cosine similarity search.
+These tools are adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing SQLite-backed semantic memory with graph traversal, decay scoring, and cosine similarity search.
 
 | Tool                      | Input                                                           | Output                                                | Description                                                                        |
 |---------------------------|-----------------------------------------------------------------|-------------------------------------------------------|------------------------------------------------------------------------------------|

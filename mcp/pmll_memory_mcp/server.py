@@ -40,7 +40,7 @@ try:
 except ModuleNotFoundError:  # mcp 1.x
     from mcp.server.fastmcp import FastMCP as _MCPServer
 
-from .kv_store import get_store, drop_store
+from .kv_store import get_store, drop_store, reset_store
 from .q_promise_bridge import QPromiseRegistry
 from .peek import peek_context
 from .memory_graph import (
@@ -68,7 +68,7 @@ mcp = _MCPServer(
     instructions=(
         "PMLL Memory MCP — persistent memory logic loop with short-term KV "
         "context memory, Q-promise deduplication, and Context+ long-term "
-        "semantic memory graph for 99% accuracy. "
+        "semantic memory graph designed to improve context retention and retrieval for coding agents. "
         "Short-term tools: `init`, `peek`, `set`, `resolve`, `flush`. "
         "Long-term tools: `upsert_memory_node`, `create_relation`, "
         "`search_memory_graph`, `prune_stale_links`, `add_interlinked_context`, "
@@ -103,11 +103,15 @@ def init(session_id: str, silo_size: int = 256) -> Dict[str, Any]:
     Returns:
         ``{"status": "initialized", "session_id": str, "silo_size": int}``
     """
-    # Lazily create the store; also resets an existing session's silo.
-    store = get_store(session_id, silo_size=silo_size)
-    store.silo_size = silo_size
+    # clear_on_init: re-initing the same session resets the short-term KV silo.
+    store = reset_store(session_id, silo_size=silo_size)
     _active_sessions[session_id] = silo_size
-    return {"status": "initialized", "session_id": session_id, "silo_size": silo_size}
+    return {
+        "status": "initialized",
+        "session_id": session_id,
+        "silo_size": silo_size,
+        "cleared": True,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -222,7 +226,7 @@ def upsert_memory_node(
 
     Nodes represent concepts, files, symbols, or notes with auto-generated
     TF-IDF embeddings for semantic search. Part of the Context+ solution
-    engine for 99% accuracy persistent memory.
+    engine for durable context retention and retrieval.
 
     Args:
         session_id: The session identifier (from ``init``).
@@ -444,7 +448,7 @@ def resolve_memory_context(
     """Unified context resolution across both short-term and long-term memory.
 
     Checks KV cache first, then falls back to semantic graph search. This is
-    the primary Context+ solution engine tool for achieving 99% accuracy.
+    the primary Context+ solution engine tool for unified KV + graph retrieval.
 
     Args:
         session_id: The session identifier (from ``init``).

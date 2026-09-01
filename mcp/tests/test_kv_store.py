@@ -157,3 +157,51 @@ class TestSessionIsolation:
     def test_silo_size_respected(self):
         store = get_store("sized-session", silo_size=512)
         assert store.silo_size == 512
+
+
+class TestSiloSizeEviction:
+    def test_silo_size_enforced_on_new_keys(self):
+        store = PMMemoryStore(silo_size=2)
+        store.set("a", "1")
+        store.set("b", "2")
+        assert len(store) == 2
+        store.set("c", "3")
+        assert len(store) == 2
+        hit_a, _, _ = store.peek("a")
+        hit_c, val_c, _ = store.peek("c")
+        assert hit_a is False
+        assert hit_c is True
+        assert val_c == "3"
+
+    def test_update_existing_does_not_evict(self):
+        store = PMMemoryStore(silo_size=2)
+        store.set("a", "1")
+        store.set("b", "2")
+        store.set("a", "1b")
+        assert len(store) == 2
+        hit, val, _ = store.peek("a")
+        assert hit is True
+        assert val == "1b"
+
+    def test_lru_prefers_recently_peeked(self):
+        store = PMMemoryStore(silo_size=2)
+        store.set("a", "1")
+        store.set("b", "2")
+        store.peek("a")
+        store.set("c", "3")
+        hit_a, _, _ = store.peek("a")
+        hit_b, _, _ = store.peek("b")
+        assert hit_a is True
+        assert hit_b is False
+
+
+class TestResetStore:
+    def test_reset_store_clears_session(self):
+        from pmll_memory_mcp.kv_store import reset_store
+        s = get_store("sess-reset", silo_size=8)
+        s.set("k", "v")
+        fresh = reset_store("sess-reset", silo_size=4)
+        assert len(fresh) == 0
+        assert fresh.silo_size == 4
+        hit, _, _ = fresh.peek("k")
+        assert hit is False
