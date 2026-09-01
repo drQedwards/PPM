@@ -30,6 +30,8 @@
 
 Four-way speed comparison across both languages. Full details in [`benchmarks/three-way-speed-comparison.md`](./benchmarks/three-way-speed-comparison.md) (updated from 3-way to 4-way in v2.0.0).
 
+**Retrieval quality (how we will measure later):** see [`benchmarks/benchmark_retrieval.md`](./benchmarks/benchmark_retrieval.md) and the runnable stub [`benchmarks/run_retrieval_stub.py`](./benchmarks/run_retrieval_stub.py). That harness defines retrieval hit rate on labeled nodes (precision@k / recall@k / MRR) — not agent task success. Speed numbers below are latency-only.
+
 ### TypeScript — Average Test Execution (5 runs)
 
 | Configuration | Avg Test Time | Tests | Per-test |
