@@ -28,7 +28,7 @@ import argparse
 import os
 import sys
 import tempfile
-from typing import Dict, List, Sequence, Set, Tuple
+from typing import Any, Dict, List, Sequence, Set, Tuple
 
 MCP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if MCP_DIR not in sys.path:
@@ -46,23 +46,76 @@ from pmll_memory_mcp.memory_graph import (
 
 # ---------------------------------------------------------------------------
 # Toy labeled dataset (synthetic coding-agent contexts)
+# Schema matches benchmark_retrieval.md:
+#   node:  {id_label, type, content, relevant_for: [query_ids...]}
+#   query: {id, text, relevant_labels: [...], task: "retrieve"|...}
 # ---------------------------------------------------------------------------
 
-TOY_NODES: List[Tuple[str, str, str]] = [
-    # (type, label, content)
-    ("concept", "auth_flow", "user authentication login password session jwt oauth"),
-    ("file", "auth_service.py", "implements login logout token refresh for auth service"),
-    ("symbol", "verify_jwt", "function verify_jwt validates bearer token signature claims"),
-    ("concept", "config_loader", "application configuration loader env yaml defaults"),
-    ("file", "settings.py", "loads SETTINGS from environment and yaml config files"),
-    ("symbol", "load_config", "function load_config merges env overrides into settings"),
-    ("note", "test_helpers", "pytest fixtures for mocking http client and db session"),
-    ("file", "conftest.py", "shared fixtures client db_session mock_auth for tests"),
-    ("concept", "api_handler", "http api request handler routing middleware responses"),
-    ("symbol", "handle_request", "async handle_request dispatches route to controller"),
+TOY_NODES: List[Dict[str, Any]] = [
+    {
+        "id_label": "auth_flow",
+        "type": "concept",
+        "content": "user authentication login password session jwt oauth",
+        "relevant_for": ["q_auth"],
+    },
+    {
+        "id_label": "auth_service.py",
+        "type": "file",
+        "content": "implements login logout token refresh for auth service",
+        "relevant_for": ["q_auth"],
+    },
+    {
+        "id_label": "verify_jwt",
+        "type": "symbol",
+        "content": "function verify_jwt validates bearer token signature claims",
+        "relevant_for": ["q_auth"],
+    },
+    {
+        "id_label": "config_loader",
+        "type": "concept",
+        "content": "application configuration loader env yaml defaults",
+        "relevant_for": ["q_config"],
+    },
+    {
+        "id_label": "settings.py",
+        "type": "file",
+        "content": "loads SETTINGS from environment and yaml config files",
+        "relevant_for": ["q_config"],
+    },
+    {
+        "id_label": "load_config",
+        "type": "symbol",
+        "content": "function load_config merges env overrides into settings",
+        "relevant_for": ["q_config"],
+    },
+    {
+        "id_label": "test_helpers",
+        "type": "note",
+        "content": "pytest fixtures for mocking http client and db session",
+        "relevant_for": ["q_test"],
+    },
+    {
+        "id_label": "conftest.py",
+        "type": "file",
+        "content": "shared fixtures client db_session mock_auth for tests",
+        "relevant_for": ["q_test"],
+    },
+    {
+        "id_label": "api_handler",
+        "type": "concept",
+        "content": "http api request handler routing middleware responses",
+        "relevant_for": ["q_api"],
+    },
+    {
+        "id_label": "handle_request",
+        "type": "symbol",
+        "content": "async handle_request dispatches route to controller",
+        "relevant_for": ["q_api"],
+    },
 ]
 
 TOY_EDGES: List[Tuple[str, str, str]] = [
+    # (src id_label, tgt id_label, relation)
     ("auth_service.py", "auth_flow", "implements"),
     ("verify_jwt", "auth_flow", "references"),
     ("verify_jwt", "auth_service.py", "depends_on"),
@@ -72,13 +125,60 @@ TOY_EDGES: List[Tuple[str, str, str]] = [
     ("handle_request", "api_handler", "implements"),
 ]
 
-# query_text -> set of relevant node labels
-TOY_QUERIES: List[Tuple[str, Set[str]]] = [
-    ("how does user login and jwt auth work?", {"auth_flow", "auth_service.py", "verify_jwt"}),
-    ("where is configuration loaded from env?", {"config_loader", "settings.py", "load_config"}),
-    ("pytest fixtures for http client mocks", {"test_helpers", "conftest.py"}),
-    ("api request routing handler", {"api_handler", "handle_request"}),
+TOY_QUERIES: List[Dict[str, Any]] = [
+    {
+        "id": "q_auth",
+        "text": "how does user login and jwt auth work?",
+        "relevant_labels": ["auth_flow", "auth_service.py", "verify_jwt"],
+        "task": "retrieve",
+    },
+    {
+        "id": "q_config",
+        "text": "where is configuration loaded from env?",
+        "relevant_labels": ["config_loader", "settings.py", "load_config"],
+        "task": "retrieve",
+    },
+    {
+        "id": "q_test",
+        "text": "pytest fixtures for http client mocks",
+        "relevant_labels": ["test_helpers", "conftest.py"],
+        "task": "retrieve",
+    },
+    {
+        "id": "q_api",
+        "text": "api request routing handler",
+        "relevant_labels": ["api_handler", "handle_request"],
+        "task": "retrieve",
+    },
 ]
+
+
+def _validate_toy_dataset() -> None:
+    """Ensure query ids exist, every query has a task, and labels cross-check."""
+    query_ids = {q["id"] for q in TOY_QUERIES}
+    node_labels = {n["id_label"] for n in TOY_NODES}
+
+    for q in TOY_QUERIES:
+        if not q.get("id"):
+            raise ValueError(f"query missing id: {q!r}")
+        if not q.get("task"):
+            raise ValueError(f"query {q['id']!r} missing required task field")
+        for lab in q.get("relevant_labels", []):
+            if lab not in node_labels:
+                raise ValueError(
+                    f"query {q['id']!r} relevant_labels has unknown label {lab!r}"
+                )
+
+    for n in TOY_NODES:
+        for qid in n.get("relevant_for", []):
+            if qid not in query_ids:
+                raise ValueError(
+                    f"node {n['id_label']!r} relevant_for has unknown query id {qid!r}"
+                )
+
+    for src, tgt, _rel in TOY_EDGES:
+        if src not in node_labels or tgt not in node_labels:
+            raise ValueError(f"edge references unknown label: {(src, tgt)!r}")
 
 
 def _refuse_agent_accuracy_claim() -> None:
@@ -93,11 +193,16 @@ def _refuse_agent_accuracy_claim() -> None:
 
 
 def seed_toy_graph(session_id: str) -> Dict[str, str]:
-    """Insert toy nodes/edges; return label -> node_id map."""
+    """Insert toy nodes/edges; return id_label -> node_id map."""
     label_to_id: Dict[str, str] = {}
-    for node_type, label, content in TOY_NODES:
-        node = upsert_node(session_id, node_type, label, content)  # type: ignore[arg-type]
-        label_to_id[label] = node.id
+    for node in TOY_NODES:
+        upserted = upsert_node(
+            session_id,
+            node["type"],
+            node["id_label"],
+            node["content"],
+        )  # type: ignore[arg-type]
+        label_to_id[node["id_label"]] = upserted.id
     for src, tgt, rel in TOY_EDGES:
         create_relation(
             session_id,
@@ -150,6 +255,7 @@ def reciprocal_rank(retrieved: Sequence[str], relevant: Set[str]) -> float:
 
 
 def run_bench(top_k: int, depth: int) -> int:
+    _validate_toy_dataset()
     reset_vectorizer()
     _graph_stores.clear()
     with tempfile.TemporaryDirectory(prefix="pmll-retr-bench-") as tmp:
@@ -159,11 +265,16 @@ def run_bench(top_k: int, depth: int) -> int:
         seed_toy_graph(session_id)
 
         rows = []
-        for query, relevant in TOY_QUERIES:
-            retrieved = _retrieved_labels(session_id, query, top_k=top_k, depth=depth)
+        for query in TOY_QUERIES:
+            relevant = set(query["relevant_labels"])
+            retrieved = _retrieved_labels(
+                session_id, query["text"], top_k=top_k, depth=depth
+            )
             rows.append(
                 {
-                    "query": query,
+                    "id": query["id"],
+                    "query": query["text"],
+                    "task": query["task"],
                     "relevant": sorted(relevant),
                     "retrieved": retrieved,
                     "p@k": precision_at_k(retrieved, relevant, top_k),
@@ -185,7 +296,7 @@ def run_bench(top_k: int, depth: int) -> int:
         print(f"baseline: hashing{'+' if depth > 0 else '_only'}{'traversal' if depth > 0 else ''}")
         print()
         for r in rows:
-            print(f"Q: {r['query']}")
+            print(f"Q[{r['id']}/{r['task']}]: {r['query']}")
             print(f"  relevant:  {r['relevant']}")
             print(f"  retrieved: {r['retrieved']}")
             print(
@@ -207,7 +318,7 @@ def run_bench(top_k: int, depth: int) -> int:
 
 def main(argv: List[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--top-k", type=int, default=3, help="k for precision/recall/hit")
+    parser.add_argument("--top-k", type=int, default=5, help="k for precision/recall/hit")
     parser.add_argument(
         "--depth",
         type=int,
