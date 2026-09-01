@@ -22,7 +22,10 @@ import os
 import sys
 from typing import Any, Dict, List, Optional
 
-from mcp.server.mcpserver import MCPServer
+try:
+    from mcp.server.mcpserver import MCPServer as _MCPServer
+except ModuleNotFoundError:  # mcp 1.x
+    from mcp.server.fastmcp import FastMCP as _MCPServer
 
 from .pmll_core import (
     MemoryController,
@@ -46,7 +49,7 @@ _q_cb_type = None
 # ---------------------------------------------------------------------------
 # MCP Server
 # ---------------------------------------------------------------------------
-mcp = MCPServer(
+mcp = _MCPServer(
     "pmll-q-promise",
     instructions=(
         "Persistent Memory Logic Loop (PMLL) + Q-promise chain — "
