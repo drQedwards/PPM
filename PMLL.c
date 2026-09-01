@@ -258,15 +258,19 @@ int peek_semantic(memory_silo_t *silo, const char *query, float min_sim,
 {
     float qvec[PMLL_EMBED_DIM];
     float best = -1.0f, s;
-    int best_i = -1, i;
+    int best_i = -1, i, dim;
 
     if (!silo || !query) return 0;
-    silo_embed_text(query, qvec, silo->embed_dim);
+    /* Clamp so stack qvec[PMLL_EMBED_DIM] is never overrun */
+    dim = silo->embed_dim;
+    if (dim > PMLL_EMBED_DIM) dim = PMLL_EMBED_DIM;
+    if (dim <= 0) return 0;
+    silo_embed_text(query, qvec, dim);
 
     for (i = 0; i < silo->size; i++) {
         if (!silo->slots[i].resolved || !silo->slots[i].embedding)
             continue;
-        s = silo_cosine_similarity(qvec, silo->slots[i].embedding, silo->embed_dim);
+        s = silo_cosine_similarity(qvec, silo->slots[i].embedding, dim);
         if (s > best) {
             best = s;
             best_i = i;
@@ -371,15 +375,17 @@ int check_conflict(clause_t *clauses, int *assignment, int num_clauses, int num_
 {
     for (int i = 0; i < num_clauses; i++) {
         int satisfied = 0;
+        int undecided = 0;
         for (int j = 0; j < clauses[i].length; j++) {
             int lit = clauses[i].literals[j];
             int var = abs(lit) - 1;
-            if (var < num_vars && assignment[var] == (lit > 0)) {
-                satisfied = 1;
-                break;
-            }
+            if (var >= num_vars) continue;
+            /* -1 = unassigned: not falsified; clause may still be satisfiable */
+            if (assignment[var] == -1) { undecided = 1; continue; }
+            if (assignment[var] == (lit > 0)) { satisfied = 1; break; }
         }
-        if (!satisfied) return 1;
+        /* Conflict only when every literal is assigned and false */
+        if (!satisfied && !undecided) return 1;
     }
     return 0;
 }
@@ -525,19 +531,41 @@ int main(void)
     int idx = -1;
     float sim = 0.0f;
     clause_t *clauses = (clause_t *)malloc((size_t)num_clauses * sizeof(clause_t));
+    if (!clauses) {
+        fprintf(stderr, "malloc clauses failed\n");
+        return 1;
+    }
 
     clauses[0].length = 3;
     clauses[0].literals = (int *)malloc(3 * sizeof(int));
+    if (!clauses[0].literals) {
+        fprintf(stderr, "malloc literals[0] failed\n");
+        free(clauses);
+        return 1;
+    }
     clauses[0].literals[0] = 1;   /* x1 */
     clauses[0].literals[1] = -2;  /* ~x2 */
     clauses[0].literals[2] = 3;   /* x3 */
     clauses[1].length = 3;
     clauses[1].literals = (int *)malloc(3 * sizeof(int));
+    if (!clauses[1].literals) {
+        fprintf(stderr, "malloc literals[1] failed\n");
+        free(clauses[0].literals);
+        free(clauses);
+        return 1;
+    }
     clauses[1].literals[0] = -1;  /* ~x1 */
     clauses[1].literals[1] = 2;   /* x2 */
     clauses[1].literals[2] = -3;  /* ~x3 */
 
     pml_t *pml = init_pml(num_vars, num_clauses, clauses);
+    if (!pml) {
+        fprintf(stderr, "init_pml failed\n");
+        free(clauses[0].literals);
+        free(clauses[1].literals);
+        free(clauses);
+        return 1;
+    }
 
     /* Confirm unassigned init (fix for sticky false/flag bug) */
     for (int i = 0; i < num_vars; i++) {

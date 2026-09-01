@@ -21,7 +21,9 @@ typedef struct {
 } silo_slot_t;
 
 typedef struct {
-    int *tree;          /* integer tree array (size * 2), malloc/calloc owned */
+    int *tree;          /* propagated layout (capacity size*2): update_silo writes
+                         * tree[var] then parent/child indices via forward/back
+                         * prop — not a 1:1 assignment[var] mirror. malloc owned */
     int size;           /* logical variable / slot capacity */
     silo_slot_t *slots; /* semantic layer: size entries, malloc owned */
     int embed_dim;      /* == PMLL_EMBED_DIM */
