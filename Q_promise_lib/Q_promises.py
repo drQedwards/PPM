@@ -1,15 +1,10 @@
-"""High-level Python wrapper for the Q_promises Cython module."""
-from typing import Callable, Optional
+"""Python façade for the PMLL Promise / Continuation Library.
 
-try:
-    import Q_promises  # Pyx-compiled module
-except ImportError as e:
-    raise RuntimeError(
-        "Q_promises extension not compiled. "
-        "Run `pip install -e .` in the Q_promise_lib directory first."
-    ) from e
+The Cython QMemNode seed is retired. Prefer the C API via ctypes against
+``libqpromise.so`` / ``q_promises.so``, or embed ``qpromise.h`` directly.
 
+See Q_promise_lib/README.md for the retrieve→compute→resolve→memory loop.
+"""
 
-def trace(size: int, callback: Optional[Callable[[int, str], None]] = None) -> None:
-    """Convenience wrapper around the Cython trace() function."""
-    Q_promises.trace(size, callback)
+__all__ = ["__doc__"]
+__version__ = "1.0.0"
