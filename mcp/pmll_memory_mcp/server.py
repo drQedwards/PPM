@@ -35,7 +35,10 @@ from __future__ import annotations
 import sys
 from typing import Any, Dict, List, Optional
 
-from mcp.server.fastmcp import FastMCP
+try:
+    from mcp.server.mcpserver import MCPServer as _MCPServer
+except ModuleNotFoundError:  # mcp 1.x
+    from mcp.server.fastmcp import FastMCP as _MCPServer
 
 from .kv_store import get_store, drop_store
 from .q_promise_bridge import QPromiseRegistry
@@ -60,7 +63,7 @@ from .solution_engine import (
 # ---------------------------------------------------------------------------
 # MCP server instance
 # ---------------------------------------------------------------------------
-mcp = FastMCP(
+mcp = _MCPServer(
     "pmll-memory-mcp",
     instructions=(
         "PMLL Memory MCP — persistent memory logic loop with short-term KV "
