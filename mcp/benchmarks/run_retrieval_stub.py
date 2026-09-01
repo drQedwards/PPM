@@ -215,17 +215,14 @@ def seed_toy_graph(session_id: str) -> Dict[str, str]:
 
 def _retrieved_labels(session_id: str, query: str, top_k: int, depth: int) -> List[str]:
     result = search_graph(session_id, query, max_depth=depth, top_k=top_k)
-    labels: List[str] = []
-    seen: Set[str] = set()
+    # Rank after merging direct+neighbor hits so depth>0 traversal is measurable.
+    by_label: Dict[str, Any] = {}
     for hit in list(result.direct) + list(result.neighbors):
         lab = hit.node.label
-        if lab in seen:
-            continue
-        seen.add(lab)
-        labels.append(lab)
-        if len(labels) >= top_k:
-            break
-    return labels
+        if lab not in by_label:  # first/highest wins
+            by_label[lab] = hit
+    ranked = sorted(by_label.values(), key=lambda h: h.relevance_score, reverse=True)
+    return [h.node.label for h in ranked[:top_k]]
 
 
 def precision_at_k(retrieved: Sequence[str], relevant: Set[str], k: int) -> float:
