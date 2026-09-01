@@ -12,9 +12,9 @@
  *      long-term memory graph
  *   4. Implements the Context+ decay scoring and similarity-based retrieval
  *
- * This enables PMLL to achieve 99% accuracy by combining:
+ * Designed to improve context retention and retrieval for coding agents by combining:
  *   - Immediate context via KV cache (short-term)
- *   - Persistent knowledge via memory graph (long-term)
+ *   - Long-term knowledge via the memory graph
  *   - Semantic search across both layers
  */
 

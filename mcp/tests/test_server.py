@@ -56,9 +56,25 @@ class TestInit:
         result = init(session_id="s2", silo_size=512)
         assert result["silo_size"] == 512
 
+    def test_init_normalizes_silo_size(self):
+        result = init(session_id="s-norm", silo_size=0)
+        assert result["silo_size"] == 1
+        assert result.get("cleared") is True
+
     def test_init_registers_session(self):
         init(session_id="s3")
         assert "s3" in _active_sessions
+
+    def test_init_resets_existing_session(self):
+        """Re-init clears prior KV slots for the same session_id (clear_on_init)."""
+        init(session_id="s-reinit", silo_size=16)
+        set(session_id="s-reinit", key="k", value="v")
+        assert peek(session_id="s-reinit", key="k")["hit"] is True
+        result = init(session_id="s-reinit", silo_size=32)
+        assert result["status"] == "initialized"
+        assert result.get("cleared") is True
+        assert result["silo_size"] == 32
+        assert peek(session_id="s-reinit", key="k")["hit"] is False
 
 
 # ---------------------------------------------------------------------------

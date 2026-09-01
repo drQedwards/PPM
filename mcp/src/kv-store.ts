@@ -1,118 +1,95 @@
 /**
  * kv-store.ts — In-process KV slot manager mirroring PMLL memory_silo_t semantics.
  *
- * This module provides a pure-TypeScript KV store whose slot structure mirrors the
- * `memory_silo_t` type defined in PMLL.h:
+ * Capacity: siloSize is enforced on set(). When at capacity and the key is new,
+ * the least-recently-used (LRU) slot is evicted. Updates never grow the silo.
  *
- *     typedef struct {
- *         int *tree;
- *         int  size;
- *     } memory_silo_t;
- *
- * Each KV slot tracks an index (position in the silo), the string key, the
- * string value, and a `resolved` flag — analogous to `init_silo()`
- * allocating slots and `update_silo()` writing values into them
- * (PMLL.c::init_silo / PMLL.c::update_silo).
- *
- * Session isolation is achieved by keying stores on `sessionId`, so
- * parallel agent tasks cannot interfere with each other.
+ * Concurrency: process-local; MCP assumes single-threaded / externally serialized access.
  */
 
-/**
- * A single KV slot, mirroring one entry in memory_silo_t.
- *
- * Fields parallel PMLL.c::update_silo(silo, var, value, depth):
- *   - index    → position in the silo tree array
- *   - key      → symbolic variable name
- *   - value    → stored value string
- *   - resolved → true once a value has been committed (update_silo called)
- */
 interface KVSlot {
   index: number;
   key: string;
   value: string;
   resolved: boolean;
+  /** Strictly increasing per-store access sequence (not wall clock). */
+  lastAccessed: number;
 }
 
-/** Result of a `peek()` call: `[hit, value, index]`. */
 export type PeekResult = [boolean, string | null, number | null];
 
-/**
- * Per-session KV store mirroring PMLL memory_silo_t.
- *
- * Mirrors the C-level silo initialised by `PMLL.c::init_silo()` and
- * written to by `PMLL.c::update_silo()`.  This pure-TypeScript
- * implementation keeps the same conceptual slot structure while
- * remaining dependency-free at runtime (no C compilation required).
- *
- * Each instance represents one session's isolated memory silo.
- * A module-level registry keyed by `sessionId` is maintained by the
- * server layer.
- */
 export class PMMemoryStore {
-  /** Maps key → KVSlot; order of insertion gives the slot index.
-   *  Mirrors the tree array in memory_silo_t (PMLL.h). */
   private _slots: Map<string, KVSlot> = new Map();
-
+  private _nextIndex = 0;
+  private _accessSeq = 0;
   siloSize: number;
 
   constructor(siloSize: number = 256) {
-    this.siloSize = siloSize;
+    this.siloSize = Math.max(1, siloSize | 0);
   }
 
-  // ------------------------------------------------------------------
-  // Core operations
-  // ------------------------------------------------------------------
+  private _touch(slot: KVSlot): void {
+    this._accessSeq += 1;
+    slot.lastAccessed = this._accessSeq;
+  }
 
-  /**
-   * Non-destructive existence check — analogous to reading the silo tree.
-   *
-   * @returns `[hit, value, index]` where `hit` is true when the key is cached.
-   */
   peek(key: string): PeekResult {
     const slot = this._slots.get(key);
     if (slot !== undefined && slot.resolved) {
+      this._touch(slot);
       return [true, slot.value, slot.index];
     }
     return [false, null, null];
   }
 
   /**
-   * Store key/value, allocating a new slot index if needed.
-   *
-   * Mirrors PMLL.c::update_silo() writing a var/value pair into the
-   * silo tree at the computed depth.
-   *
-   * @returns The slot index for the stored entry.
+   * Store key/value. New keys at capacity evict the LRU entry.
    */
   set(key: string, value: string): number {
     const existing = this._slots.get(key);
     if (existing !== undefined) {
-      // Update existing slot in-place (Ouroboros cache update).
       existing.value = value;
       existing.resolved = true;
+      this._touch(existing);
       return existing.index;
     }
 
-    const index = this._slots.size;
-    this._slots.set(key, { index, key, value, resolved: true });
+    if (this._slots.size >= this.siloSize) {
+      this._evictLru();
+    }
+
+    const index = this._nextIndex++;
+    const slot: KVSlot = {
+      index,
+      key,
+      value,
+      resolved: true,
+      lastAccessed: 0,
+    };
+    this._touch(slot);
+    this._slots.set(key, slot);
     return index;
   }
 
-  /**
-   * Clear all KV slots for this session.
-   *
-   * @returns The number of slots that were cleared.
-   */
+  private _evictLru(): void {
+    let victim: string | null = null;
+    let oldest = Infinity;
+    for (const [k, slot] of this._slots) {
+      if (slot.lastAccessed < oldest) {
+        oldest = slot.lastAccessed;
+        victim = k;
+      }
+    }
+    if (victim !== null) this._slots.delete(victim);
+  }
+
   flush(): number {
     const count = this._slots.size;
     this._slots.clear();
+    this._nextIndex = 0;
+    this._accessSeq = 0;
     return count;
   }
-
-  // ------------------------------------------------------------------
-  // Introspection helpers
-  // ------------------------------------------------------------------
 
   get size(): number {
     return this._slots.size;
@@ -123,11 +100,8 @@ export class PMMemoryStore {
   }
 }
 
-// Module-level registry: sessionId → PMMemoryStore
-// Mirrors the global silo pool managed by pml_t in PMLL.h.
 const _sessionStores: Map<string, PMMemoryStore> = new Map();
 
-/** Return (or lazily create) the store for `sessionId`. */
 export function getStore(sessionId: string, siloSize: number = 256): PMMemoryStore {
   let store = _sessionStores.get(sessionId);
   if (store === undefined) {
@@ -137,12 +111,18 @@ export function getStore(sessionId: string, siloSize: number = 256): PMMemorySto
   return store;
 }
 
-/** Remove the store for `sessionId`, returning the cleared slot count. */
 export function dropStore(sessionId: string): number {
   const store = _sessionStores.get(sessionId);
   _sessionStores.delete(sessionId);
   return store !== undefined ? store.size : 0;
 }
 
-/** Exposed for testing: direct access to the session store registry. */
+/** Clear existing silo and return a fresh store (clear_on_init). */
+export function resetStore(sessionId: string, siloSize: number = 256): PMMemoryStore {
+  _sessionStores.delete(sessionId);
+  const store = new PMMemoryStore(siloSize);
+  _sessionStores.set(sessionId, store);
+  return store;
+}
+
 export const _sessionStoresMap = _sessionStores;

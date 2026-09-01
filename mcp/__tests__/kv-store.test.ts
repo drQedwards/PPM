@@ -167,3 +167,59 @@ describe("Session isolation", () => {
     expect(store.siloSize).toBe(512);
   });
 });
+
+describe("PMMemoryStore — silo eviction / LRU", () => {
+  it("silo size enforced on new keys", () => {
+    const store = new PMMemoryStore(2);
+    store.set("a", "1");
+    store.set("b", "2");
+    expect(store.size).toBe(2);
+    store.set("c", "3");
+    expect(store.size).toBe(2);
+    const [hitA] = store.peek("a");
+    const [hitC, valC] = store.peek("c");
+    expect(hitA).toBe(false);
+    expect(hitC).toBe(true);
+    expect(valC).toBe("3");
+  });
+
+  it("update existing does not evict", () => {
+    const store = new PMMemoryStore(2);
+    store.set("a", "1");
+    store.set("b", "2");
+    store.set("a", "1b");
+    expect(store.size).toBe(2);
+    const [hit, val] = store.peek("a");
+    expect(hit).toBe(true);
+    expect(val).toBe("1b");
+  });
+
+  it("lru prefers recently peeked", () => {
+    const store = new PMMemoryStore(2);
+    store.set("a", "1");
+    store.set("b", "2");
+    store.peek("a");
+    store.set("c", "3");
+    const [hitA] = store.peek("a");
+    const [hitB] = store.peek("b");
+    expect(hitA).toBe(true);
+    expect(hitB).toBe(false);
+  });
+
+  it("lru ordering within same ms (access sequence, not clock)", () => {
+    const store = new PMMemoryStore(2);
+    store.set("a", "1");
+    store.set("b", "2");
+    store.peek("a");
+    store.peek("a");
+    store.peek("b"); // b most recent → a evicted
+    store.set("c", "3");
+    const [hitA] = store.peek("a");
+    const [hitB] = store.peek("b");
+    const [hitC, valC] = store.peek("c");
+    expect(hitA).toBe(false);
+    expect(hitB).toBe(true);
+    expect(hitC).toBe(true);
+    expect(valC).toBe("3");
+  });
+});

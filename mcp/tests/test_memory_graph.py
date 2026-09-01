@@ -13,9 +13,11 @@ sys.path.insert(0, MCP_DIR)
 from pmll_memory_mcp.embeddings import (
     tokenize,
     TfIdfVectorizer,
+    HashingVectorizer,
     cosine_similarity,
     embed,
     reset_vectorizer,
+    EMBED_DIM,
 )
 from pmll_memory_mcp.memory_graph import (
     upsert_node,
@@ -26,18 +28,22 @@ from pmll_memory_mcp.memory_graph import (
     retrieve_with_traversal,
     get_graph_stats,
     clear_graph,
+    configure_db,
+    reload_session_from_db,
     _graph_stores,
 )
 
 
 @pytest.fixture(autouse=True)
-def reset_state():
-    """Reset all module-level state before each test."""
-    _graph_stores.clear()
+def reset_state(tmp_path):
+    """Reset vectorizer + point graph DB at a fresh tempfile each test."""
+    db = tmp_path / "graph.sqlite3"
+    configure_db(str(db))
     reset_vectorizer()
     yield
     _graph_stores.clear()
     reset_vectorizer()
+    configure_db(str(tmp_path / "graph_after.sqlite3"))
 
 
 # ---------------------------------------------------------------------------
@@ -295,3 +301,45 @@ class TestGraphSessionIsolation:
         upsert_node("sB", "concept", "y", "session B")
         assert get_graph_stats("sA")["nodes"] == 1
         assert get_graph_stats("sB")["nodes"] == 1
+
+
+class TestHashingEmbedStability:
+    def test_embed_fixed_dim(self):
+        vec = embed("authentication oauth token")
+        assert len(vec) == EMBED_DIM
+
+    def test_embed_does_not_mutate_across_new_docs(self):
+        doc = "persistent memory logic loop silo peek"
+        a = embed(doc)
+        for i in range(30):
+            embed(f"unrelated document number {i} about widgets and gadgets")
+        b = embed(doc)
+        assert a == b
+        assert cosine_similarity(a, b) == pytest.approx(1.0)
+
+    def test_hasher_vocab_size_is_dim(self):
+        h = HashingVectorizer(64)
+        assert h.vocab_size == 64
+        assert len(h.vectorize("hello world")) == 64
+
+
+class TestSqlitePersistence:
+    def test_reload_graph_after_cache_drop(self):
+        n = upsert_node("s-persist", "concept", "auth", "authentication module")
+        stats = get_graph_stats("s-persist")
+        assert stats["nodes"] == 1
+        loaded = reload_session_from_db("s-persist")
+        assert loaded["nodes"] == 1
+        stats2 = get_graph_stats("s-persist")
+        assert stats2["nodes"] == 1
+        node = next(iter(_graph_stores["s-persist"].nodes.values()))
+        assert node.label == "auth"
+        assert node.id == n.id
+        assert len(node.embedding) == EMBED_DIM
+
+    def test_clear_graph_removes_sqlite_rows(self):
+        upsert_node("s-clear", "note", "x", "y")
+        assert get_graph_stats("s-clear")["nodes"] == 1
+        clear_graph("s-clear")
+        loaded = reload_session_from_db("s-clear")
+        assert loaded["nodes"] == 0
