@@ -1,7 +1,6 @@
 # PPM — Python Package Manager
 
-**pypm** – the "npm-style" package manager for Python  
-*C-powered core · reproducible installs · plugin-friendly · workspace-aware*
+**pypm** packaging CLI with shared **PMLL** memory + Q-promise. Sibling: [drQedwards/pmll](https://github.com/drQedwards/pmll).
 
 ![CI](https://img.shields.io/badge/build-passing-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
@@ -9,38 +8,83 @@
 [![npm](https://img.shields.io/npm/v/pmll-memory-mcp?label=pmll-memory-mcp)](https://www.npmjs.com/package/pmll-memory-mcp)
 [![Sponsor](https://img.shields.io/badge/sponsor-DrQedwards-ea4aaa?logo=github-sponsors)](https://github.com/sponsors/DrQedwards)
 
-Live Stellar `pmll-anchor` IDs (mainnet + testnet): [docs/STELLAR.md](docs/STELLAR.md).
+Live Stellar `pmll-anchor` IDs: [docs/STELLAR.md](docs/STELLAR.md) · skills: [SKILL.md](SKILL.md) · promises: [Q_promise_lib/README.md](Q_promise_lib/README.md).
 
-> **TL;DR**: `pypm` aims to be a **single command** that handles everything from creating a
-> virtual-env to publishing wheels—fast, deterministic, and hackable.
-> The current release is ~500 LOC of portable C that already boots a shell, diagnoses
-> broken build chains, runs dynamically-loaded plugins, and produces hermetic bundles
-> for air-gapped deploys.
+> **TL;DR**: PPM packages Python (C CLI). Shared **PMLL** owns **memory/state** (`memory_silo_t`, exact `peek` + semantic `peek_semantic`,
+> SAT bridge, `init_pml`). Q-promise owns **temporal/control-flow** (`qpromise_*`, `libqpromise.so`)
+> — it does **not** replace the silo. Optional Stellar commitments hash off-chain
+> `CodeworkPayload`s into 32-byte digests via `pmll-anchor` (ABI: init/store/get/bump).
+> Companion packaging CLI + MCP memory server live in-tree.
 
-PPM is a next-generation Python package manager featuring hermetic packaging,
-GPU-accelerated verification, cryptographic signing, and a companion
-[PMLL Memory MCP server](#-pmll-memory-mcp-server) for Claude agent tasks —
-now integrating [Context+](https://github.com/ForLoopCodes/contextplus) long-term
-semantic memory graph for 99% accuracy.
+PMLL provides durable structured memory for agent workflows, alongside a PPM packaging CLI
+(hermetic bundles, plugins, signing) and the [PMLL Memory MCP server](#-pmll-memory-mcp-server).
+Long-term graph tools adapt [Context+](https://github.com/ForLoopCodes/contextplus).
 
 ---
 
 ## Table of Contents
 
-1. [Features](#-features)
-2. [Building from Source](#-building-from-source)
-3. [CLI Commands](#-cli-commands)
-4. [GPU & Security Features](#-gpu--security-features)
-5. [Plugin System](#-plugin-system)
-6. [Configuration](#-configuration)
-7. [PMLL Memory MCP Server](#-pmll-memory-mcp-server)
-8. [Stellar commitments](#-stellar-commitments-pmll-anchor)
-9. [Architecture](#-architecture)
-10. [Release Notes](#-release-notes)
-11. [Roadmap](#-roadmap)
-12. [Contributing & Sponsors](#-contributing--sponsors)
+1. [Layers (post-merge)](#layers-post-merge)
+2. [Features](#-features)
+3. [Building from Source](#-building-from-source)
+4. [CLI Commands](#-cli-commands)
+5. [GPU & Security Features](#-gpu--security-features)
+6. [Plugin System](#-plugin-system)
+7. [Configuration](#-configuration)
+8. [PMLL Memory MCP Server](#-pmll-memory-mcp-server)
+9. [Stellar commitments](#-stellar-commitments-pmll-anchor)
+10. [Architecture](#-architecture)
+11. [Release Notes](#-release-notes)
+12. [Roadmap](#-roadmap)
+13. [Contributing & Sponsors](#-contributing--sponsors)
 
 ---
+
+---
+
+## Layers (post-merge)
+
+Two complementary layers — **not** substitutes for each other:
+
+| Layer | Owns | Key surface |
+|-------|------|-------------|
+| **PMLL** | Durable memory / state | `memory_silo_t`, `peek` / `peek_semantic`, `silo_set`, SAT bridge, `init_pml` |
+| **Q-promise** | Temporal / control-flow | `qpromise_*` API, `libqpromise.so`, deferred `qpromise_drain()` |
+
+Q-promise does **not** replace the silo. A promise may *reference* a memory key (and optional SAT state id); results are committed back with `silo_set` / `qpromise_resolve_commit`.
+
+### Intended loop
+
+```
+retrieve (peek / peek_semantic)
+  → compute / request work
+  → promise PENDING
+  → resolve / reject (optionally resolve_commit → silo)
+  → continuation (then / catch / finally via qpromise_drain)
+  → memory update
+  → retrieve again
+```
+
+**Thread safety:** the C Q-promise drain is **single-threaded**. Continuations run only during `qpromise_drain()` on the calling thread; callers must externally serialize access. Details: [`Q_promise_lib/README.md`](Q_promise_lib/README.md).
+
+### C core (PMLL)
+
+Headers: `PMLL.h` · implementation: `PMLL.c`
+
+| Symbol | Role |
+|--------|------|
+| `memory_silo_t` | Associative/semantic silo: `tree`, `slots[]`, `embed_dim` (`PMLL_EMBED_DIM=32`), `slot_count` |
+| `silo_slot_t` | `key`, `content`, `embedding`, `resolved` |
+| `init_silo` / `free_silo` / `silo_set` | Allocate, free, write key/content + embedding |
+| `peek` | Exact key, else index |
+| `peek_semantic` | Cosine ≥ `min_sim` over embeddings (`silo_embed_text`, `silo_cosine_similarity`) |
+| `init_pml` | Sets every `assignment[i] = -1` (**undecided**) |
+| `check_conflict` | Treats `-1` as undecided (not sticky false from zero-fill) |
+| `sat_bridge_*` | Map 3SAT tokens → associative string literals in the silo |
+
+### Q-promise library
+
+Build / test / API: **[`Q_promise_lib/README.md`](Q_promise_lib/README.md)** (authoritative). Public symbols are `qpromise_*`; shared object is `libqpromise.so`. The old prototype (`QMemNode` / `q_mem_*` / memory-chain walker) is removed; `Q_promises.h` is a compatibility include redirecting to `qpromise.h`.
 
 ## ✨ Features
 
@@ -81,6 +125,14 @@ cd PPM
 cc -Wall -Wextra -ldl -lcurl -o pypm Ppm.c
 ./pypm doctor        # Diagnose your dev box
 ./pypm sandbox       # Spin up a throw-away REPL playground
+```
+
+### Q-promise shared library
+
+```bash
+cd Q_promise_lib
+make clean && make test
+make shared   # → libqpromise.so
 ```
 
 ### Optional: CUDA-accelerated build
@@ -270,15 +322,23 @@ export CUDA_VISIBLE_DEVICES=0               # control GPU usage
 
 > **Persistent memory logic loop with short-term KV context memory, Q-promise
 > deduplication, and [Context+](https://github.com/ForLoopCodes/contextplus) long-term
-> semantic memory graph for 99% accuracy in Claude Sonnet/Opus agent tasks.**
+> optional long-term semantic memory graph for agent tasks.**
 
 [![npm](https://img.shields.io/npm/v/pmll-memory-mcp?label=pmll-memory-mcp)](https://www.npmjs.com/package/pmll-memory-mcp)
 [![PyPI](https://img.shields.io/pypi/v/pmll-memory-mcp)](https://pypi.org/project/pmll-memory-mcp/)
 [![MCP Registry](https://img.shields.io/badge/MCP-Registry%20Submission-blue)](https://github.com/modelcontextprotocol/servers)
 
-`pmll-memory-mcp` (v1.0.1) is a **Model Context Protocol (MCP) server** that gives
-Claude Sonnet / Opus agents a persistent memory logic loop with two complementary
-memory layers:
+`pmll-memory-mcp` is a **Model Context Protocol (MCP) server** with complementary
+short-term KV and optional long-term graph layers. Server construction prefers
+`MCPServer` (mcp 2.x) and falls back to `FastMCP` (mcp 1.x) — see
+`mcp/pmll_memory_mcp/server.py`.
+
+Ground tool names in code: TypeScript (`mcp/src/index.ts`) has 15 tools including
+`graphql` and names like `create_relation`; Python (`mcp/pmll_memory_mcp/server.py`)
+has 14 tools (no `graphql`) with several longer names such as `create_memory_relation`.
+A ctypes demo in `Ppm-lib/pmll_mcp/` loads `libqpromise.so` via `qpromise_*`.
+
+Memory layers:
 
 - **Short-term KV cache** (5 tools) — session-isolated key-value memory with Q-promise deduplication, mirroring `PMLL.c::memory_silo_t`.
 - **Long-term memory graph** (6 tools) — adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing a persistent property graph with typed nodes, weighted edges, temporal decay scoring (e^(-λt)), and semantic search via TF-IDF embeddings.
@@ -286,7 +346,7 @@ memory layers:
 
 The server is designed to be the **3rd initializer** alongside Playwright and other MCP tools — loaded once at the start of every agent task. Agents call `init` once at task start, then use `peek` before any expensive MCP tool invocation to avoid redundant calls. Frequently accessed entries are promoted to the long-term memory graph for persistent semantic retrieval.
 
-The server exposes **15 tools** total across four categories.
+Tool counts differ by implementation (TS 15 incl. `graphql`; Python 14 — see note above). Historical docs below list the TypeScript tool surface.
 
 ### Why it's a premium 3rd initializer
 
@@ -330,7 +390,7 @@ if (result.hit) {
 
 | Tool      | Input                                              | Output                                                      | Description                                       |
 |-----------|----------------------------------------------------|-------------------------------------------------------------|---------------------------------------------------|
-| `init`    | `session_id: str`, `silo_size: int = 256`          | `{status, session_id, silo_size}`                           | Set up PMLL silo + Q-promise chain for session    |
+| `init`    | `session_id: str`, `silo_size: int = 256`          | `{status, session_id, silo_size}`                           | Set up PMLL silo + Q-promise state for session    |
 | `peek`    | `session_id: str`, `key: str`                      | `{hit, value?, index?}` or `{hit, status, promise_id}`      | Non-destructive cache + promise check             |
 | `set`     | `session_id: str`, `key: str`, `value: str`        | `{status: "stored", index}`                                 | Store KV pair in the silo                         |
 | `resolve` | `session_id: str`, `promise_id: str`               | `{status: "resolved"\|"pending", payload?}`                 | Check/resolve a Q-promise continuation            |
@@ -394,7 +454,7 @@ pmll-memory-mcp          # starts the stdio MCP server
   "tools": [
     {
       "name": "init",
-      "description": "Set up PMLL silo and Q-promise chain for a session. Call once at task start.",
+      "description": "Set up PMLL silo and Q-promise state for a session. Call once at task start.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -690,7 +750,10 @@ Full MCP server documentation: [`mcp/README.md`](mcp/README.md)
 
 ## ⚓ Stellar commitments (`pmll-anchor`)
 
-Memory payloads stay **off-chain**. Optional 32-byte SHA-256 commitments are **live on Stellar mainnet** via [`drQedwards/pmll`](https://github.com/drQedwards/pmll) (`pmll-anchor`). Full payloads are never stored on-chain.
+Memory / codework payloads stay **off-chain**. Optional **32-byte SHA-256 commitments** are **live on Stellar mainnet** via Soroban `pmll-anchor` (shared with [`drQedwards/pmll`](https://github.com/drQedwards/pmll)).
+ABI unchanged: `init` / `store` / `get` / `bump` only — do not invent fields or contract IDs.
+This PPM tree may **not** include the full `pmll-anchor/` contract sources; typed payload is still mirrored as [`skill.ts`](./skill.ts).
+Invoke docs / contract source: [pmll/SKILL.md](https://github.com/drQedwards/pmll/blob/main/SKILL.md). Local summary: [`SKILL.md`](./SKILL.md).
 
 | Network | Contract ID | Explorer |
 |---------|-------------|---------| 
@@ -699,7 +762,7 @@ Memory payloads stay **off-chain**. Optional 32-byte SHA-256 commitments are **l
 
 Admin: `GBFOFCD3XDANQWSGMHKJJ2V3YXS2QQD7RNC4LMDBVNBTUJOQZ3RLSB3E` · wasm hash `1b6ad9c574e0f5c9e39968f836a410c03adcf057afa93a63d2710bd30fdd53ba`
 
-Skill (API + invoke): [pmll/SKILL.md](https://github.com/drQedwards/pmll/blob/main/SKILL.md)
+Skills summary: [`SKILL.md`](./SKILL.md) · full invoke docs: [pmll/SKILL.md](https://github.com/drQedwards/pmll/blob/main/SKILL.md)
 
 ---
 
@@ -744,7 +807,7 @@ Skill (API + invoke): [pmll/SKILL.md](https://github.com/drQedwards/pmll/blob/ma
         │                    │
         ▼                    ▼
   PMLL.c / PMLL.h      Q_promise_lib/
-  (memory_silo_t)       (QMemNode chain)
+  (memory_silo_t)       (qpromise_* / libqpromise.so)
 ```
 
 ### Key components
@@ -753,9 +816,12 @@ Skill (API + invoke): [pmll/SKILL.md](https://github.com/drQedwards/pmll/blob/ma
 |-------------------------|------------------------------------------------------------------|
 | `Ppm.c`                 | C-core CLI v0.0.3-dev — integrated single-file build (~500 LOC)  |
 | `Pypm.c`                | PyPM 0.3.x front-door dispatcher; delegates to module sources    |
-| `PMLL.c` / `PMLL.h`     | Persistent Memory Logic Loop — KV silo primitives                |
+| `PMLL.c` / `PMLL.h`     | Associative/semantic silo, peek/peek_semantic, SAT bridge, init_pml=-1                |
 | `SAT.c` / `SAT.h`       | Boolean SAT solver used for dependency resolution                |
-| `Q_promise_lib/`        | Q-promise / async continuation chain (mirrors JS Promises in C)  |
+| `Q_promise_lib/`        | Promise/continuation library (`qpromise_*`, `libqpromise.so`; single-threaded drain)  |
+| `skill.ts` / `SKILL.md` | Off-chain CodeworkPayload + Stellar skills entry                 |
+| `pmll-anchor/`          | Soroban commitment contract (source on pmll; may be absent here)                |
+| `lattice/`              | On pmll only — playable Stellar skills graph / ARC-AGI-3 play test              |
 | `mcp/`                  | TypeScript PMLL Memory MCP server (15 tools)                     |
 | `mcp/src/memory-graph.ts` | Long-term memory graph adapted from [Context+](https://github.com/ForLoopCodes/contextplus) |
 | `mcp/src/solution-engine.ts` | Solution engine bridging short-term KV + long-term graph    |
@@ -767,6 +833,13 @@ Skill (API + invoke): [pmll/SKILL.md](https://github.com/drQedwards/pmll/blob/ma
 ---
 
 ## 📝 Release Notes
+### Post-merge (2026-08) — semantic silo + Q-promise
+
+- PMLL C core: associative/semantic silo (`slots` + embeddings), `peek` + `peek_semantic`, SAT bridge, `init_pml` assignments start at `-1` (undecided).
+- Q-promise evolved to `qpromise_*` + `libqpromise.so`; prototype `QMemNode` / `q_mem_*` API removed.
+- Stellar skills / `skill.ts` aligned for off-chain `CodeworkPayload` hashing into existing `pmll-anchor` (ABI unchanged).
+- MCP servers prefer `MCPServer` with `FastMCP` fallback; Q-promise MCP demos load `libqpromise.so`.
+
 
 ### pypm 0.0.3-dev (25 Jun 2025)
 
@@ -835,7 +908,7 @@ Skill (API + invoke): [pmll/SKILL.md](https://github.com/drQedwards/pmll/blob/ma
 - Initial MCP Registry submission.
 - Five tools: `init`, `peek`, `set`, `resolve`, `flush`.
 - TypeScript KV store mirroring `PMLL.c::memory_silo_t`.
-- Q-promise registry mirroring `Q_promise_lib::QMemNode`.
+- Q-promise registry (historical); current C API is `qpromise_*` / `libqpromise.so`.
 - Docker multi-stage image with persistent volume support.
 - Companion Unstoppable Domains MCP server included in `mcp/unstoppable-domains/`.
 
@@ -877,4 +950,4 @@ If you find PPM or `pmll-memory-mcp` useful, please consider supporting developm
 
 ---
 
-*Built by **Dr. Q Josef Kurk Edwards** — making Python packaging fast, deterministic, and hackable.*
+*Built by **Dr. Q Josef Kurk Edwards** — making Python packaging fast, deterministic, and hackable, with a shared PMLL memory stack.*
