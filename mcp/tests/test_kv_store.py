@@ -193,6 +193,23 @@ class TestSiloSizeEviction:
         hit_b, _, _ = store.peek("b")
         assert hit_a is True
         assert hit_b is False
+    def test_lru_ordering_within_same_ms(self):
+        """Access-sequence counter (not clock) distinguishes same-ms peeks."""
+        store = PMMemoryStore(silo_size=2)
+        store.set("a", "1")
+        store.set("b", "2")
+        # Rapid peeks that could share a clock tick must still order correctly.
+        store.peek("a")
+        store.peek("a")
+        store.peek("b")  # b is most recent; a is older → a evicted
+        store.set("c", "3")
+        hit_a, _, _ = store.peek("a")
+        hit_b, _, _ = store.peek("b")
+        hit_c, val_c, _ = store.peek("c")
+        assert hit_a is False
+        assert hit_b is True
+        assert hit_c is True
+        assert val_c == "3"
 
 
 class TestResetStore:

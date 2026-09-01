@@ -106,10 +106,10 @@ See the full [agent_instructions.md](./agent_instructions.md) for the complete 1
 `pmll-memory-mcp` is a **Model Context Protocol (MCP) server** that gives Claude Sonnet/Opus agents a persistent memory logic loop with two complementary memory layers:
 
 - **Short-term KV cache** (5 tools) — session-isolated key-value memory with Q-promise deduplication, mirroring `PMLL.c::memory_silo_t`.
-- **Long-term memory graph** (6 tools) — adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing a SQLite-backed property graph with typed nodes, weighted edges, temporal decay scoring (e^(-λt)), and semantic search via stable hashing embeddings.
+- **Long-term memory graph** (6 tools) — adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing a property graph with typed nodes, weighted edges, temporal decay scoring (e^(-λt)), and semantic search via stable hashing embeddings. **Python** persists the graph in SQLite; the **TypeScript** graph remains in-memory for the process lifetime.
 - **Solution engine** (3 tools) — bridges both layers with unified context resolution (short-term → long-term → miss), auto-promotion of frequently accessed entries, and unified memory status views.
 
-The server is designed to be the **3rd initializer** alongside Playwright and other MCP tools — loaded once at the start of every agent task. Agents call `init` once at task start, then use `peek` before any expensive MCP tool invocation to avoid redundant calls. Frequently accessed entries are promoted to the long-term memory graph for semantic retrieval across sessions (SQLite-backed graph).
+The server is designed to be the **3rd initializer** alongside Playwright and other MCP tools — loaded once at the start of every agent task. Agents call `init` once at task start, then use `peek` before any expensive MCP tool invocation to avoid redundant calls. Frequently accessed entries are promoted to the long-term memory graph for semantic retrieval across sessions (SQLite-backed on the Python server; in-memory on TypeScript).
 
 The server exposes **15 tools** total across four categories.
 
@@ -161,7 +161,7 @@ if (result.hit) {
 
 | Tool      | Input                                              | Output                                                      | Description                                       |
 |-----------|----------------------------------------------------|-------------------------------------------------------------|---------------------------------------------------|
-| `init`    | `session_id: str`, `silo_size: int = 256`          | `{status, session_id, silo_size}`                           | Set up PMLL silo + Q-promise chain for session    |
+| `init`    | `session_id: str`, `silo_size: int = 256`          | `{status, session_id, silo_size, cleared: true}`            | Set up / reset PMLL silo + Q-promise chain (`cleared` always true; `silo_size` is normalized) |
 | `peek`    | `session_id: str`, `key: str`                      | `{hit, value?, index?}` or `{hit, status, promise_id}`      | Non-destructive cache + promise check             |
 | `set`     | `session_id: str`, `key: str`, `value: str`        | `{status: "stored", index}`                                 | Store KV pair in the silo                         |
 | `resolve` | `session_id: str`, `promise_id: str`               | `{status: "resolved"\|"pending", payload?}`                 | Check/resolve a Q-promise continuation            |
@@ -175,7 +175,7 @@ if (result.hit) {
 
 ### Long-term memory graph (6 tools — adapted from [Context+](https://github.com/ForLoopCodes/contextplus))
 
-These tools are adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing SQLite-backed semantic memory with graph traversal, decay scoring, and cosine similarity search.
+These tools are adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing semantic memory with graph traversal, decay scoring, and cosine similarity search. Persistence: **Python** uses SQLite; **TypeScript** keeps the graph in-memory.
 
 | Tool                      | Input                                                           | Output                                                | Description                                                                        |
 |---------------------------|-----------------------------------------------------------------|-------------------------------------------------------|------------------------------------------------------------------------------------|
@@ -365,7 +365,7 @@ The long-term memory graph (`memory-graph.ts`) is adapted from [Context+](https:
 | `q-promise-bridge`             | `Q_promises.h::QMemNode`                      | `q_mem_create_chain()`, `q_then()`    |
 | `peek.peekContext()`           | Recursive conflict check in PMLL              | `check_conflict()`, `pml_refine()`    |
 | `memory-graph.ts`              | [Context+](https://github.com/ForLoopCodes/contextplus) memory graph | Nodes, edges, decay, traversal |
-| `embeddings.ts`                | [Context+](https://github.com/ForLoopCodes/contextplus) embeddings   | TF-IDF, cosine similarity     |
+| `embeddings.ts`                | [Context+](https://github.com/ForLoopCodes/contextplus) embeddings   | Stable hashing embeds (TF-IDF legacy), cosine similarity |
 | `solution-engine.ts`           | Bridges short-term KV + Context+ long-term    | `resolveContext()`, `promoteToLongTerm()` |
 
 ---

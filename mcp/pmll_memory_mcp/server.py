@@ -101,15 +101,17 @@ def init(session_id: str, silo_size: int = 256) -> Dict[str, Any]:
         silo_size:  Maximum number of KV slots (mirrors memory_silo_t.size).
 
     Returns:
-        ``{"status": "initialized", "session_id": str, "silo_size": int}``
+        ``{"status": "initialized", "session_id": str, "silo_size": int, "cleared": true}``
+        ``silo_size`` is the effective (normalized) capacity; ``cleared`` is always
+        ``true`` because init resets the short-term KV silo for the session.
     """
     # clear_on_init: re-initing the same session resets the short-term KV silo.
     store = reset_store(session_id, silo_size=silo_size)
-    _active_sessions[session_id] = silo_size
+    _active_sessions[session_id] = store.silo_size
     return {
         "status": "initialized",
         "session_id": session_id,
-        "silo_size": silo_size,
+        "silo_size": store.silo_size,
         "cleared": True,
     }
 
@@ -225,8 +227,9 @@ def upsert_memory_node(
     """Create or update a memory node in the long-term semantic graph.
 
     Nodes represent concepts, files, symbols, or notes with auto-generated
-    TF-IDF embeddings for semantic search. Part of the Context+ solution
-    engine for durable context retention and retrieval.
+    stable hashing embeddings for semantic search (TF-IDF is legacy-only).
+    Part of the Context+ solution engine for durable context retention and
+    retrieval.
 
     Args:
         session_id: The session identifier (from ``init``).

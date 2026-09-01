@@ -13,7 +13,6 @@ guards the module registry and per-store mutations for light safety.
 from __future__ import annotations
 
 import threading
-import time
 from dataclasses import dataclass
 from typing import Dict, Optional, Tuple
 
@@ -26,7 +25,8 @@ class _KVSlot:
     key: str
     value: str
     resolved: bool = True
-    last_accessed: float = 0.0
+    # Strictly increasing per-store access sequence (not wall/monotonic clock).
+    last_accessed: int = 0
 
 
 class PMMemoryStore:
@@ -41,12 +41,17 @@ class PMMemoryStore:
         self.silo_size = max(1, int(silo_size))
         self._lock = threading.RLock()
         self._next_index = 0
+        self._access_seq = 0
+
+    def _touch(self, slot: _KVSlot) -> None:
+        self._access_seq += 1
+        slot.last_accessed = self._access_seq
 
     def peek(self, key: str) -> Tuple[bool, Optional[str], Optional[int]]:
         with self._lock:
             slot = self._slots.get(key)
             if slot is not None and slot.resolved:
-                slot.last_accessed = time.monotonic()
+                self._touch(slot)
                 return True, slot.value, slot.index
             return False, None, None
 
@@ -57,7 +62,7 @@ class PMMemoryStore:
                 slot = self._slots[key]
                 slot.value = value
                 slot.resolved = True
-                slot.last_accessed = time.monotonic()
+                self._touch(slot)
                 return slot.index
 
             if len(self._slots) >= self.silo_size:
@@ -65,13 +70,14 @@ class PMMemoryStore:
 
             index = self._next_index
             self._next_index += 1
-            self._slots[key] = _KVSlot(
+            slot = _KVSlot(
                 index=index,
                 key=key,
                 value=value,
                 resolved=True,
-                last_accessed=time.monotonic(),
             )
+            self._touch(slot)
+            self._slots[key] = slot
             return index
 
     def _evict_lru(self) -> None:
@@ -85,6 +91,7 @@ class PMMemoryStore:
             count = len(self._slots)
             self._slots.clear()
             self._next_index = 0
+            self._access_seq = 0
             return count
 
     def __len__(self) -> int:

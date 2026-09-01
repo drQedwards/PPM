@@ -548,7 +548,7 @@ def retrieve_with_traversal(
         ]
         visited = {start_node_id}
         _collect_traversal(
-            graph, start_node_id, 1, max_depth, [start_node.label],
+            graph, session_id, start_node_id, 1, max_depth, [start_node.label],
             visited, results, edge_filter,
         )
         return results
@@ -556,6 +556,7 @@ def retrieve_with_traversal(
 
 def _collect_traversal(
     graph: _GraphStore,
+    session_id: str,
     node_id: str,
     depth: int,
     max_depth: int,
@@ -577,6 +578,7 @@ def _collect_traversal(
             continue
         visited.add(neighbor_id)
         neighbor.last_accessed = time.time()
+        _persist_node(session_id, neighbor)
         decayed = _decay_weight(edge)
         depth_penalty = 1 / (1 + depth * 0.3)
         score = decayed * depth_penalty * 100
@@ -588,7 +590,7 @@ def _collect_traversal(
             )
         )
         _collect_traversal(
-            graph, neighbor_id, depth + 1, max_depth,
+            graph, session_id, neighbor_id, depth + 1, max_depth,
             [*path_labels, f"--[{edge.relation}]-->", neighbor.label],
             visited, results, edge_filter,
         )

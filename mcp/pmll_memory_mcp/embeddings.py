@@ -58,7 +58,8 @@ class HashingVectorizer:
         for term, count in tf.items():
             h = _stable_hash(term)
             idx = h % self.dim
-            sign = 1.0 if ((h >> 1) & 1) == 0 else -1.0
+            # High bit for sign — must not reuse a bit consumed by h % dim (low bits).
+            sign = 1.0 if ((h >> 63) & 1) == 0 else -1.0
             normalized_tf = 0.5 + 0.5 * (count / max_tf)
             vec[idx] += sign * normalized_tf
         return l2_normalize(vec)

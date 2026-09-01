@@ -106,7 +106,8 @@ export class HashingVectorizer {
     for (const [term, count] of tf) {
       const h = stableHash(term);
       const idx = h % this.dim;
-      const sign = ((h >>> 1) & 1) === 0 ? 1 : -1;
+      // High bit for sign — must not reuse a bit consumed by h % dim (low bits).
+      const sign = ((h >>> 31) & 1) === 0 ? 1 : -1;
       const normalizedTf = 0.5 + 0.5 * (count / maxTf);
       vec[idx] += sign * normalizedTf;
     }

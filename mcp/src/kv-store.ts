@@ -12,6 +12,7 @@ interface KVSlot {
   key: string;
   value: string;
   resolved: boolean;
+  /** Strictly increasing per-store access sequence (not wall clock). */
   lastAccessed: number;
 }
 
@@ -20,16 +21,22 @@ export type PeekResult = [boolean, string | null, number | null];
 export class PMMemoryStore {
   private _slots: Map<string, KVSlot> = new Map();
   private _nextIndex = 0;
+  private _accessSeq = 0;
   siloSize: number;
 
   constructor(siloSize: number = 256) {
     this.siloSize = Math.max(1, siloSize | 0);
   }
 
+  private _touch(slot: KVSlot): void {
+    this._accessSeq += 1;
+    slot.lastAccessed = this._accessSeq;
+  }
+
   peek(key: string): PeekResult {
     const slot = this._slots.get(key);
     if (slot !== undefined && slot.resolved) {
-      slot.lastAccessed = Date.now();
+      this._touch(slot);
       return [true, slot.value, slot.index];
     }
     return [false, null, null];
@@ -43,7 +50,7 @@ export class PMMemoryStore {
     if (existing !== undefined) {
       existing.value = value;
       existing.resolved = true;
-      existing.lastAccessed = Date.now();
+      this._touch(existing);
       return existing.index;
     }
 
@@ -52,13 +59,15 @@ export class PMMemoryStore {
     }
 
     const index = this._nextIndex++;
-    this._slots.set(key, {
+    const slot: KVSlot = {
       index,
       key,
       value,
       resolved: true,
-      lastAccessed: Date.now(),
-    });
+      lastAccessed: 0,
+    };
+    this._touch(slot);
+    this._slots.set(key, slot);
     return index;
   }
 
@@ -78,6 +87,7 @@ export class PMMemoryStore {
     const count = this._slots.size;
     this._slots.clear();
     this._nextIndex = 0;
+    this._accessSeq = 0;
     return count;
   }
 
