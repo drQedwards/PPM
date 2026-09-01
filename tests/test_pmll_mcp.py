@@ -282,16 +282,32 @@ class TestMCPToolHashPayload:
 # ---------------------------------------------------------------------------
 # MCP Tool: Q-promise integration
 # ---------------------------------------------------------------------------
-Q_SO_PATH = os.path.join(REPO_ROOT, "Q_promise_lib", "q_promises.so")
+Q_LIB_DIR = os.path.join(REPO_ROOT, "Q_promise_lib")
+# Canonical shared object from `make -C Q_promise_lib`; legacy name kept as fallback.
+Q_SO_CANDIDATES = ("libqpromise.so", "q_promises.so")
+
+
+def _resolve_q_so_path():
+    for name in Q_SO_CANDIDATES:
+        path = os.path.join(Q_LIB_DIR, name)
+        if os.path.isfile(path):
+            return path
+    return os.path.join(Q_LIB_DIR, Q_SO_CANDIDATES[0])
+
+
+Q_SO_PATH = os.path.join(Q_LIB_DIR, "libqpromise.so")
 
 
 @pytest.fixture(scope="session")
 def ensure_q_so():
     """Ensure Q_promise shared library is built."""
     import subprocess
-    subprocess.check_call(["make", "-C", os.path.join(REPO_ROOT, "Q_promise_lib"), "clean"])
-    subprocess.check_call(["make", "-C", os.path.join(REPO_ROOT, "Q_promise_lib")])
-    assert os.path.exists(Q_SO_PATH)
+    subprocess.check_call(["make", "-C", Q_LIB_DIR, "clean"])
+    subprocess.check_call(["make", "-C", Q_LIB_DIR])
+    path = _resolve_q_so_path()
+    assert os.path.isfile(path), (
+        f"expected libqpromise.so (or legacy q_promises.so) under {Q_LIB_DIR}"
+    )
 
 
 class TestMCPToolQPromiseTrace:

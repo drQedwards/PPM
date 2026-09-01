@@ -37,9 +37,23 @@ from .pmll_core import (
 # Resolve the Q_promise shared library path
 # ---------------------------------------------------------------------------
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-_Q_SO_PATH = os.environ.get("PMLL_Q_PROMISE_SO")
-if not _Q_SO_PATH:
-    _Q_SO_PATH = os.path.join(_REPO_ROOT, "Q_promise_lib", "q_promises.so")
+_Q_LIB_DIR = os.path.join(_REPO_ROOT, "Q_promise_lib")
+_Q_SO_CANDIDATES = ("libqpromise.so", "q_promises.so")
+
+
+def _resolve_q_so_path():
+    """Prefer canonical libqpromise.so; fall back to legacy q_promises.so."""
+    env = os.environ.get("PMLL_Q_PROMISE_SO")
+    if env:
+        return env
+    for name in _Q_SO_CANDIDATES:
+        path = os.path.join(_Q_LIB_DIR, name)
+        if os.path.isfile(path):
+            return path
+    return os.path.join(_Q_LIB_DIR, _Q_SO_CANDIDATES[0])
+
+
+_Q_SO_PATH = _resolve_q_so_path()
 _MAX_CHAIN_LENGTH = 10000
 
 # Cached ctypes library handle (lazy-loaded on first use)
@@ -210,49 +224,60 @@ def hash_payload(payload: str, salt: str = "") -> str:
     return json.dumps({"hash": h, "salt": salt})
 
 
+def _q_so_missing_msg() -> str:
+    return (
+        f"Q_promise shared library not found at {_Q_SO_PATH}. "
+        "Run 'make' in Q_promise_lib/ first."
+    )
+
+
+def _demo_payload(index: int) -> bytes:
+    """Seed-compatible demo payloads: index 0 is Known, rest Unknown."""
+    return b"Known" if index == 0 else b"Unknown"
+
+
 # ── Tool: q_promise_trace ──────────────────────────────────────────────────
 @mcp.tool()
 def q_promise_trace(chain_length: int) -> str:
-    """Create and trace a Q-promise memory chain (from Q_promise_lib).
+    """Create and trace resolved Q-promises via libqpromise (Q_promise_lib).
 
-    Allocates a linked-list chain of the given length, iterates it via
-    q_then(), and returns the resolved entries.
+    Builds ``chain_length`` resolved promises through the ``qpromise_*`` C API
+    (replacing the removed QMemNode ``q_mem_create_chain`` / ``q_then`` walker).
+    Demo payloads keep the seed convention: index 0 → "Known", else "Unknown".
 
     Args:
-        chain_length: Number of nodes in the memory chain (0-10000).
+        chain_length: Number of promises to create (0-10000).
             If 0, an empty JSON array is returned.
 
     Returns:
-        JSON array of {index, payload} objects for each chain node, or an
-        empty JSON array if ``chain_length`` is 0.
+        JSON array of {index, payload} objects, or an empty JSON array if
+        ``chain_length`` is 0.
     """
     if chain_length < 0 or chain_length > _MAX_CHAIN_LENGTH:
-        return json.dumps({"error": f"chain_length must be between 0 and {_MAX_CHAIN_LENGTH}"})
+        return json.dumps({
+            "error": f"chain_length must be between 0 and {_MAX_CHAIN_LENGTH}"
+        })
 
     if chain_length == 0:
         return json.dumps([])
 
-    lib, CALLBACK_TYPE = _load_q_lib()
+    lib = _load_q_lib()
     if lib is None:
-        return json.dumps({"error": f"Q_promise shared library not found at {_Q_SO_PATH}. Run 'make' in Q_promise_lib/ first."})
+        return json.dumps({"error": _q_so_missing_msg()})
 
     results: List[Dict[str, Any]] = []
-
-    @CALLBACK_TYPE
-    def cb(index, payload):
-        results.append({
-            "index": index,
-            "payload": payload.decode("utf-8") if payload else None,
-        })
-
-    head = lib.q_mem_create_chain(chain_length)
-    if not head:
-        return json.dumps({"error": "Failed to allocate memory chain"})
-
-    try:
-        lib.q_then(head, cb)
-    finally:
-        lib.q_mem_free_chain(head)
+    for index in range(chain_length):
+        promise = lib.qpromise_resolved(_demo_payload(index))
+        if not promise:
+            return json.dumps({"error": "Failed to allocate promise"})
+        try:
+            raw = lib.qpromise_value(promise)
+            results.append({
+                "index": index,
+                "payload": raw.decode("utf-8") if raw else None,
+            })
+        finally:
+            lib.qpromise_unref(promise)
 
     return json.dumps(results)
 
@@ -260,50 +285,53 @@ def q_promise_trace(chain_length: int) -> str:
 # ── Tool: q_promise_write ──────────────────────────────────────────────────
 @mcp.tool()
 def q_promise_write(chain_length: int, ttl_s: float = 60.0) -> str:
-    """Trace a Q-promise chain and write each node into the PMLL memory pool.
+    """Resolve Q-promises and write each into the PMLL memory pool.
 
-    This combines Q_promise_lib's memory chain with PMLL's promise system:
-    each chain node becomes a promise that gets committed to the pool.
+    Uses libqpromise to create resolved promises, then queues them through
+    PMLL's MemoryController (write → process_promises).
 
     Args:
-        chain_length: Number of Q-promise chain nodes (0-10000).
+        chain_length: Number of Q-promises to create (0-10000).
         ttl_s: Time-to-live for each promise in seconds.
 
     Returns:
         JSON with number of nodes written, committed, and utilization.
     """
     if chain_length < 0 or chain_length > _MAX_CHAIN_LENGTH:
-        return json.dumps({"error": f"chain_length must be between 0 and {_MAX_CHAIN_LENGTH}"})
+        return json.dumps({
+            "error": f"chain_length must be between 0 and {_MAX_CHAIN_LENGTH}"
+        })
 
     if chain_length == 0:
         return json.dumps({"written": 0, "committed": 0, "utilization": 0.0})
 
-    lib, CALLBACK_TYPE = _load_q_lib()
+    lib = _load_q_lib()
     if lib is None:
-        return json.dumps({"error": f"Q_promise shared library not found at {_Q_SO_PATH}. Run 'make' in Q_promise_lib/ first."})
+        return json.dumps({"error": _q_so_missing_msg()})
 
     mc = _get_mc()
-    written = [0]
+    written = 0
 
-    @CALLBACK_TYPE
-    def cb(index, payload):
-        data = payload.decode("utf-8") if payload else None
-        mc.write(pid=int(index), data={"q_node": index, "payload": data}, ttl_s=ttl_s)
-        written[0] += 1
-
-    head = lib.q_mem_create_chain(chain_length)
-    if not head:
-        return json.dumps({"error": "Failed to allocate memory chain"})
-
-    try:
-        lib.q_then(head, cb)
-    finally:
-        lib.q_mem_free_chain(head)
+    for index in range(chain_length):
+        promise = lib.qpromise_resolved(_demo_payload(index))
+        if not promise:
+            return json.dumps({"error": "Failed to allocate promise"})
+        try:
+            raw = lib.qpromise_value(promise)
+            payload = raw.decode("utf-8") if raw else None
+            mc.write(
+                pid=int(index),
+                data={"q_node": index, "payload": payload},
+                ttl_s=ttl_s,
+            )
+            written += 1
+        finally:
+            lib.qpromise_unref(promise)
 
     committed = mc.process_promises()
 
     return json.dumps({
-        "written": written[0],
+        "written": written,
         "committed": committed,
         "utilization": round(mc.utilization(), 4),
     })
@@ -324,27 +352,26 @@ def _safe_serialize(obj: Any) -> Any:
 
 
 def _load_q_lib():
-    """Lazily load and cache the Q_promise shared library."""
-    global _q_lib, _q_cb_type
+    """Lazily load and cache libqpromise (qpromise_* C API)."""
+    global _q_lib, _q_cb_type, _Q_SO_PATH
     if _q_lib is not None:
-        return _q_lib, _q_cb_type
+        return _q_lib
 
-    if not os.path.exists(_Q_SO_PATH):
-        return None, None
+    _Q_SO_PATH = _resolve_q_so_path()
+    if not os.path.isfile(_Q_SO_PATH):
+        return None
 
     lib = ctypes.CDLL(_Q_SO_PATH)
-    lib.q_mem_create_chain.argtypes = [ctypes.c_size_t]
-    lib.q_mem_create_chain.restype = ctypes.c_void_p
-    lib.q_mem_free_chain.argtypes = [ctypes.c_void_p]
-    lib.q_mem_free_chain.restype = None
-
-    cb_type = ctypes.CFUNCTYPE(None, ctypes.c_long, ctypes.c_char_p)
-    lib.q_then.argtypes = [ctypes.c_void_p, cb_type]
-    lib.q_then.restype = None
+    lib.qpromise_resolved.argtypes = [ctypes.c_char_p]
+    lib.qpromise_resolved.restype = ctypes.c_void_p
+    lib.qpromise_value.argtypes = [ctypes.c_void_p]
+    lib.qpromise_value.restype = ctypes.c_char_p
+    lib.qpromise_unref.argtypes = [ctypes.c_void_p]
+    lib.qpromise_unref.restype = None
 
     _q_lib = lib
-    _q_cb_type = cb_type
-    return lib, cb_type
+    _q_cb_type = None  # old QThenCallback removed with q_mem_* API
+    return lib
 
 
 # ---------------------------------------------------------------------------

@@ -8,6 +8,8 @@ __pycache__/
 
 # Build artifacts
 Q_promise_lib/test_promises
+Q_promise_lib/test_qpromise
+Q_promise_lib/qpromise_demo
 pypm
 
 # CodeQL artifacts

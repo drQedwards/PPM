@@ -1,16 +1,9 @@
-from setuptools import setup, Extension
-from Cython.Build import cythonize
-
-ext = Extension(
-    name="Q_promises",
-    sources=["Q_promises.pyx"],
-    include_dirs=["."],
-    language="c",
-)
+"""Optional packaging stub. Core library builds with Make, not setuptools."""
+from setuptools import setup
 
 setup(
     name="Q_promises",
-    version="0.1.0",
-    description="Lightweight thenable memory-chain simulator inspired by Q promises",
-    ext_modules=cythonize([ext], language_level=3),
+    version="1.0.0",
+    description="PMLL Promise/Continuation Library (C core via Make)",
+    py_modules=["Q_promises"],
 )
