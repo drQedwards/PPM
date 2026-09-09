@@ -11,10 +11,9 @@
            background: var(--bg); color: var(--fg); line-height: 1.65; }
     a { color: var(--accent); }
     .top { border-bottom: 1px solid var(--line); }
-    .top-inner, .wrap { max-width: 1080px; margin: 0 auto; }
-    .top-inner { display: flex; gap: 1.25rem; align-items: center; min-height: 3.25rem; padding: 0 1.25rem; }
+    .top-inner { max-width: 1080px; margin: 0 auto; display: flex; gap: 1.25rem; align-items: center; min-height: 3.25rem; padding: 0 1.25rem; }
     .brand { color: var(--fg); text-decoration: none; font-weight: 650; }
-    .layout { display: grid; grid-template-columns: 240px 1fr; gap: 2rem; padding: 1.75rem 1.25rem 4rem; }
+    .layout { max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: 240px 1fr; gap: 2rem; padding: 1.75rem 1.25rem 4rem; }
     .side a { display: block; color: var(--muted); text-decoration: none; padding: .2rem 0; font-size: .92rem; }
     .side a:hover, .side a[aria-current="page"] { color: var(--accent); }
     .side h2 { color: var(--muted); font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; margin: 1.1rem 0 .35rem; }
@@ -50,22 +49,22 @@
       <a href="{{ '/docs/' | url }}">Docs</a>
     </div>
   </header>
-  <div class="wrap layout">
+  <div class="layout">
     <nav class="side" aria-label="Documentation">
-      {% assign sections = "Core,Guides,API,Notes" | split: "," %}
+      {% set sections = ["Core", "Guides", "API", "Notes"] %}
       {% for section in sections %}
         <h2>{{ section }}</h2>
         {% for item in docPages %}
           {% if item.section == section %}
-            {% assign itemPath = "/docs/" | append: item.slug | append: "/" %}
-            {% assign itemUrl = itemPath | url %}
+            {% set itemPath = "/docs/" + item.slug + "/" %}
+            {% set itemUrl = itemPath | url %}
             <a href="{{ itemUrl }}"{% if page.url == itemUrl %} aria-current="page"{% endif %}>{{ item.title }}</a>
           {% endif %}
         {% endfor %}
       {% endfor %}
     </nav>
     <main class="content">
-      {{ content }}
+      {{ content | safe }}
     </main>
   </div>
 </body>
