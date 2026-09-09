@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{% if doc.title %}{{ doc.title }}{% else %}{{ title }}{% endif %} · PMLL</title>
+  <link rel="icon" href="{{ '/assets/evil-face.png' | url }}" type="image/png" />
   <style>
     :root { --bg: #0d1117; --fg: #c9d1d9; --muted: #8b949e; --accent: #58a6ff; --line: #21262d; --card: #161b22; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -12,7 +13,8 @@
     a { color: var(--accent); }
     .top { border-bottom: 1px solid var(--line); }
     .top-inner { max-width: 1080px; margin: 0 auto; display: flex; gap: 1.25rem; align-items: center; min-height: 3.25rem; padding: 0 1.25rem; }
-    .brand { color: var(--fg); text-decoration: none; font-weight: 650; }
+    .brand { color: var(--fg); text-decoration: none; font-weight: 650; display: inline-flex; align-items: center; gap: .5rem; }
+    .face { width: 28px; height: 28px; display: block; }
     .layout { max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: 240px 1fr; gap: 2rem; padding: 1.75rem 1.25rem 4rem; }
     .side a { display: block; color: var(--muted); text-decoration: none; padding: .2rem 0; font-size: .92rem; }
     .side a:hover, .side a[aria-current="page"] { color: var(--accent); }
@@ -45,7 +47,7 @@
 <body>
   <header class="top">
     <div class="top-inner">
-      <a class="brand" href="{{ '/' | url }}">PMLL</a>
+      <a class="brand" href="{{ '/' | url }}"><img class="face" src="{{ '/assets/evil-face.png' | url }}" alt="" width="28" height="28" />PMLL</a>
       <a href="{{ '/docs/' | url }}">Docs</a>
     </div>
   </header>
