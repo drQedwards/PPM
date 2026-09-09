@@ -14,6 +14,8 @@ Implements:
 Run:
   python -m ppm.cli --root . init
 """
+from __future__ import annotations
+
 # ppm/cli.py
 import click
 from ppm.resolver import resolve_sync
@@ -38,7 +40,6 @@ def ensure(gpu, lock):
 def add(specs, gpu, lock):
     plan = resolve_sync(list(specs), user_gpu_flag=gpu, write_lock=lock)
     install_from_plan(plan)
-from __future__ import annotations
 import argparse, os, sys, json, hashlib, time, getpass, platform, socket, uuid
 from typing import Dict, Any, List
 
