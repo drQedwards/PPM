@@ -1,0 +1,38 @@
+---
+pagination:
+  data: docPages
+  size: 1
+  alias: doc
+permalink: "/docs/{{ doc.slug }}/"
+layout: docs.njk
+---
+<h1>{{ doc.title }}</h1>
+{% if doc.description %}
+<p class="lede">{{ doc.description }}</p>
+{% endif %}
+<p class="meta">
+  Page {{ doc.n }} of {{ doc.total }}
+  {% if site.repo %}
+    · <a href="https://github.com/{{ site.repo }}/blob/main/{{ doc.source }}">{{ doc.source }}</a>
+  {% else %}
+    · {{ doc.source }}
+  {% endif %}
+</p>
+<div class="doc">
+{{ doc.markdown | renderMarkdown | safe }}
+</div>
+<nav class="pager" aria-label="Pagination">
+  <span>
+    {% if pagination.href.previous %}
+      {% set prevDoc = docPages[pagination.pageNumber - 1] %}
+      <a href="{{ pagination.href.previous }}">Previous{% if prevDoc %}: {{ prevDoc.title }}{% endif %}</a>
+    {% endif %}
+  </span>
+  <span class="count">{{ doc.n }} / {{ doc.total }}</span>
+  <span>
+    {% if pagination.href.next %}
+      {% set nextDoc = docPages[pagination.pageNumber + 1] %}
+      <a href="{{ pagination.href.next }}">Next{% if nextDoc %}: {{ nextDoc.title }}{% endif %}</a>
+    {% endif %}
+  </span>
+</nav>

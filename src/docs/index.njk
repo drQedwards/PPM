@@ -1,0 +1,19 @@
+---
+title: Documentation
+permalink: /docs/
+layout: docs.njk
+---
+<h1>Documentation</h1>
+<p class="lede">One topic per page, in reading order. The text is the markdown already in the repo.</p>
+{% set sections = ["Core", "Guides", "API", "Notes"] %}
+{% for section in sections %}
+  <h2>{{ section }}</h2>
+  <ol class="index-list">
+    {% for item in docPages %}
+      {% if item.section == section %}
+        {% set itemPath = "/docs/" + item.slug + "/" %}
+        <li><span class="num">{{ item.n }}</span><a href="{{ itemPath | url }}">{{ item.title }}</a></li>
+      {% endif %}
+    {% endfor %}
+  </ol>
+{% endfor %}
