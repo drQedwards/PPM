@@ -31,6 +31,8 @@ typedef struct {
 
 // Core API function prototypes
 int pypm_init(void);
+/* Asm _start smoke entry — exercises updated PMLL silo/peek core. */
+int pmll_asm_boot(void);
 void pypm_cleanup(void);
 int pypm_plugin_load(const char* plugin_path, pypm_plugin_t** plugin);
 int pypm_plugin_run(pypm_plugin_t* plugin, int argc, char** argv);

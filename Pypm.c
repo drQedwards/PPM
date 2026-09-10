@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "pypm.h"          /* shared interface */
+#include "PMLL.h"
 
 /* ---------------------------------------------------------------------------
  * Forward declarations (implemented in their respective modules)
@@ -72,4 +73,34 @@ int main(int argc, char **argv)
     fprintf(stderr, "pypm: unknown command \"%s\"\n", cmd);
     usage();
     return 1;
+}
+
+
+/* Linked from Pypm.asm _start. Confirms PMLL core post silo/peek_semantic update. */
+int pmll_asm_boot(void)
+{
+    const char *val = NULL;
+    int idx = -1;
+    memory_silo_t *silo = init_silo(8);
+    if (!silo)
+        return 1;
+    if (silo_set(silo, 0, "asm:boot", "PMLL silo + peek live") < 0) {
+        free_silo(silo);
+        return 1;
+    }
+    if (!peek(silo, "asm:boot", -1, &val, &idx) || !val) {
+        free_silo(silo);
+        return 1;
+    }
+    free_silo(silo);
+    return 0;
+}
+
+int pypm_init(void)
+{
+    return pmll_asm_boot();
+}
+
+void pypm_cleanup(void)
+{
 }
