@@ -1,36 +1,49 @@
-; pypm.asm - Minimal x86_64 assembly entry for PYPM
-; Assumes linkage with C runtime and pypm.c
+;; Pypm.asm — x86_64 entry for PYPM linked against the updated PMLL C core
+; (PMLL.c / PMLL.h).
+;
+; PMLL owns memory/state:
+;   memory_silo_t, silo_set, peek, peek_semantic, sat_bridge_*, init_pml
+;   (assignments start at -1 = undecided; flag is solve state, not a var value)
+; Q-promise owns temporal/control-flow (not entered from this stub).
+;
+; Build sketch (Linux x86_64):
+;   nasm -f elf64 Pypm.asm -o Pypm.o
+;   cc -DPMLL_NO_MAIN -c PMLL.c -o PMLL.o
+;   cc -c Pypm.c -o Pypm_api.o
+;   cc -no-pie -nostartfiles -o pypm-asm Pypm.o PMLL.o Pypm_api.o -lm
+;   (-nostartfiles: Pypm.asm supplies _start, so skip the CRT crt1.o entry)
+;
+; Alternate CLI entry remains Pypm.c::main (doctor / version / …).
 
 global _start
 
 section .data
-    msg     db  "PYPM v0.0.3-dev", 10, 0    ; Null-terminated string
-    msglen  equ $ - msg
+    msg     db  "PMLL core · silo + peek/peek_semantic · init_pml=-1", 10, 0
+    msglen  equ $ - msg - 1          ; exclude trailing NUL from write length
 
 section .text
 _start:
-    ; Write version message to stdout
-    mov rax, 1          ; syscall: write
-    mov rdi, 1          ; file descriptor 1 (stdout)
-    mov rsi, msg        ; pointer to message
-    mov rdx, msglen     ; message length
+    ; write(1, msg, msglen)
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, msg
+    mov rdx, msglen
     syscall
 
-    ; Call pypm_init (assumed external C function)
-    call pypm_init      ; Defined in pypm.c
-    test eax, eax       ; Check return value
-    jnz .error          ; Jump if error
+    ; Smoke-boot the updated PMLL core (defined in Pypm.c)
+    call pmll_asm_boot
+    test eax, eax
+    jnz .error
 
-    ; Exit successfully
-    mov rax, 60         ; syscall: exit
-    xor rdi, rdi        ; return code 0
+    ; exit(0)
+    mov rax, 60
+    xor rdi, rdi
     syscall
 
 .error:
-    ; Exit with error code
-    mov rax, 60         ; syscall: exit
-    mov rdi, 1          ; return code 1
+    ; exit(1)
+    mov rax, 60
+    mov rdi, 1
     syscall
 
-; External C function (to be linked)
-extern pypm_init
+extern pmll_asm_boot
