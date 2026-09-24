@@ -10,7 +10,8 @@
 ;   nasm -f elf64 Pypm.asm -o Pypm.o
 ;   cc -DPMLL_NO_MAIN -c PMLL.c -o PMLL.o
 ;   cc -c Pypm.c -o Pypm_api.o
-;   cc -no-pie -o pypm-asm Pypm.o PMLL.o Pypm_api.o
+;   cc -no-pie -nostartfiles -o pypm-asm Pypm.o PMLL.o Pypm_api.o -lm
+;   (-nostartfiles: Pypm.asm supplies _start, so skip the CRT crt1.o entry)
 ;
 ; Alternate CLI entry remains Pypm.c::main (doctor / version / …).
 
