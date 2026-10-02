@@ -1,0 +1,4965 @@
+{
+  "meta": {
+    "agent": "the persistence in memory",
+    "version": "2.0-self-talk",
+    "card_id": "9494fcf1-f20f-4fca-8348-ab5bf63fa543",
+    "scorecard": "https://arcprize.org/scorecards/9494fcf1-f20f-4fca-8348-ab5bf63fa543",
+    "budget": 250,
+    "mode": "cold",
+    "score": 0.22091756148895364,
+    "levels": 7,
+    "total_levels": 183,
+    "total_actions": 6315,
+    "source": "rebuilt offline from out/claims.log + out/claims/*.jsonl + results.json + scorecard.json",
+    "confirmed_rule": "goal: support>=1 (caused a level-up); lethal: support>=1 & conf>=0.5; effect/move: support>=2 & conf>=0.6; static claims omitted",
+    "frames_recovered": 6250,
+    "not_recoverable": [
+      "per-step diff summary (changed cells, colors, moves)",
+      "full claim set before each step (only top-6 recalled claims were logged)",
+      "complete per-step claim update (only deltas of claims visible in two consecutive top-6 lists)",
+      "ACTION6 target color for steps without a LEVEL_UP/GAME_OVER note",
+      "chosen-claim uncertainty when that claim was not in the top-6",
+      "candidate scores / runner-up",
+      "RESET events (not logged by v2.0)"
+    ]
+  },
+  "games": {
+    "AR25": {
+      "game_id": "ar25-0c556536",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "lethal:key:A5",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A5",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "move:A4:c5",
+          "kind": "move",
+          "text": "ACTION4 moves color 5 by (1, 0)",
+          "support": 25,
+          "contra": 0,
+          "conf": 0.963,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 5,
+            "d": [
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c4",
+          "kind": "move",
+          "text": "ACTION4 moves color 4 by (-3, 0)",
+          "support": 21,
+          "contra": 4,
+          "conf": 0.8148,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 4,
+            "d": [
+              -3,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c0",
+          "kind": "move",
+          "text": "ACTION4 moves color 0 by (3, 0)",
+          "support": 21,
+          "contra": 4,
+          "conf": 0.8148,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 0,
+            "d": [
+              3,
+              0
+            ]
+          }
+        },
+        {
+          "key": "effect:key:A7",
+          "kind": "effect",
+          "text": "key:A7 changes the frame",
+          "support": 37,
+          "contra": 2,
+          "conf": 0.9268,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A5",
+          "kind": "effect",
+          "text": "key:A5 changes the frame",
+          "support": 35,
+          "contra": 0,
+          "conf": 0.973,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A4",
+          "kind": "effect",
+          "text": "key:A4 changes the frame",
+          "support": 25,
+          "contra": 0,
+          "conf": 0.963,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:key:A5",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A5",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 2,
+      "n_claims_final": 44
+    },
+    "BP35": {
+      "game_id": "bp35-0a0ad940",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "lethal:key:A4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:key:A3",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A3",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c3",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c3",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "move:A3:c0",
+          "kind": "move",
+          "text": "ACTION3 moves color 0 by (0, 0)",
+          "support": 9,
+          "contra": 1,
+          "conf": 0.8333,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 0,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A3:c15",
+          "kind": "move",
+          "text": "ACTION3 moves color 15 by (0, 0)",
+          "support": 8,
+          "contra": 2,
+          "conf": 0.75,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 15,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c11",
+          "kind": "move",
+          "text": "ACTION4 moves color 11 by (6, 0)",
+          "support": 5,
+          "contra": 0,
+          "conf": 0.8571,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 11,
+            "d": [
+              6,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c9",
+          "kind": "move",
+          "text": "ACTION4 moves color 9 by (6, 0)",
+          "support": 4,
+          "contra": 1,
+          "conf": 0.7143,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 9,
+            "d": [
+              6,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c0",
+          "kind": "move",
+          "text": "ACTION4 moves color 0 by (0, 0)",
+          "support": 4,
+          "contra": 1,
+          "conf": 0.7143,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 0,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c3",
+          "kind": "move",
+          "text": "ACTION4 moves color 3 by (0, -2)",
+          "support": 3,
+          "contra": 0,
+          "conf": 0.8,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 3,
+            "d": [
+              0,
+              -2
+            ]
+          }
+        },
+        {
+          "key": "effect:click:c3",
+          "kind": "effect",
+          "text": "click:c3 changes the frame",
+          "support": 166,
+          "contra": 0,
+          "conf": 0.994,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A7",
+          "kind": "effect",
+          "text": "key:A7 changes the frame",
+          "support": 69,
+          "contra": 0,
+          "conf": 0.9859,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A3",
+          "kind": "effect",
+          "text": "key:A3 changes the frame",
+          "support": 10,
+          "contra": 0,
+          "conf": 0.9167,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A4",
+          "kind": "effect",
+          "text": "key:A4 changes the frame",
+          "support": 5,
+          "contra": 0,
+          "conf": 0.8571,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:key:A4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:key:A3",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A3",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c3",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c3",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 3,
+      "n_claims_final": 31
+    },
+    "CD82": {
+      "game_id": "cd82-fb555c5d",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "lethal:click:c15",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c15",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:touch:c3",
+          "kind": "lethal",
+          "text": "GAME_OVER follows contact between c4 and c3",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:touch:c15",
+          "kind": "lethal",
+          "text": "GAME_OVER follows contact between c4 and c15",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A4",
+          "kind": "effect",
+          "text": "key:A4 changes the frame",
+          "support": 42,
+          "contra": 9,
+          "conf": 0.8113,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A2",
+          "kind": "effect",
+          "text": "key:A2 changes the frame",
+          "support": 35,
+          "contra": 8,
+          "conf": 0.8,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c4",
+          "kind": "effect",
+          "text": "click:c4 changes the frame",
+          "support": 33,
+          "contra": 11,
+          "conf": 0.7391,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A3",
+          "kind": "effect",
+          "text": "key:A3 changes the frame",
+          "support": 33,
+          "contra": 7,
+          "conf": 0.8095,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A1",
+          "kind": "effect",
+          "text": "key:A1 changes the frame",
+          "support": 20,
+          "contra": 5,
+          "conf": 0.7778,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c15",
+          "kind": "effect",
+          "text": "click:c15 changes the frame",
+          "support": 16,
+          "contra": 4,
+          "conf": 0.7727,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A5",
+          "kind": "effect",
+          "text": "key:A5 changes the frame",
+          "support": 4,
+          "contra": 2,
+          "conf": 0.625,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:click:c15",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c15",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:touch:c3",
+          "kind": "lethal",
+          "text": "GAME_OVER follows contact between c4 and c3",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:touch:c15",
+          "kind": "lethal",
+          "text": "GAME_OVER follows contact between c4 and c15",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 2,
+      "n_claims_final": 39
+    },
+    "CN04": {
+      "game_id": "cn04-2fe56bfb",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "lethal:key:A3",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A3",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:touch:c12",
+          "kind": "lethal",
+          "text": "GAME_OVER follows contact between c0 and c12",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:key:A4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c14",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c14",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "move:A4:c0",
+          "kind": "move",
+          "text": "ACTION4 moves color 0 by (3, 0)",
+          "support": 40,
+          "contra": 17,
+          "conf": 0.6949,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 0,
+            "d": [
+              3,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A3:c0",
+          "kind": "move",
+          "text": "ACTION3 moves color 0 by (-3, 0)",
+          "support": 9,
+          "contra": 1,
+          "conf": 0.8333,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 0,
+            "d": [
+              -3,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A3:c8",
+          "kind": "move",
+          "text": "ACTION3 moves color 8 by (-2, 0)",
+          "support": 9,
+          "contra": 1,
+          "conf": 0.8333,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 8,
+            "d": [
+              -2,
+              0
+            ]
+          }
+        },
+        {
+          "key": "effect:click:c8",
+          "kind": "effect",
+          "text": "click:c8 changes the frame",
+          "support": 60,
+          "contra": 0,
+          "conf": 0.9839,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A4",
+          "kind": "effect",
+          "text": "key:A4 changes the frame",
+          "support": 41,
+          "contra": 16,
+          "conf": 0.7119,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A2",
+          "kind": "effect",
+          "text": "key:A2 changes the frame",
+          "support": 40,
+          "contra": 15,
+          "conf": 0.7193,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c12",
+          "kind": "effect",
+          "text": "click:c12 changes the frame",
+          "support": 24,
+          "contra": 0,
+          "conf": 0.9615,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c14",
+          "kind": "effect",
+          "text": "click:c14 changes the frame",
+          "support": 16,
+          "contra": 1,
+          "conf": 0.8947,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A3",
+          "kind": "effect",
+          "text": "key:A3 changes the frame",
+          "support": 9,
+          "contra": 1,
+          "conf": 0.8333,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A5",
+          "kind": "effect",
+          "text": "key:A5 changes the frame",
+          "support": 7,
+          "contra": 1,
+          "conf": 0.8,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A1",
+          "kind": "effect",
+          "text": "key:A1 changes the frame",
+          "support": 5,
+          "contra": 2,
+          "conf": 0.6667,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c4",
+          "kind": "effect",
+          "text": "click:c4 changes the frame",
+          "support": 4,
+          "contra": 2,
+          "conf": 0.625,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c3",
+          "kind": "effect",
+          "text": "click:c3 changes the frame",
+          "support": 2,
+          "contra": 0,
+          "conf": 0.75,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:key:A3",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A3",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:touch:c12",
+          "kind": "lethal",
+          "text": "GAME_OVER follows contact between c0 and c12",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:key:A4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c14",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c14",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 3,
+      "n_claims_final": 48
+    },
+    "DC22": {
+      "game_id": "dc22-fdcac232",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "lethal:key:A3",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A3",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "move:A1:c14",
+          "kind": "move",
+          "text": "ACTION1 moves color 14 by (0, -2)",
+          "support": 80,
+          "contra": 16,
+          "conf": 0.8265,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 14,
+            "d": [
+              0,
+              -2
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c14",
+          "kind": "move",
+          "text": "ACTION2 moves color 14 by (0, 2)",
+          "support": 76,
+          "contra": 0,
+          "conf": 0.9872,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 14,
+            "d": [
+              0,
+              2
+            ]
+          }
+        },
+        {
+          "key": "effect:key:A1",
+          "kind": "effect",
+          "text": "key:A1 changes the frame",
+          "support": 86,
+          "contra": 10,
+          "conf": 0.8878,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A2",
+          "kind": "effect",
+          "text": "key:A2 changes the frame",
+          "support": 76,
+          "contra": 0,
+          "conf": 0.9872,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c11",
+          "kind": "effect",
+          "text": "click:c11 changes the frame",
+          "support": 12,
+          "contra": 4,
+          "conf": 0.7222,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c9",
+          "kind": "effect",
+          "text": "click:c9 changes the frame",
+          "support": 8,
+          "contra": 5,
+          "conf": 0.6,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c3",
+          "kind": "effect",
+          "text": "click:c3 changes the frame",
+          "support": 7,
+          "contra": 3,
+          "conf": 0.6667,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A3",
+          "kind": "effect",
+          "text": "key:A3 changes the frame",
+          "support": 4,
+          "contra": 2,
+          "conf": 0.625,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:key:A3",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A3",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 1,
+      "n_claims_final": 48
+    },
+    "FT09": {
+      "game_id": "ft09-0d8bbf25",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [],
+      "lethal": [],
+      "game_overs_logged": 0,
+      "n_claims_final": 14
+    },
+    "G50T": {
+      "game_id": "g50t-5849a774",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "lethal:key:A3",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A3",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "move:A4:c9",
+          "kind": "move",
+          "text": "ACTION4 moves color 9 by (1, 0)",
+          "support": 61,
+          "contra": 37,
+          "conf": 0.62,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 9,
+            "d": [
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c9",
+          "kind": "move",
+          "text": "ACTION2 moves color 9 by (0, 1)",
+          "support": 43,
+          "contra": 24,
+          "conf": 0.6377,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 9,
+            "d": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "key": "effect:key:A4",
+          "kind": "effect",
+          "text": "key:A4 changes the frame",
+          "support": 71,
+          "contra": 27,
+          "conf": 0.72,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A2",
+          "kind": "effect",
+          "text": "key:A2 changes the frame",
+          "support": 55,
+          "contra": 12,
+          "conf": 0.8116,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A5",
+          "kind": "effect",
+          "text": "key:A5 changes the frame",
+          "support": 42,
+          "contra": 9,
+          "conf": 0.8113,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A1",
+          "kind": "effect",
+          "text": "key:A1 changes the frame",
+          "support": 22,
+          "contra": 7,
+          "conf": 0.7419,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:key:A3",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A3",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 1,
+      "n_claims_final": 27
+    },
+    "KA59": {
+      "game_id": "ka59-38d34dbb",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "lethal:click:c4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:key:A4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "move:A4:c4",
+          "kind": "move",
+          "text": "ACTION4 moves color 4 by (0, -1)",
+          "support": 8,
+          "contra": 3,
+          "conf": 0.6923,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 4,
+            "d": [
+              0,
+              -1
+            ]
+          }
+        },
+        {
+          "key": "effect:key:A3",
+          "kind": "effect",
+          "text": "key:A3 changes the frame",
+          "support": 48,
+          "contra": 10,
+          "conf": 0.8167,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A4",
+          "kind": "effect",
+          "text": "key:A4 changes the frame",
+          "support": 42,
+          "contra": 8,
+          "conf": 0.8269,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c14",
+          "kind": "effect",
+          "text": "click:c14 changes the frame",
+          "support": 40,
+          "contra": 11,
+          "conf": 0.7736,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c4",
+          "kind": "effect",
+          "text": "click:c4 changes the frame",
+          "support": 20,
+          "contra": 4,
+          "conf": 0.8077,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c1",
+          "kind": "effect",
+          "text": "click:c1 changes the frame",
+          "support": 18,
+          "contra": 7,
+          "conf": 0.7037,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A2",
+          "kind": "effect",
+          "text": "key:A2 changes the frame",
+          "support": 9,
+          "contra": 3,
+          "conf": 0.7143,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c5",
+          "kind": "effect",
+          "text": "click:c5 changes the frame",
+          "support": 3,
+          "contra": 0,
+          "conf": 0.8,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:click:c4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:key:A4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 2,
+      "n_claims_final": 42
+    },
+    "LF52": {
+      "game_id": "lf52-271a04aa",
+      "best_levels": 1,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [
+        {
+          "from": 0,
+          "to": 1,
+          "step": 59,
+          "action": "ACTION6",
+          "extra": {
+            "x": 44,
+            "y": 43
+          },
+          "ekey": "click:c2",
+          "reason": "use effect",
+          "goal_claim": {
+            "key": "goal:click:c2",
+            "kind": "goal",
+            "text": "levels_completed rises after click:c2",
+            "support": 1,
+            "contra": 3,
+            "conf": 0.3333,
+            "value": 3.0,
+            "data": {}
+          },
+          "confirmed_at_levelup": [
+            {
+              "key": "effect:click:c1",
+              "kind": "effect",
+              "text": "click:c1 changes the frame",
+              "support": 12,
+              "contra": 0,
+              "conf": 0.9286,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c14",
+              "kind": "effect",
+              "text": "click:c14 changes the frame",
+              "support": 8,
+              "contra": 0,
+              "conf": 0.9,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:key:A2",
+              "kind": "effect",
+              "text": "key:A2 changes the frame",
+              "support": 2,
+              "contra": 0,
+              "conf": 0.75,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:key:A7",
+              "kind": "effect",
+              "text": "key:A7 changes the frame",
+              "support": 2,
+              "contra": 0,
+              "conf": 0.75,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:key:A1",
+              "kind": "effect",
+              "text": "key:A1 changes the frame",
+              "support": 2,
+              "contra": 0,
+              "conf": 0.75,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:key:A4",
+              "kind": "effect",
+              "text": "key:A4 changes the frame",
+              "support": 2,
+              "contra": 0,
+              "conf": 0.75,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:key:A3",
+              "kind": "effect",
+              "text": "key:A3 changes the frame",
+              "support": 2,
+              "contra": 0,
+              "conf": 0.75,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c2",
+              "kind": "effect",
+              "text": "click:c2 changes the frame",
+              "support": 4,
+              "contra": 0,
+              "conf": 0.8333,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "goal:click:c2",
+              "kind": "goal",
+              "text": "levels_completed rises after click:c2",
+              "support": 1,
+              "contra": 3,
+              "conf": 0.3333,
+              "value": 3.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c9",
+              "kind": "effect",
+              "text": "click:c9 changes the frame",
+              "support": 9,
+              "contra": 0,
+              "conf": 0.9091,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c0",
+              "kind": "effect",
+              "text": "click:c0 changes the frame",
+              "support": 7,
+              "contra": 0,
+              "conf": 0.8889,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c5",
+              "kind": "effect",
+              "text": "click:c5 changes the frame",
+              "support": 7,
+              "contra": 0,
+              "conf": 0.8889,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c3",
+              "kind": "effect",
+              "text": "click:c3 changes the frame",
+              "support": 2,
+              "contra": 0,
+              "conf": 0.75,
+              "value": 1.0,
+              "data": {}
+            }
+          ],
+          "scorecard_level_actions": 59,
+          "scorecard_baseline_actions": 32
+        }
+      ],
+      "confirmed": [
+        {
+          "key": "goal:click:c2",
+          "kind": "goal",
+          "text": "levels_completed rises after click:c2",
+          "support": 1,
+          "contra": 50,
+          "conf": 0.0377,
+          "value": 3.0,
+          "data": {}
+        },
+        {
+          "key": "move:A3:c11",
+          "kind": "move",
+          "text": "ACTION3 moves color 11 by (-6, 0)",
+          "support": 6,
+          "contra": 0,
+          "conf": 0.875,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 11,
+            "d": [
+              -6,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A3:c12",
+          "kind": "move",
+          "text": "ACTION3 moves color 12 by (-6, 0)",
+          "support": 6,
+          "contra": 0,
+          "conf": 0.875,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 12,
+            "d": [
+              -6,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c9",
+          "kind": "move",
+          "text": "ACTION4 moves color 9 by (1, 0)",
+          "support": 5,
+          "contra": 0,
+          "conf": 0.8571,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 9,
+            "d": [
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c11",
+          "kind": "move",
+          "text": "ACTION4 moves color 11 by (6, 0)",
+          "support": 5,
+          "contra": 0,
+          "conf": 0.8571,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 11,
+            "d": [
+              6,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c12",
+          "kind": "move",
+          "text": "ACTION4 moves color 12 by (6, 0)",
+          "support": 5,
+          "contra": 0,
+          "conf": 0.8571,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 12,
+            "d": [
+              6,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A3:c9",
+          "kind": "move",
+          "text": "ACTION3 moves color 9 by (-1, 0)",
+          "support": 5,
+          "contra": 1,
+          "conf": 0.75,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 9,
+            "d": [
+              -1,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c3",
+          "kind": "move",
+          "text": "ACTION1 moves color 3 by (0, 0)",
+          "support": 2,
+          "contra": 0,
+          "conf": 0.75,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 3,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c2",
+          "kind": "move",
+          "text": "ACTION1 moves color 2 by (0, 0)",
+          "support": 2,
+          "contra": 0,
+          "conf": 0.75,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 2,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c3",
+          "kind": "move",
+          "text": "ACTION2 moves color 3 by (0, 0)",
+          "support": 2,
+          "contra": 0,
+          "conf": 0.75,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 3,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c2",
+          "kind": "move",
+          "text": "ACTION2 moves color 2 by (0, 0)",
+          "support": 2,
+          "contra": 0,
+          "conf": 0.75,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 2,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c3",
+          "kind": "move",
+          "text": "ACTION4 moves color 3 by (0, 0)",
+          "support": 2,
+          "contra": 1,
+          "conf": 0.6,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 3,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c2",
+          "kind": "move",
+          "text": "ACTION4 moves color 2 by (0, 0)",
+          "support": 2,
+          "contra": 1,
+          "conf": 0.6,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 2,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "effect:click:c2",
+          "kind": "effect",
+          "text": "click:c2 changes the frame",
+          "support": 51,
+          "contra": 0,
+          "conf": 0.9811,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c1",
+          "kind": "effect",
+          "text": "click:c1 changes the frame",
+          "support": 35,
+          "contra": 0,
+          "conf": 0.973,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c14",
+          "kind": "effect",
+          "text": "click:c14 changes the frame",
+          "support": 28,
+          "contra": 0,
+          "conf": 0.9667,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c9",
+          "kind": "effect",
+          "text": "click:c9 changes the frame",
+          "support": 25,
+          "contra": 0,
+          "conf": 0.963,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c12",
+          "kind": "effect",
+          "text": "click:c12 changes the frame",
+          "support": 22,
+          "contra": 0,
+          "conf": 0.9583,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c0",
+          "kind": "effect",
+          "text": "click:c0 changes the frame",
+          "support": 16,
+          "contra": 0,
+          "conf": 0.9444,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c5",
+          "kind": "effect",
+          "text": "click:c5 changes the frame",
+          "support": 13,
+          "contra": 0,
+          "conf": 0.9333,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c3",
+          "kind": "effect",
+          "text": "click:c3 changes the frame",
+          "support": 13,
+          "contra": 0,
+          "conf": 0.9333,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c11",
+          "kind": "effect",
+          "text": "click:c11 changes the frame",
+          "support": 13,
+          "contra": 0,
+          "conf": 0.9333,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A3",
+          "kind": "effect",
+          "text": "key:A3 changes the frame",
+          "support": 8,
+          "contra": 0,
+          "conf": 0.9,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A4",
+          "kind": "effect",
+          "text": "key:A4 changes the frame",
+          "support": 7,
+          "contra": 0,
+          "conf": 0.8889,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A2",
+          "kind": "effect",
+          "text": "key:A2 changes the frame",
+          "support": 6,
+          "contra": 0,
+          "conf": 0.875,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A1",
+          "kind": "effect",
+          "text": "key:A1 changes the frame",
+          "support": 6,
+          "contra": 0,
+          "conf": 0.875,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A7",
+          "kind": "effect",
+          "text": "key:A7 changes the frame",
+          "support": 5,
+          "contra": 0,
+          "conf": 0.8571,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c15",
+          "kind": "effect",
+          "text": "click:c15 changes the frame",
+          "support": 2,
+          "contra": 0,
+          "conf": 0.75,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [],
+      "game_overs_logged": 0,
+      "n_claims_final": 52
+    },
+    "LP85": {
+      "game_id": "lp85-305b61c3",
+      "best_levels": 1,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [
+        {
+          "from": 0,
+          "to": 1,
+          "step": 24,
+          "action": "ACTION6",
+          "extra": {
+            "x": 5,
+            "y": 33
+          },
+          "ekey": "click:c8",
+          "reason": "use effect",
+          "goal_claim": {
+            "key": "goal:click:c8",
+            "kind": "goal",
+            "text": "levels_completed rises after click:c8",
+            "support": 1,
+            "contra": 6,
+            "conf": 0.2222,
+            "value": 3.0,
+            "data": {}
+          },
+          "confirmed_at_levelup": [
+            {
+              "key": "effect:click:c14",
+              "kind": "effect",
+              "text": "click:c14 changes the frame",
+              "support": 2,
+              "contra": 1,
+              "conf": 0.6,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c8",
+              "kind": "effect",
+              "text": "click:c8 changes the frame",
+              "support": 7,
+              "contra": 0,
+              "conf": 0.8889,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "goal:click:c8",
+              "kind": "goal",
+              "text": "levels_completed rises after click:c8",
+              "support": 1,
+              "contra": 6,
+              "conf": 0.2222,
+              "value": 3.0,
+              "data": {}
+            }
+          ],
+          "scorecard_level_actions": 24,
+          "scorecard_baseline_actions": 17
+        }
+      ],
+      "confirmed": [
+        {
+          "key": "goal:click:c8",
+          "kind": "goal",
+          "text": "levels_completed rises after click:c8",
+          "support": 1,
+          "contra": 6,
+          "conf": 0.2222,
+          "value": 3.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c8",
+          "kind": "effect",
+          "text": "click:c8 changes the frame",
+          "support": 7,
+          "contra": 0,
+          "conf": 0.8889,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [],
+      "game_overs_logged": 0,
+      "n_claims_final": 31
+    },
+    "LS20": {
+      "game_id": "ls20-9607627b",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "lethal:key:A4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "move:A3:c11",
+          "kind": "move",
+          "text": "ACTION3 moves color 11 by (0, 0)",
+          "support": 64,
+          "contra": 8,
+          "conf": 0.8784,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 11,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c11",
+          "kind": "move",
+          "text": "ACTION1 moves color 11 by (0, 0)",
+          "support": 59,
+          "contra": 21,
+          "conf": 0.7317,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 11,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c9",
+          "kind": "move",
+          "text": "ACTION1 moves color 9 by (0, -2)",
+          "support": 54,
+          "contra": 26,
+          "conf": 0.6707,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 9,
+            "d": [
+              0,
+              -2
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c12",
+          "kind": "move",
+          "text": "ACTION1 moves color 12 by (0, -5)",
+          "support": 54,
+          "contra": 26,
+          "conf": 0.6707,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 12,
+            "d": [
+              0,
+              -5
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c11",
+          "kind": "move",
+          "text": "ACTION2 moves color 11 by (0, 0)",
+          "support": 49,
+          "contra": 9,
+          "conf": 0.8333,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 11,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c9",
+          "kind": "move",
+          "text": "ACTION2 moves color 9 by (0, 2)",
+          "support": 39,
+          "contra": 22,
+          "conf": 0.6349,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 9,
+            "d": [
+              0,
+              2
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c12",
+          "kind": "move",
+          "text": "ACTION2 moves color 12 by (0, 5)",
+          "support": 39,
+          "contra": 22,
+          "conf": 0.6349,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 12,
+            "d": [
+              0,
+              5
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c9",
+          "kind": "move",
+          "text": "ACTION4 moves color 9 by (2, 0)",
+          "support": 29,
+          "contra": 8,
+          "conf": 0.7692,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 9,
+            "d": [
+              2,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c12",
+          "kind": "move",
+          "text": "ACTION4 moves color 12 by (5, 0)",
+          "support": 29,
+          "contra": 8,
+          "conf": 0.7692,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 12,
+            "d": [
+              5,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c11",
+          "kind": "move",
+          "text": "ACTION4 moves color 11 by (0, 0)",
+          "support": 25,
+          "contra": 10,
+          "conf": 0.7027,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 11,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "effect:key:A1",
+          "kind": "effect",
+          "text": "key:A1 changes the frame",
+          "support": 80,
+          "contra": 0,
+          "conf": 0.9878,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A3",
+          "kind": "effect",
+          "text": "key:A3 changes the frame",
+          "support": 72,
+          "contra": 0,
+          "conf": 0.9865,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A2",
+          "kind": "effect",
+          "text": "key:A2 changes the frame",
+          "support": 61,
+          "contra": 0,
+          "conf": 0.9841,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A4",
+          "kind": "effect",
+          "text": "key:A4 changes the frame",
+          "support": 37,
+          "contra": 0,
+          "conf": 0.9744,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:key:A4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 1,
+      "n_claims_final": 28
+    },
+    "M0R0": {
+      "game_id": "m0r0-492f87ba",
+      "best_levels": 1,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [
+        {
+          "from": 0,
+          "to": 1,
+          "step": 108,
+          "action": "ACTION4",
+          "extra": {},
+          "ekey": "key:A4",
+          "reason": "use effect",
+          "goal_claim": {
+            "key": "goal:key:A4",
+            "kind": "goal",
+            "text": "levels_completed rises after key:A4",
+            "support": 1,
+            "contra": 0,
+            "conf": 0.6667,
+            "value": 3.0,
+            "data": {}
+          },
+          "confirmed_at_levelup": [
+            {
+              "key": "effect:key:A1",
+              "kind": "effect",
+              "text": "key:A1 changes the frame",
+              "support": 20,
+              "contra": 7,
+              "conf": 0.7241,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:key:A4",
+              "kind": "effect",
+              "text": "key:A4 changes the frame",
+              "support": 29,
+              "contra": 2,
+              "conf": 0.9091,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:key:A3",
+              "kind": "effect",
+              "text": "key:A3 changes the frame",
+              "support": 30,
+              "contra": 3,
+              "conf": 0.8857,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "goal:key:A4",
+              "kind": "goal",
+              "text": "levels_completed rises after key:A4",
+              "support": 1,
+              "contra": 0,
+              "conf": 0.6667,
+              "value": 3.0,
+              "data": {}
+            }
+          ],
+          "scorecard_level_actions": 108,
+          "scorecard_baseline_actions": 30
+        }
+      ],
+      "confirmed": [
+        {
+          "key": "goal:key:A4",
+          "kind": "goal",
+          "text": "levels_completed rises after key:A4",
+          "support": 1,
+          "contra": 51,
+          "conf": 0.037,
+          "value": 3.0,
+          "data": {}
+        },
+        {
+          "key": "move:A2:c10",
+          "kind": "move",
+          "text": "ACTION2 moves color 10 by (0, 5)",
+          "support": 16,
+          "contra": 5,
+          "conf": 0.7391,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 10,
+            "d": [
+              0,
+              5
+            ]
+          }
+        },
+        {
+          "key": "effect:key:A3",
+          "kind": "effect",
+          "text": "key:A3 changes the frame",
+          "support": 75,
+          "contra": 6,
+          "conf": 0.9157,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A4",
+          "kind": "effect",
+          "text": "key:A4 changes the frame",
+          "support": 67,
+          "contra": 15,
+          "conf": 0.8095,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A1",
+          "kind": "effect",
+          "text": "key:A1 changes the frame",
+          "support": 25,
+          "contra": 9,
+          "conf": 0.7222,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A2",
+          "kind": "effect",
+          "text": "key:A2 changes the frame",
+          "support": 16,
+          "contra": 5,
+          "conf": 0.7391,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c8",
+          "kind": "effect",
+          "text": "click:c8 changes the frame",
+          "support": 13,
+          "contra": 7,
+          "conf": 0.6364,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [],
+      "game_overs_logged": 0,
+      "n_claims_final": 26
+    },
+    "R11L": {
+      "game_id": "r11l-495a7899",
+      "best_levels": 1,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [
+        {
+          "from": 0,
+          "to": 1,
+          "step": 80,
+          "action": "ACTION6",
+          "extra": {
+            "x": 40,
+            "y": 24
+          },
+          "ekey": "click:c15",
+          "reason": "use effect",
+          "goal_claim": {
+            "key": "goal:click:c15",
+            "kind": "goal",
+            "text": "levels_completed rises after click:c15",
+            "support": 1,
+            "contra": 18,
+            "conf": 0.0952,
+            "value": 3.0,
+            "data": {}
+          },
+          "confirmed_at_levelup": [
+            {
+              "key": "effect:click:c1",
+              "kind": "effect",
+              "text": "click:c1 changes the frame",
+              "support": 15,
+              "contra": 0,
+              "conf": 0.9412,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c15",
+              "kind": "effect",
+              "text": "click:c15 changes the frame",
+              "support": 19,
+              "contra": 0,
+              "conf": 0.9524,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "goal:click:c15",
+              "kind": "goal",
+              "text": "levels_completed rises after click:c15",
+              "support": 1,
+              "contra": 18,
+              "conf": 0.0952,
+              "value": 3.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c0",
+              "kind": "effect",
+              "text": "click:c0 changes the frame",
+              "support": 13,
+              "contra": 0,
+              "conf": 0.9333,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c2",
+              "kind": "effect",
+              "text": "click:c2 changes the frame",
+              "support": 10,
+              "contra": 0,
+              "conf": 0.9167,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c6",
+              "kind": "effect",
+              "text": "click:c6 changes the frame",
+              "support": 12,
+              "contra": 0,
+              "conf": 0.9286,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c3",
+              "kind": "effect",
+              "text": "click:c3 changes the frame",
+              "support": 11,
+              "contra": 0,
+              "conf": 0.9231,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "lethal:click:c2",
+              "kind": "lethal",
+              "text": "GAME_OVER follows click:c2",
+              "support": 1,
+              "contra": 0,
+              "conf": 0.6667,
+              "value": 2.0,
+              "data": {}
+            }
+          ],
+          "scorecard_level_actions": 81,
+          "scorecard_baseline_actions": 22
+        }
+      ],
+      "confirmed": [
+        {
+          "key": "goal:click:c15",
+          "kind": "goal",
+          "text": "levels_completed rises after click:c15",
+          "support": 1,
+          "contra": 83,
+          "conf": 0.0233,
+          "value": 3.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c2",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c2",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c10",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c10",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c15",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c15",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c12",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c12",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c15",
+          "kind": "effect",
+          "text": "click:c15 changes the frame",
+          "support": 84,
+          "contra": 0,
+          "conf": 0.9884,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c1",
+          "kind": "effect",
+          "text": "click:c1 changes the frame",
+          "support": 44,
+          "contra": 0,
+          "conf": 0.9783,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c3",
+          "kind": "effect",
+          "text": "click:c3 changes the frame",
+          "support": 32,
+          "contra": 0,
+          "conf": 0.9706,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c12",
+          "kind": "effect",
+          "text": "click:c12 changes the frame",
+          "support": 27,
+          "contra": 0,
+          "conf": 0.9655,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c6",
+          "kind": "effect",
+          "text": "click:c6 changes the frame",
+          "support": 24,
+          "contra": 0,
+          "conf": 0.9615,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c0",
+          "kind": "effect",
+          "text": "click:c0 changes the frame",
+          "support": 22,
+          "contra": 0,
+          "conf": 0.9583,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c2",
+          "kind": "effect",
+          "text": "click:c2 changes the frame",
+          "support": 10,
+          "contra": 0,
+          "conf": 0.9167,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c10",
+          "kind": "effect",
+          "text": "click:c10 changes the frame",
+          "support": 7,
+          "contra": 0,
+          "conf": 0.8889,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:click:c2",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c2",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c10",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c10",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c15",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c15",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c12",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c12",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 4,
+      "n_claims_final": 28
+    },
+    "RE86": {
+      "game_id": "re86-8af5384d",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "move:A2:c1",
+          "kind": "move",
+          "text": "ACTION2 moves color 1 by (0, 0)",
+          "support": 52,
+          "contra": 34,
+          "conf": 0.6023,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 1,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c0",
+          "kind": "move",
+          "text": "ACTION2 moves color 0 by (0, 3)",
+          "support": 46,
+          "contra": 26,
+          "conf": 0.6351,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 0,
+            "d": [
+              0,
+              3
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c0",
+          "kind": "move",
+          "text": "ACTION4 moves color 0 by (3, 0)",
+          "support": 42,
+          "contra": 0,
+          "conf": 0.9773,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 0,
+            "d": [
+              3,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c15",
+          "kind": "move",
+          "text": "ACTION1 moves color 15 by (0, 0)",
+          "support": 41,
+          "contra": 18,
+          "conf": 0.6885,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 15,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c11",
+          "kind": "move",
+          "text": "ACTION1 moves color 11 by (0, -3)",
+          "support": 40,
+          "contra": 19,
+          "conf": 0.6721,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 11,
+            "d": [
+              0,
+              -3
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c1",
+          "kind": "move",
+          "text": "ACTION1 moves color 1 by (0, 0)",
+          "support": 39,
+          "contra": 18,
+          "conf": 0.678,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 1,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A3:c9",
+          "kind": "move",
+          "text": "ACTION3 moves color 9 by (0, 1)",
+          "support": 37,
+          "contra": 10,
+          "conf": 0.7755,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 9,
+            "d": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c0",
+          "kind": "move",
+          "text": "ACTION1 moves color 0 by (0, -3)",
+          "support": 35,
+          "contra": 0,
+          "conf": 0.973,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 0,
+            "d": [
+              0,
+              -3
+            ]
+          }
+        },
+        {
+          "key": "move:A3:c15",
+          "kind": "move",
+          "text": "ACTION3 moves color 15 by (0, 0)",
+          "support": 31,
+          "contra": 19,
+          "conf": 0.6154,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 15,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A3:c1",
+          "kind": "move",
+          "text": "ACTION3 moves color 1 by (0, 0)",
+          "support": 31,
+          "contra": 19,
+          "conf": 0.6154,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 1,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c15",
+          "kind": "move",
+          "text": "ACTION4 moves color 15 by (0, 0)",
+          "support": 29,
+          "contra": 16,
+          "conf": 0.6383,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 15,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c11",
+          "kind": "move",
+          "text": "ACTION4 moves color 11 by (3, 0)",
+          "support": 29,
+          "contra": 15,
+          "conf": 0.6522,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 11,
+            "d": [
+              3,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c1",
+          "kind": "move",
+          "text": "ACTION4 moves color 1 by (0, 0)",
+          "support": 29,
+          "contra": 15,
+          "conf": 0.6522,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 1,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A3:c0",
+          "kind": "move",
+          "text": "ACTION3 moves color 0 by (-3, 0)",
+          "support": 26,
+          "contra": 0,
+          "conf": 0.9643,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 0,
+            "d": [
+              -3,
+              0
+            ]
+          }
+        },
+        {
+          "key": "effect:key:A2",
+          "kind": "effect",
+          "text": "key:A2 changes the frame",
+          "support": 79,
+          "contra": 8,
+          "conf": 0.8989,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A1",
+          "kind": "effect",
+          "text": "key:A1 changes the frame",
+          "support": 59,
+          "contra": 0,
+          "conf": 0.9836,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A3",
+          "kind": "effect",
+          "text": "key:A3 changes the frame",
+          "support": 48,
+          "contra": 2,
+          "conf": 0.9423,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A4",
+          "kind": "effect",
+          "text": "key:A4 changes the frame",
+          "support": 45,
+          "contra": 0,
+          "conf": 0.9787,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A5",
+          "kind": "effect",
+          "text": "key:A5 changes the frame",
+          "support": 7,
+          "contra": 2,
+          "conf": 0.7273,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [],
+      "game_overs_logged": 2,
+      "n_claims_final": 43
+    },
+    "S5I5": {
+      "game_id": "s5i5-18d95033",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "GAME_OVER",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "lethal:click:c14",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c14",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c3",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c3",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c13",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c13",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c2",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c2",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c11",
+          "kind": "effect",
+          "text": "click:c11 changes the frame",
+          "support": 79,
+          "contra": 0,
+          "conf": 0.9877,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c4",
+          "kind": "effect",
+          "text": "click:c4 changes the frame",
+          "support": 58,
+          "contra": 0,
+          "conf": 0.9833,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c2",
+          "kind": "effect",
+          "text": "click:c2 changes the frame",
+          "support": 51,
+          "contra": 0,
+          "conf": 0.9811,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c13",
+          "kind": "effect",
+          "text": "click:c13 changes the frame",
+          "support": 34,
+          "contra": 0,
+          "conf": 0.9722,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c3",
+          "kind": "effect",
+          "text": "click:c3 changes the frame",
+          "support": 19,
+          "contra": 0,
+          "conf": 0.9524,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c14",
+          "kind": "effect",
+          "text": "click:c14 changes the frame",
+          "support": 9,
+          "contra": 0,
+          "conf": 0.9091,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:click:c14",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c14",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c3",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c3",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c13",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c13",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c2",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c2",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 5,
+      "n_claims_final": 23
+    },
+    "SB26": {
+      "game_id": "sb26-7fbdac44",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "lethal:key:A5",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A5",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A5",
+          "kind": "effect",
+          "text": "key:A5 changes the frame",
+          "support": 64,
+          "contra": 0,
+          "conf": 0.9848,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c11",
+          "kind": "effect",
+          "text": "click:c11 changes the frame",
+          "support": 26,
+          "contra": 16,
+          "conf": 0.6136,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:key:A5",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A5",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 1,
+      "n_claims_final": 30
+    },
+    "SC25": {
+      "game_id": "sc25-635fd71a",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "lethal:key:A4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c14",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c14",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "move:A3:c14",
+          "kind": "move",
+          "text": "ACTION3 moves color 14 by (0, 1)",
+          "support": 40,
+          "contra": 25,
+          "conf": 0.6119,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 14,
+            "d": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c14",
+          "kind": "move",
+          "text": "ACTION1 moves color 14 by (0, 1)",
+          "support": 14,
+          "contra": 2,
+          "conf": 0.8333,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 14,
+            "d": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c0",
+          "kind": "move",
+          "text": "ACTION1 moves color 0 by (1, 0)",
+          "support": 12,
+          "contra": 4,
+          "conf": 0.7222,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 0,
+            "d": [
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "key": "effect:key:A3",
+          "kind": "effect",
+          "text": "key:A3 changes the frame",
+          "support": 50,
+          "contra": 15,
+          "conf": 0.7612,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A2",
+          "kind": "effect",
+          "text": "key:A2 changes the frame",
+          "support": 37,
+          "contra": 10,
+          "conf": 0.7755,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c0",
+          "kind": "effect",
+          "text": "click:c0 changes the frame",
+          "support": 24,
+          "contra": 14,
+          "conf": 0.625,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A1",
+          "kind": "effect",
+          "text": "key:A1 changes the frame",
+          "support": 17,
+          "contra": 0,
+          "conf": 0.9474,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c14",
+          "kind": "effect",
+          "text": "click:c14 changes the frame",
+          "support": 15,
+          "contra": 7,
+          "conf": 0.6667,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A4",
+          "kind": "effect",
+          "text": "key:A4 changes the frame",
+          "support": 12,
+          "contra": 1,
+          "conf": 0.8667,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:key:A4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c14",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c14",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 3,
+      "n_claims_final": 50
+    },
+    "SK48": {
+      "game_id": "sk48-d8078629",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "move:A4:c2",
+          "kind": "move",
+          "text": "ACTION4 moves color 2 by (0, -1)",
+          "support": 42,
+          "contra": 19,
+          "conf": 0.6825,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 2,
+            "d": [
+              0,
+              -1
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c14",
+          "kind": "move",
+          "text": "ACTION4 moves color 14 by (3, 0)",
+          "support": 34,
+          "contra": 18,
+          "conf": 0.6481,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 14,
+            "d": [
+              3,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c6",
+          "kind": "move",
+          "text": "ACTION1 moves color 6 by (0, -3)",
+          "support": 31,
+          "contra": 20,
+          "conf": 0.6038,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 6,
+            "d": [
+              0,
+              -3
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c0",
+          "kind": "move",
+          "text": "ACTION1 moves color 0 by (0, -3)",
+          "support": 31,
+          "contra": 20,
+          "conf": 0.6038,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 0,
+            "d": [
+              0,
+              -3
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c1",
+          "kind": "move",
+          "text": "ACTION1 moves color 1 by (0, -3)",
+          "support": 31,
+          "contra": 20,
+          "conf": 0.6038,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 1,
+            "d": [
+              0,
+              -3
+            ]
+          }
+        },
+        {
+          "key": "move:A3:c2",
+          "kind": "move",
+          "text": "ACTION3 moves color 2 by (0, 1)",
+          "support": 25,
+          "contra": 8,
+          "conf": 0.7429,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 2,
+            "d": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "key": "move:A3:c14",
+          "kind": "move",
+          "text": "ACTION3 moves color 14 by (-3, 0)",
+          "support": 23,
+          "contra": 6,
+          "conf": 0.7742,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 14,
+            "d": [
+              -3,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c8",
+          "kind": "move",
+          "text": "ACTION4 moves color 8 by (3, 0)",
+          "support": 22,
+          "contra": 14,
+          "conf": 0.6053,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 8,
+            "d": [
+              3,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A3:c8",
+          "kind": "move",
+          "text": "ACTION3 moves color 8 by (-3, 0)",
+          "support": 14,
+          "contra": 0,
+          "conf": 0.9375,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 8,
+            "d": [
+              -3,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c6",
+          "kind": "move",
+          "text": "ACTION2 moves color 6 by (0, 3)",
+          "support": 7,
+          "contra": 4,
+          "conf": 0.6154,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 6,
+            "d": [
+              0,
+              3
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c0",
+          "kind": "move",
+          "text": "ACTION2 moves color 0 by (0, 3)",
+          "support": 7,
+          "contra": 4,
+          "conf": 0.6154,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 0,
+            "d": [
+              0,
+              3
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c14",
+          "kind": "move",
+          "text": "ACTION2 moves color 14 by (0, 3)",
+          "support": 7,
+          "contra": 4,
+          "conf": 0.6154,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 14,
+            "d": [
+              0,
+              3
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c1",
+          "kind": "move",
+          "text": "ACTION2 moves color 1 by (0, 5)",
+          "support": 7,
+          "contra": 4,
+          "conf": 0.6154,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 1,
+            "d": [
+              0,
+              5
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c8",
+          "kind": "move",
+          "text": "ACTION2 moves color 8 by (0, 3)",
+          "support": 2,
+          "contra": 0,
+          "conf": 0.75,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 8,
+            "d": [
+              0,
+              3
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c9",
+          "kind": "move",
+          "text": "ACTION2 moves color 9 by (0, 3)",
+          "support": 2,
+          "contra": 0,
+          "conf": 0.75,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 9,
+            "d": [
+              0,
+              3
+            ]
+          }
+        },
+        {
+          "key": "effect:key:A7",
+          "kind": "effect",
+          "text": "key:A7 changes the frame",
+          "support": 67,
+          "contra": 0,
+          "conf": 0.9855,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A4",
+          "kind": "effect",
+          "text": "key:A4 changes the frame",
+          "support": 45,
+          "contra": 16,
+          "conf": 0.7302,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A1",
+          "kind": "effect",
+          "text": "key:A1 changes the frame",
+          "support": 41,
+          "contra": 10,
+          "conf": 0.7925,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A3",
+          "kind": "effect",
+          "text": "key:A3 changes the frame",
+          "support": 30,
+          "contra": 4,
+          "conf": 0.8611,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A2",
+          "kind": "effect",
+          "text": "key:A2 changes the frame",
+          "support": 9,
+          "contra": 3,
+          "conf": 0.7143,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [],
+      "game_overs_logged": 0,
+      "n_claims_final": 66
+    },
+    "SP80": {
+      "game_id": "sp80-589a99af",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "lethal:click:c11",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c11",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c0",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c0",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c14",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c14",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:key:A5",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A5",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "move:A4:c9",
+          "kind": "move",
+          "text": "ACTION4 moves color 9 by (4, 0)",
+          "support": 23,
+          "contra": 0,
+          "conf": 0.96,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 9,
+            "d": [
+              4,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c9",
+          "kind": "move",
+          "text": "ACTION2 moves color 9 by (0, 4)",
+          "support": 22,
+          "contra": 0,
+          "conf": 0.9583,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 9,
+            "d": [
+              0,
+              4
+            ]
+          }
+        },
+        {
+          "key": "move:A3:c0",
+          "kind": "move",
+          "text": "ACTION3 moves color 0 by (-1, 0)",
+          "support": 21,
+          "contra": 6,
+          "conf": 0.7586,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 0,
+            "d": [
+              -1,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c14",
+          "kind": "move",
+          "text": "ACTION4 moves color 14 by (-1, 0)",
+          "support": 18,
+          "contra": 5,
+          "conf": 0.76,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 14,
+            "d": [
+              -1,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c14",
+          "kind": "move",
+          "text": "ACTION2 moves color 14 by (-2, 0)",
+          "support": 15,
+          "contra": 7,
+          "conf": 0.6667,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 14,
+            "d": [
+              -2,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c14",
+          "kind": "move",
+          "text": "ACTION1 moves color 14 by (-1, 0)",
+          "support": 7,
+          "contra": 2,
+          "conf": 0.7273,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 14,
+            "d": [
+              -1,
+              0
+            ]
+          }
+        },
+        {
+          "key": "effect:click:c1",
+          "kind": "effect",
+          "text": "click:c1 changes the frame",
+          "support": 39,
+          "contra": 0,
+          "conf": 0.9756,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c9",
+          "kind": "effect",
+          "text": "click:c9 changes the frame",
+          "support": 34,
+          "contra": 0,
+          "conf": 0.9722,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c6",
+          "kind": "effect",
+          "text": "click:c6 changes the frame",
+          "support": 31,
+          "contra": 0,
+          "conf": 0.9697,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A3",
+          "kind": "effect",
+          "text": "key:A3 changes the frame",
+          "support": 27,
+          "contra": 0,
+          "conf": 0.9655,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A4",
+          "kind": "effect",
+          "text": "key:A4 changes the frame",
+          "support": 23,
+          "contra": 0,
+          "conf": 0.96,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A2",
+          "kind": "effect",
+          "text": "key:A2 changes the frame",
+          "support": 22,
+          "contra": 0,
+          "conf": 0.9583,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c14",
+          "kind": "effect",
+          "text": "click:c14 changes the frame",
+          "support": 19,
+          "contra": 0,
+          "conf": 0.9524,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c0",
+          "kind": "effect",
+          "text": "click:c0 changes the frame",
+          "support": 18,
+          "contra": 0,
+          "conf": 0.95,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A5",
+          "kind": "effect",
+          "text": "key:A5 changes the frame",
+          "support": 16,
+          "contra": 0,
+          "conf": 0.9444,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A1",
+          "kind": "effect",
+          "text": "key:A1 changes the frame",
+          "support": 9,
+          "contra": 0,
+          "conf": 0.9091,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c4",
+          "kind": "effect",
+          "text": "click:c4 changes the frame",
+          "support": 8,
+          "contra": 0,
+          "conf": 0.9,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c11",
+          "kind": "effect",
+          "text": "click:c11 changes the frame",
+          "support": 4,
+          "contra": 0,
+          "conf": 0.8333,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:click:c11",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c11",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c0",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c0",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c14",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c14",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:key:A5",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A5",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 8,
+      "n_claims_final": 50
+    },
+    "SU15": {
+      "game_id": "su15-1944f8ab",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "lethal:click:c9",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c9",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c15",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c15",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c3",
+          "kind": "effect",
+          "text": "click:c3 changes the frame",
+          "support": 131,
+          "contra": 0,
+          "conf": 0.9925,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c9",
+          "kind": "effect",
+          "text": "click:c9 changes the frame",
+          "support": 40,
+          "contra": 0,
+          "conf": 0.9762,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c15",
+          "kind": "effect",
+          "text": "click:c15 changes the frame",
+          "support": 36,
+          "contra": 22,
+          "conf": 0.6167,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:click:c9",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c9",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c15",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c15",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 6,
+      "n_claims_final": 17
+    },
+    "TN36": {
+      "game_id": "tn36-ef4dde99",
+      "best_levels": 1,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [
+        {
+          "from": 0,
+          "to": 1,
+          "step": 56,
+          "action": "ACTION6",
+          "extra": {
+            "x": 36,
+            "y": 55
+          },
+          "ekey": "click:c9",
+          "reason": "use effect",
+          "goal_claim": {
+            "key": "goal:click:c9",
+            "kind": "goal",
+            "text": "levels_completed rises after click:c9",
+            "support": 1,
+            "contra": 9,
+            "conf": 0.1667,
+            "value": 3.0,
+            "data": {}
+          },
+          "confirmed_at_levelup": [
+            {
+              "key": "effect:click:c11",
+              "kind": "effect",
+              "text": "click:c11 changes the frame",
+              "support": 8,
+              "contra": 0,
+              "conf": 0.9,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c1",
+              "kind": "effect",
+              "text": "click:c1 changes the frame",
+              "support": 8,
+              "contra": 0,
+              "conf": 0.9,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c4",
+              "kind": "effect",
+              "text": "click:c4 changes the frame",
+              "support": 13,
+              "contra": 0,
+              "conf": 0.9333,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c3",
+              "kind": "effect",
+              "text": "click:c3 changes the frame",
+              "support": 9,
+              "contra": 0,
+              "conf": 0.9091,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c0",
+              "kind": "effect",
+              "text": "click:c0 changes the frame",
+              "support": 8,
+              "contra": 0,
+              "conf": 0.9,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c9",
+              "kind": "effect",
+              "text": "click:c9 changes the frame",
+              "support": 10,
+              "contra": 0,
+              "conf": 0.9167,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "goal:click:c9",
+              "kind": "goal",
+              "text": "levels_completed rises after click:c9",
+              "support": 1,
+              "contra": 9,
+              "conf": 0.1667,
+              "value": 3.0,
+              "data": {}
+            }
+          ],
+          "scorecard_level_actions": 56,
+          "scorecard_baseline_actions": 32
+        }
+      ],
+      "confirmed": [
+        {
+          "key": "goal:click:c9",
+          "kind": "goal",
+          "text": "levels_completed rises after click:c9",
+          "support": 1,
+          "contra": 24,
+          "conf": 0.0741,
+          "value": 3.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c9",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c9",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c0",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c0",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c0",
+          "kind": "effect",
+          "text": "click:c0 changes the frame",
+          "support": 70,
+          "contra": 0,
+          "conf": 0.9861,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c1",
+          "kind": "effect",
+          "text": "click:c1 changes the frame",
+          "support": 51,
+          "contra": 0,
+          "conf": 0.9811,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c4",
+          "kind": "effect",
+          "text": "click:c4 changes the frame",
+          "support": 45,
+          "contra": 0,
+          "conf": 0.9787,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c11",
+          "kind": "effect",
+          "text": "click:c11 changes the frame",
+          "support": 39,
+          "contra": 0,
+          "conf": 0.9756,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c9",
+          "kind": "effect",
+          "text": "click:c9 changes the frame",
+          "support": 25,
+          "contra": 0,
+          "conf": 0.963,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c3",
+          "kind": "effect",
+          "text": "click:c3 changes the frame",
+          "support": 20,
+          "contra": 0,
+          "conf": 0.9545,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:click:c9",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c9",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c0",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c0",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 3,
+      "n_claims_final": 22
+    },
+    "TR87": {
+      "game_id": "tr87-cd924810",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "lethal:key:A2",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A2",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "move:A4:c0",
+          "kind": "move",
+          "text": "ACTION4 moves color 0 by (-28, 0)",
+          "support": 77,
+          "contra": 0,
+          "conf": 0.9873,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 0,
+            "d": [
+              -28,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A3:c0",
+          "kind": "move",
+          "text": "ACTION3 moves color 0 by (28, 0)",
+          "support": 73,
+          "contra": 0,
+          "conf": 0.9867,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 0,
+            "d": [
+              28,
+              0
+            ]
+          }
+        },
+        {
+          "key": "effect:key:A4",
+          "kind": "effect",
+          "text": "key:A4 changes the frame",
+          "support": 77,
+          "contra": 0,
+          "conf": 0.9873,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A1",
+          "kind": "effect",
+          "text": "key:A1 changes the frame",
+          "support": 74,
+          "contra": 0,
+          "conf": 0.9868,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A3",
+          "kind": "effect",
+          "text": "key:A3 changes the frame",
+          "support": 73,
+          "contra": 0,
+          "conf": 0.9867,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A2",
+          "kind": "effect",
+          "text": "key:A2 changes the frame",
+          "support": 26,
+          "contra": 0,
+          "conf": 0.9643,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:key:A2",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A2",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 1,
+      "n_claims_final": 25
+    },
+    "TU93": {
+      "game_id": "tu93-0768757b",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "GAME_OVER",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "lethal:key:A3",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A3",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:key:A4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:key:A2",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A2",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "move:A1:c6",
+          "kind": "move",
+          "text": "ACTION1 moves color 6 by (-1, 0)",
+          "support": 111,
+          "contra": 12,
+          "conf": 0.896,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 6,
+            "d": [
+              -1,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c6",
+          "kind": "move",
+          "text": "ACTION2 moves color 6 by (0, 0)",
+          "support": 84,
+          "contra": 8,
+          "conf": 0.9043,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 6,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c6",
+          "kind": "move",
+          "text": "ACTION4 moves color 6 by (0, 0)",
+          "support": 21,
+          "contra": 4,
+          "conf": 0.8148,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 6,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A3:c6",
+          "kind": "move",
+          "text": "ACTION3 moves color 6 by (0, 0)",
+          "support": 9,
+          "contra": 1,
+          "conf": 0.8333,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 6,
+            "d": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "key": "effect:key:A1",
+          "kind": "effect",
+          "text": "key:A1 changes the frame",
+          "support": 123,
+          "contra": 0,
+          "conf": 0.992,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A2",
+          "kind": "effect",
+          "text": "key:A2 changes the frame",
+          "support": 92,
+          "contra": 0,
+          "conf": 0.9894,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A4",
+          "kind": "effect",
+          "text": "key:A4 changes the frame",
+          "support": 25,
+          "contra": 0,
+          "conf": 0.963,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A3",
+          "kind": "effect",
+          "text": "key:A3 changes the frame",
+          "support": 10,
+          "contra": 0,
+          "conf": 0.9167,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:key:A3",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A3",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:key:A4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:key:A2",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A2",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 5,
+      "n_claims_final": 27
+    },
+    "VC33": {
+      "game_id": "vc33-5430563c",
+      "best_levels": 2,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [
+        {
+          "from": 0,
+          "to": 1,
+          "step": 95,
+          "action": "ACTION6",
+          "extra": {
+            "x": 62,
+            "y": 34
+          },
+          "ekey": "click:c9",
+          "reason": "use effect",
+          "goal_claim": {
+            "key": "goal:click:c9",
+            "kind": "goal",
+            "text": "levels_completed rises after click:c9",
+            "support": 1,
+            "contra": 20,
+            "conf": 0.087,
+            "value": 3.0,
+            "data": {}
+          },
+          "confirmed_at_levelup": [
+            {
+              "key": "effect:click:c0",
+              "kind": "effect",
+              "text": "click:c0 changes the frame",
+              "support": 13,
+              "contra": 0,
+              "conf": 0.9333,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c11",
+              "kind": "effect",
+              "text": "click:c11 changes the frame",
+              "support": 21,
+              "contra": 0,
+              "conf": 0.9565,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c7",
+              "kind": "effect",
+              "text": "click:c7 changes the frame",
+              "support": 17,
+              "contra": 0,
+              "conf": 0.9474,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c4",
+              "kind": "effect",
+              "text": "click:c4 changes the frame",
+              "support": 7,
+              "contra": 0,
+              "conf": 0.8889,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c5",
+              "kind": "effect",
+              "text": "click:c5 changes the frame",
+              "support": 16,
+              "contra": 0,
+              "conf": 0.9444,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c9",
+              "kind": "effect",
+              "text": "click:c9 changes the frame",
+              "support": 21,
+              "contra": 0,
+              "conf": 0.9565,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "goal:click:c9",
+              "kind": "goal",
+              "text": "levels_completed rises after click:c9",
+              "support": 1,
+              "contra": 20,
+              "conf": 0.087,
+              "value": 3.0,
+              "data": {}
+            },
+            {
+              "key": "lethal:click:c4",
+              "kind": "lethal",
+              "text": "GAME_OVER follows click:c4",
+              "support": 1,
+              "contra": 0,
+              "conf": 0.6667,
+              "value": 2.0,
+              "data": {}
+            }
+          ],
+          "scorecard_level_actions": 96,
+          "scorecard_baseline_actions": 7
+        },
+        {
+          "from": 1,
+          "to": 2,
+          "step": 132,
+          "action": "ACTION6",
+          "extra": {
+            "x": 2,
+            "y": 46
+          },
+          "ekey": "click:c9",
+          "reason": "exploit goal",
+          "goal_claim": {
+            "key": "goal:click:c9",
+            "kind": "goal",
+            "text": "levels_completed rises after click:c9",
+            "support": 2,
+            "contra": 44,
+            "conf": 0.0625,
+            "value": 3.0,
+            "data": {}
+          },
+          "confirmed_at_levelup": [
+            {
+              "key": "effect:click:c0",
+              "kind": "effect",
+              "text": "click:c0 changes the frame",
+              "support": 14,
+              "contra": 0,
+              "conf": 0.9375,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c11",
+              "kind": "effect",
+              "text": "click:c11 changes the frame",
+              "support": 21,
+              "contra": 0,
+              "conf": 0.9565,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c7",
+              "kind": "effect",
+              "text": "click:c7 changes the frame",
+              "support": 17,
+              "contra": 0,
+              "conf": 0.9474,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c4",
+              "kind": "effect",
+              "text": "click:c4 changes the frame",
+              "support": 7,
+              "contra": 0,
+              "conf": 0.8889,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c5",
+              "kind": "effect",
+              "text": "click:c5 changes the frame",
+              "support": 17,
+              "contra": 0,
+              "conf": 0.9474,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c9",
+              "kind": "effect",
+              "text": "click:c9 changes the frame",
+              "support": 46,
+              "contra": 0,
+              "conf": 0.9792,
+              "value": 1.0,
+              "data": {}
+            },
+            {
+              "key": "goal:click:c9",
+              "kind": "goal",
+              "text": "levels_completed rises after click:c9",
+              "support": 2,
+              "contra": 44,
+              "conf": 0.0625,
+              "value": 3.0,
+              "data": {}
+            },
+            {
+              "key": "lethal:click:c4",
+              "kind": "lethal",
+              "text": "GAME_OVER follows click:c4",
+              "support": 1,
+              "contra": 0,
+              "conf": 0.6667,
+              "value": 2.0,
+              "data": {}
+            },
+            {
+              "key": "effect:click:c14",
+              "kind": "effect",
+              "text": "click:c14 changes the frame",
+              "support": 10,
+              "contra": 0,
+              "conf": 0.9167,
+              "value": 1.0,
+              "data": {}
+            }
+          ],
+          "scorecard_level_actions": 37,
+          "scorecard_baseline_actions": 18
+        }
+      ],
+      "confirmed": [
+        {
+          "key": "goal:click:c9",
+          "kind": "goal",
+          "text": "levels_completed rises after click:c9",
+          "support": 2,
+          "contra": 99,
+          "conf": 0.0291,
+          "value": 3.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c9",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c9",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c9",
+          "kind": "effect",
+          "text": "click:c9 changes the frame",
+          "support": 100,
+          "contra": 1,
+          "conf": 0.9806,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c5",
+          "kind": "effect",
+          "text": "click:c5 changes the frame",
+          "support": 32,
+          "contra": 1,
+          "conf": 0.9429,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c0",
+          "kind": "effect",
+          "text": "click:c0 changes the frame",
+          "support": 23,
+          "contra": 2,
+          "conf": 0.8889,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c11",
+          "kind": "effect",
+          "text": "click:c11 changes the frame",
+          "support": 23,
+          "contra": 2,
+          "conf": 0.8889,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c7",
+          "kind": "effect",
+          "text": "click:c7 changes the frame",
+          "support": 21,
+          "contra": 1,
+          "conf": 0.9167,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c14",
+          "kind": "effect",
+          "text": "click:c14 changes the frame",
+          "support": 20,
+          "contra": 1,
+          "conf": 0.913,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c15",
+          "kind": "effect",
+          "text": "click:c15 changes the frame",
+          "support": 15,
+          "contra": 1,
+          "conf": 0.8889,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:click:c4",
+          "kind": "effect",
+          "text": "click:c4 changes the frame",
+          "support": 7,
+          "contra": 0,
+          "conf": 0.8889,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:click:c4",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c4",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "lethal:click:c9",
+          "kind": "lethal",
+          "text": "GAME_OVER follows click:c9",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 2,
+      "n_claims_final": 26
+    },
+    "WA30": {
+      "game_id": "wa30-ee6fef47",
+      "best_levels": 0,
+      "actions": 250,
+      "state": "NOT_FINISHED",
+      "level_ups": [],
+      "confirmed": [
+        {
+          "key": "lethal:key:A1",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A1",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        },
+        {
+          "key": "move:A3:c0",
+          "kind": "move",
+          "text": "ACTION3 moves color 0 by (-6, 2)",
+          "support": 60,
+          "contra": 2,
+          "conf": 0.9531,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 0,
+            "d": [
+              -6,
+              2
+            ]
+          }
+        },
+        {
+          "key": "move:A3:c14",
+          "kind": "move",
+          "text": "ACTION3 moves color 14 by (-4, 0)",
+          "support": 60,
+          "contra": 8,
+          "conf": 0.8714,
+          "value": 1.5,
+          "data": {
+            "action": 3,
+            "color": 14,
+            "d": [
+              -4,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c0",
+          "kind": "move",
+          "text": "ACTION4 moves color 0 by (6, 2)",
+          "support": 59,
+          "contra": 0,
+          "conf": 0.9836,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 0,
+            "d": [
+              6,
+              2
+            ]
+          }
+        },
+        {
+          "key": "move:A4:c14",
+          "kind": "move",
+          "text": "ACTION4 moves color 14 by (4, 0)",
+          "support": 59,
+          "contra": 6,
+          "conf": 0.8955,
+          "value": 1.5,
+          "data": {
+            "action": 4,
+            "color": 14,
+            "d": [
+              4,
+              0
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c14",
+          "kind": "move",
+          "text": "ACTION2 moves color 14 by (0, 3)",
+          "support": 51,
+          "contra": 12,
+          "conf": 0.8,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 14,
+            "d": [
+              0,
+              3
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c0",
+          "kind": "move",
+          "text": "ACTION1 moves color 0 by (2, -6)",
+          "support": 46,
+          "contra": 3,
+          "conf": 0.9216,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 0,
+            "d": [
+              2,
+              -6
+            ]
+          }
+        },
+        {
+          "key": "move:A2:c0",
+          "kind": "move",
+          "text": "ACTION2 moves color 0 by (0, 7)",
+          "support": 43,
+          "contra": 14,
+          "conf": 0.7458,
+          "value": 1.5,
+          "data": {
+            "action": 2,
+            "color": 0,
+            "d": [
+              0,
+              7
+            ]
+          }
+        },
+        {
+          "key": "move:A1:c14",
+          "kind": "move",
+          "text": "ACTION1 moves color 14 by (0, -4)",
+          "support": 41,
+          "contra": 9,
+          "conf": 0.8077,
+          "value": 1.5,
+          "data": {
+            "action": 1,
+            "color": 14,
+            "d": [
+              0,
+              -4
+            ]
+          }
+        },
+        {
+          "key": "effect:key:A3",
+          "kind": "effect",
+          "text": "key:A3 changes the frame",
+          "support": 67,
+          "contra": 1,
+          "conf": 0.9714,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A4",
+          "kind": "effect",
+          "text": "key:A4 changes the frame",
+          "support": 65,
+          "contra": 0,
+          "conf": 0.9851,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A2",
+          "kind": "effect",
+          "text": "key:A2 changes the frame",
+          "support": 57,
+          "contra": 6,
+          "conf": 0.8923,
+          "value": 1.0,
+          "data": {}
+        },
+        {
+          "key": "effect:key:A1",
+          "kind": "effect",
+          "text": "key:A1 changes the frame",
+          "support": 48,
+          "contra": 2,
+          "conf": 0.9423,
+          "value": 1.0,
+          "data": {}
+        }
+      ],
+      "lethal": [
+        {
+          "key": "lethal:key:A1",
+          "kind": "lethal",
+          "text": "GAME_OVER follows key:A1",
+          "support": 1,
+          "contra": 0,
+          "conf": 0.6667,
+          "value": 2.0,
+          "data": {}
+        }
+      ],
+      "game_overs_logged": 1,
+      "n_claims_final": 39
+    }
+  }
+}
