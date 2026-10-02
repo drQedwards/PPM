@@ -1,0 +1,25 @@
+# Fly.io config for the PMLL memory MCP server (mcp/), served over
+# Streamable HTTP at https://pmll.fly.dev/mcp. Build context is the repo
+# root; the root .dockerignore limits it to mcp/.
+app = "pmll"
+
+[build]
+  dockerfile = "mcp/Dockerfile"
+
+[env]
+  MCP_TRANSPORT = "http"
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/healthz"
+    interval = "15s"
+    timeout = "5s"
+    grace_period = "10s"

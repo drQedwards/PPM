@@ -43,12 +43,15 @@
  * Usage:
  *     npx pmll-memory-mcp                        # stdio transport
  *     node dist/index.js                         # via compiled output
+ *     PORT=8080 node dist/index.js               # Streamable HTTP on /mcp (+ GET /healthz)
  *
  * License: MIT
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { createServer as createHttpServer } from "node:http";
 import { z } from "zod";
 
 import { getStore, dropStore, resetStore } from "./kv-store.js";
@@ -72,7 +75,8 @@ import { resolveContext, promoteToLongTerm, getMemoryStatus } from "./solution-e
 // ---------------------------------------------------------------------------
 // MCP server instance
 // ---------------------------------------------------------------------------
-const server = new McpServer(
+function newServer(): McpServer {
+  return new McpServer(
   {
     name: "pmll-memory-mcp",
     version: "1.0.0",
@@ -91,6 +95,7 @@ const server = new McpServer(
       "`memory_status` (unified memory view).",
   },
 );
+}
 
 // Module-level Q-promise registry shared across all sessions.
 // Mirrors the global QMemNode chain pool in Q_promise_lib.
@@ -98,6 +103,13 @@ export const _promiseRegistry = new QPromiseRegistry();
 
 // Track which sessions have been initialised (sessionId → siloSize).
 export const _activeSessions: Map<string, number> = new Map();
+
+/**
+ * Build a server with all tools registered. Memory state lives at module
+ * level, so every instance (one per HTTP request in stateless mode) shares it.
+ */
+export function createServer(): McpServer {
+const server = newServer();
 
 // ---------------------------------------------------------------------------
 // Tool: init
@@ -774,12 +786,68 @@ server.tool(
   },
 );
 
+return server;
+}
+
+const server = createServer();
+
 // ---------------------------------------------------------------------------
 // Entry-point
 // ---------------------------------------------------------------------------
 
-/** Run the MCP server over stdio (default transport). */
+/**
+ * Serve MCP over stateless Streamable HTTP at `/mcp` (fresh server+transport
+ * per request, as the SDK requires) plus `GET /healthz` for health checks.
+ */
+async function startHttp(port: number): Promise<void> {
+  const httpServer = createHttpServer(async (req, res) => {
+    const path = (req.url ?? "/").split("?")[0];
+    if (path === "/healthz" && (req.method === "GET" || req.method === "HEAD")) {
+      res.writeHead(200, { "content-type": "application/json" }).end('{"status":"ok"}');
+      return;
+    }
+    if (path !== "/mcp") {
+      res.writeHead(404).end();
+      return;
+    }
+    if (req.method !== "POST") {
+      res
+        .writeHead(405, { "content-type": "application/json", allow: "POST" })
+        .end('{"jsonrpc":"2.0","error":{"code":-32000,"message":"Method not allowed."},"id":null}');
+      return;
+    }
+    const mcp = createServer();
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+      enableJsonResponse: true,
+    });
+    res.on("close", () => {
+      void transport.close();
+      void mcp.close();
+    });
+    try {
+      await mcp.connect(transport);
+      await transport.handleRequest(req, res);
+    } catch (error: unknown) {
+      console.error("Error handling MCP request:", error);
+      if (!res.headersSent) {
+        res
+          .writeHead(500, { "content-type": "application/json" })
+          .end('{"jsonrpc":"2.0","error":{"code":-32603,"message":"Internal server error"},"id":null}');
+      }
+    }
+  });
+  await new Promise<void>((resolve) => httpServer.listen(port, "0.0.0.0", resolve));
+  console.error(`pmll-memory-mcp listening on http://0.0.0.0:${port}/mcp`);
+}
+
+/** Run over stdio by default; Streamable HTTP when MCP_TRANSPORT=http or PORT is set. */
 async function main(): Promise<void> {
+  const mode = process.env.MCP_TRANSPORT;
+  if (mode === "http" || (mode !== "stdio" && process.env.PORT)) {
+    await startHttp(Number(process.env.PORT) || 8080);
+    return;
+  }
   const transport = new StdioServerTransport();
   await server.connect(transport);
 }
