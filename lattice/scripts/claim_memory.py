@@ -51,7 +51,7 @@ class Claim:
         if self.kind == "goal":
             return self.s >= 1  # it produced at least one level-up
         if self.kind == "lethal":
-            return self.s >= 1 and self.conf >= 0.5
+            return self.s >= 2 and self.conf >= 0.5  # >=2 independent (non-periodic) game-overs
         if self.kind == "static":
             return self.s >= 8 and self.conf >= 0.9
         return self.s >= 2 and self.conf >= 0.6

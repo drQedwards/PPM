@@ -27,10 +27,14 @@ from typing import Any, Dict, List, Optional, Tuple
 
 ROOT = "https://three.arcprize.org"
 AGENT = "the persistence in memory"
-VERSION = "2.1-self-talk-frames"
+VERSION = "2.2-self-talk-periodic"
 SOURCE_URL = "https://github.com/drQedwards/pmll"
 MIN_INTERVAL = 0.11
 DIRS = (1, 2, 3, 4)
+LETHAL_MIN_SUPPORT = 2      # a lethal claim penalizes only after >=2 independent (non-periodic) game-overs
+EXPLORE_EPS = 0.15          # chance to swap a "use effect" pick for a novelty pick
+USE_EFFECT_CAP = 0.6        # max share of "use effect" picks in the recent window
+USE_WINDOW = 20
 
 # ---------------------------------------------------------------- frames
 
@@ -201,7 +205,7 @@ def player_model(belief: Dict[str, Any]) -> Tuple[Optional[int], Dict[int, Tuple
 
 def choose(mem: ClaimMemory, belief: Dict[str, Any], v: View, avail: List[int],
            tried: Dict[Tuple[str, str], int], rng: random.Random,
-           info: Optional[dict] = None) -> Tuple[str, dict, str, Optional[int], str]:
+           info: Optional[dict] = None, explore: bool = False) -> Tuple[str, dict, str, Optional[int], str]:
     """Pick an action. If `info` is a dict it is filled with the claim the
     action tests (key, uncertainty, conf, score, runner-up) for frame logging."""
     cands = candidates(v, avail)
@@ -222,7 +226,7 @@ def choose(mem: ClaimMemory, belief: Dict[str, Any], v: View, avail: List[int],
             l = mem.peek(key="lethal:touch:c{0}".format(c["color"]))
             st = mem.peek(key="static:c{0}".format(c["color"]))
             gain = 1.0 * (g.unc if g else 1.0) + (3.0 if g and g.s else 0.0)
-            gain -= 2.5 * (l.conf if l and l.s else 0.0)
+            gain -= 2.5 * (l.conf if l and l.s >= LETHAL_MIN_SUPPORT else 0.0)
             gain -= 0.3 * (st.conf if st and st.s > 8 else 0.0)
             dist = abs(c["cx"] - px) + abs(c["cy"] - py)
             if dist < 1.5:
@@ -251,7 +255,7 @@ def choose(mem: ClaimMemory, belief: Dict[str, Any], v: View, avail: List[int],
             if g and g.s:
                 sc += 1.5 * g.conf
         lth = mem.peek(key="lethal:" + ekey)
-        if lth and lth.s:
+        if lth and lth.s >= LETHAL_MIN_SUPPORT:
             sc -= 2.0 * lth.conf
         if nav_target and name in ("ACTION1", "ACTION2", "ACTION3", "ACTION4"):
             a = int(name[-1])
@@ -270,6 +274,21 @@ def choose(mem: ClaimMemory, belief: Dict[str, Any], v: View, avail: List[int],
         scored.append((sc, name, extra, ekey, color, why))
     scored.sort(key=lambda t: -t[0])
     best_sc, name, extra, ekey, color, why = scored[0]
+    if explore and why == "use effect" and len(scored) > 1:
+        # novelty floor: test the least-known, least-tried candidate instead of re-using a known effect
+        nov = []
+        for _, n2, e2, k2, c2, _w in scored:
+            eff = mem.peek(key="effect:" + k2)
+            lth = mem.peek(key="lethal:" + k2)
+            if lth and lth.s >= LETHAL_MIN_SUPPORT:
+                continue
+            t2 = tried.get((v.fh, n2 + json.dumps(e2, sort_keys=True)), 0)
+            nsc = (eff.unc if eff else 1.0) + 1.0 / (1.0 + t2) + rng.random() * 0.25
+            nov.append((nsc, n2, e2, k2, c2))
+        if nov:
+            nov.sort(key=lambda t: -t[0])
+            best_sc, name, extra, ekey, color = nov[0]
+            why = "explore novelty"
     if info is not None:
         if why == "exploit goal":
             ck = "goal:" + ekey
@@ -287,7 +306,11 @@ def choose(mem: ClaimMemory, belief: Dict[str, Any], v: View, avail: List[int],
 
 
 def update(mem: ClaimMemory, before: View, after: View, name: str, ekey: str, color: Optional[int],
-           lv0: int, lv1: int, state: str) -> List[str]:
+           lv0: int, lv1: int, state: str, lethal_ok: bool = True,
+           credited: Optional[List[str]] = None) -> List[str]:
+    """`lethal_ok=False` means this GAME_OVER matched an action-limit pattern:
+    it is not credited as lethal to the last action. Keys that do get lethal
+    support are appended to `credited` so a later pattern match can retract them."""
     notes = []
     d = diff(before, after)
     changed = d["changed"] != 0
@@ -323,12 +346,19 @@ def update(mem: ClaimMemory, before: View, after: View, name: str, ekey: str, co
         mem.observe("goal:touch:c{0}".format(k), "goal",
                     "levels_completed rises after player c{0} touches c{1}".format(player, k), level_up)
     over = state == "GAME_OVER"
-    mem.observe("lethal:" + ekey, "lethal", "GAME_OVER follows {0}".format(ekey), over) \
-        if (over or mem.peek(key="lethal:" + ekey)) else None
+    if over and not lethal_ok:
+        notes.append("GAME_OVER periodic (action limit), not credited to {0}".format(ekey))
+        return notes
+    if over or mem.peek(key="lethal:" + ekey):
+        mem.observe("lethal:" + ekey, "lethal", "GAME_OVER follows {0}".format(ekey), over)
+        if over and credited is not None:
+            credited.append("lethal:" + ekey)
     for k in touched:
         if over or mem.peek(key="lethal:touch:c{0}".format(k)):
             mem.observe("lethal:touch:c{0}".format(k), "lethal",
                         "GAME_OVER follows contact between c{0} and c{1}".format(player, k), over)
+            if over and credited is not None:
+                credited.append("lethal:touch:c{0}".format(k))
     if level_up:
         notes.append("LEVEL_UP {0}->{1} via {2}".format(lv0, lv1, ekey))
     if over:
@@ -395,10 +425,14 @@ class OfflineClient:
     the network and never opens a scorecard. TOY1: a player (color 3) moved by
     ACTION1-4 must reach a goal tile (color 9); a lava tile (color 2) is
     GAME_OVER. TOY2: click-only; clicking the 3-cell button (color 8) completes
-    a level, the single-cell decoys do nothing."""
+    a level, the single-cell decoys do nothing. TOY3: click-only, ten one-cell
+    decoys and an action limit: every 6th action of a life is GAME_OVER
+    (periodic, so it must not be learned as lethal)."""
 
     GAMES = [{"game_id": "toy1-offline", "title": "TOY1", "tags": ["keyboard_click"]},
-             {"game_id": "toy2-offline", "title": "TOY2", "tags": ["click"]}]
+             {"game_id": "toy2-offline", "title": "TOY2", "tags": ["click"]},
+             {"game_id": "toy3-offline", "title": "TOY3", "tags": ["click"]}]
+    LIMIT = {"toy3": 6}  # TOY3: action limit -> GAME_OVER every 6 actions per life
 
     def __init__(self) -> None:
         self.n429 = 0
@@ -412,17 +446,21 @@ class OfflineClient:
         return 404, {}
 
     def _new(self, gid: str, level: int = 0) -> dict:
-        return {"gid": gid, "lv": level, "p": [2, 2 + level], "state": "NOT_FINISHED", "guid": "g-" + gid}
+        return {"gid": gid, "lv": level, "p": [2, 2 + level], "state": "NOT_FINISHED", "guid": "g-" + gid, "n": 0}
 
     def _frame(self, st: dict) -> List[List[List[int]]]:
         g = [[0] * 16 for _ in range(16)]
         if st["gid"].startswith("toy1"):
             g[12][12] = 9
             g[8][4] = 2
-        else:
+        elif st["gid"].startswith("toy2"):
             for x in range(10, 13):
                 g[2][x] = 8
             for x, y, c in ((5, 5, 4), (7, 11, 6), (13, 13, 7), (1, 9, 1)):
+                g[y][x] = c
+        else:  # toy3: one-cell decoys only, 6-action limit per life (no way to level up)
+            for x, y, c in ((5, 5, 4), (7, 11, 6), (13, 13, 7), (1, 9, 1), (3, 13, 10), (9, 7, 11),
+                            (14, 5, 12), (6, 3, 13), (11, 10, 14), (4, 8, 15)):
                 g[y][x] = c
         g[14][1] = 5
         px, py = st["p"]
@@ -431,6 +469,8 @@ class OfflineClient:
 
     def _resp(self, st: dict) -> dict:
         avail = [1, 2, 3, 4] if st["gid"].startswith("toy1") else [6]
+        if st["gid"].startswith("toy3"):
+            avail = [6]
         return {"guid": st["guid"], "frame": self._frame(st), "state": st["state"],
                 "levels_completed": st["lv"], "available_actions": avail}
 
@@ -449,11 +489,15 @@ class OfflineClient:
                 st["p"] = [2, 2]
             elif tuple(st["p"]) == (4, 8):
                 st["state"] = "GAME_OVER"
-        elif action == "ACTION6" and gid.startswith("toy2"):
+        elif action == "ACTION6" and gid[:4] in ("toy2", "toy3"):
             x, y = int(body.get("x", -1)), int(body.get("y", -1))
-            if y == 2 and 10 <= x <= 12:
+            st["n"] += 1
+            if y == 2 and (10 <= x <= 12 if gid.startswith("toy2") else x == 10):
                 st["lv"] += 1
                 st["p"] = [2, 2]
+                st["n"] = 0
+            elif gid[:4] in self.LIMIT and st["n"] >= self.LIMIT[gid[:4]]:
+                st["state"] = "GAME_OVER"
         if st["lv"] >= 3:
             st["state"] = "WIN"
         return self._resp(st)
@@ -488,6 +532,68 @@ class FrameLog:
             self.fh.close()
 
 
+# ---------------------------------------------------------------- periodic game-over detection
+
+
+class GameOverTracker:
+    """Detects action-limit GAME_OVERs. Counts agent actions since the last
+    RESET and since the last level-up. A GAME_OVER whose count matches an
+    earlier GAME_OVER's count (either measure, within `tol`) is periodic: it is
+    not credited as lethal, and the lethal support credited by the earlier
+    matching event(s) is retracted."""
+
+    def __init__(self, tol: int = 0) -> None:
+        self.tol = tol
+        self.since_reset = 0
+        self.since_level = 0
+        self.events: List[dict] = []   # {"r": int, "l": int, "credited": [...], "periodic": bool}
+        self.periods: set = set()
+
+    def on_reset(self) -> None:
+        self.since_reset = 0
+        self.since_level = 0
+
+    def on_step(self, level_up: bool) -> None:
+        self.since_reset += 1
+        self.since_level += 1
+        if level_up:
+            self.since_level = 0
+
+    def _match(self, a: int, b: int) -> bool:
+        return abs(a - b) <= self.tol
+
+    def classify(self) -> Tuple[bool, List[dict]]:
+        """Call on a GAME_OVER (after on_step). Returns (periodic, earlier events to retract)."""
+        r, lv = self.since_reset, self.since_level
+        known = any(self._match(r, p) or self._match(lv, p) for p in self.periods)
+        matches = [e for e in self.events if self._match(e["r"], r) or self._match(e["l"], lv)]
+        periodic = known or bool(matches)
+        if periodic:
+            for e in matches:
+                self.periods.add(e["r"] if self._match(e["r"], r) else e["l"])
+                e["periodic"] = True
+        retract = [e for e in matches if e["credited"]]
+        return periodic, retract
+
+    def record(self, periodic: bool, credited: List[str]) -> dict:
+        ev = {"r": self.since_reset, "l": self.since_level, "credited": list(credited), "periodic": periodic}
+        self.events.append(ev)
+        return ev
+
+
+def retract_lethal(mem: ClaimMemory, events: List[dict]) -> List[str]:
+    out = []
+    for e in events:
+        for k in e["credited"]:
+            cl = mem.peek(key=k)
+            if cl and cl.s > 0:
+                cl.s -= 1
+                cl.data["retracted_periodic"] = cl.data.get("retracted_periodic", 0) + 1
+                out.append(k)
+        e["credited"] = []
+    return out
+
+
 # ---------------------------------------------------------------- game loop
 
 
@@ -500,22 +606,33 @@ def play_game(client: Any, game: dict, card_id: str, budget: int, out: Path, log
     mem = ClaimMemory()
     frames = frames or FrameLog(None)
     n_priors = 0
+    prior_rep: Optional[dict] = None
     if priors:
         prow = priors.get(title) or priors.get(gid)
         if prow:
-            n_priors = mem.load_priors(prow.get("confirmed", []) + prow.get("refuted_priors", []), prior_weight)
+            rows, prior_report = prepare_priors(prow, prior_weight)
+            n_priors = mem.load_priors(rows, prior_weight)
+            for r in rows:  # level-up goal claims: confirmed prior at full weight
+                if r.get("_levelup_goal"):
+                    cl = mem.peek(key=r["key"])
+                    cl.s, cl.c = max(prior_weight, 1), 0
+            prior_rep = prior_report
     claims_path = out / "claims" / "{0}.jsonl".format(title)
     claims_path.write_text("")
     summary = {"game_id": gid, "title": title, "tags": game.get("tags"), "best_levels": 0,
                "state": "NOT_PLAYED", "actions": 0, "resets": 0, "claims": 0, "error": None,
-               "warm_start_priors": n_priors, "level_ups": [], "game_overs": []}
+               "warm_start_priors": n_priors, "prior_report": prior_rep, "level_ups": [], "game_overs": []}
 
     def say(msg: str) -> None:
         log("[{0}] {1}".format(title, msg))
 
+    gotr = GameOverTracker()
+    recent: List[str] = []
+    summary["game_overs_periodic"] = 0
     try:
         data = client.cmd("RESET", {"game_id": gid, "card_id": card_id})
         summary["resets"] += 1
+        gotr.on_reset()
         frames.write({"game": title, "event": "reset", "step": 0, "level": int(data.get("levels_completed") or 0),
                       "priors": n_priors})
         guid = data.get("guid")
@@ -539,6 +656,7 @@ def play_game(client: Any, game: dict, card_id: str, budget: int, out: Path, log
                 view = View(data.get("frame"))
                 idle = 0
                 tried.clear()
+                gotr.on_reset()
                 frames.write({"game": title, "event": "reset", "step": steps, "reason": why_reset,
                               "level": int(data.get("levels_completed") or 0), "state": data.get("state")})
                 if data.get("_http") == 400 or data.get("state") == "NOT_PLAYED":
@@ -550,7 +668,12 @@ def play_game(client: Any, game: dict, card_id: str, budget: int, out: Path, log
             before_compact = mem.compact(8)
             snap = mem.snapshot()
             info: Dict[str, Any] = {}
-            name, extra, ekey, color, why = choose(mem, belief, view, avail, tried, rng, info)
+            use_share = (sum(1 for w in recent if w == "use effect") / len(recent)) if recent else 0.0
+            explore = rng.random() < EXPLORE_EPS or (len(recent) >= USE_WINDOW // 2 and use_share > USE_EFFECT_CAP)
+            name, extra, ekey, color, why = choose(mem, belief, view, avail, tried, rng, info, explore)
+            recent.append(why)
+            if len(recent) > USE_WINDOW:
+                recent.pop(0)
             body = {"game_id": gid, "guid": guid}
             body.update(extra)
             nxt = client.cmd(name, body)
@@ -561,7 +684,25 @@ def play_game(client: Any, game: dict, card_id: str, budget: int, out: Path, log
             k = (view.fh, name + json.dumps(extra, sort_keys=True))
             tried[k] = tried.get(k, 0) + 1
             lv1 = int(nxt.get("levels_completed") or 0)
-            notes = update(mem, view, nview, name, ekey, color, lv, lv1, nxt.get("state") or "")
+            gotr.on_step(lv1 > lv)
+            go_info = None
+            lethal_ok, credited, retracted = True, [], []
+            if nxt.get("state") == "GAME_OVER":
+                periodic, to_retract = gotr.classify()
+                lethal_ok = not periodic
+                retracted = retract_lethal(mem, to_retract)
+                go_info = {"periodic": periodic, "since_reset": gotr.since_reset, "since_level": gotr.since_level,
+                           "periods": sorted(gotr.periods), "retracted": retracted}
+                if periodic:
+                    summary["game_overs_periodic"] += 1
+            notes = update(mem, view, nview, name, ekey, color, lv, lv1, nxt.get("state") or "",
+                           lethal_ok=lethal_ok, credited=credited)
+            if go_info is not None:
+                gotr.record(go_info["periodic"], credited)
+                go_info["credited"] = credited
+                if retracted:
+                    notes.append("RETRACT lethal {0} (periodic GAME_OVER every {1})".format(
+                        retracted, sorted(gotr.periods)))
             dsum = diff_summary(diff(view, nview), view, nview)
             frames.write({
                 "game": title, "event": "step", "level": lv, "step": steps,
@@ -572,7 +713,7 @@ def play_game(client: Any, game: dict, card_id: str, budget: int, out: Path, log
                 "action": {"name": name, "extra": extra, "ekey": ekey, "color": color},
                 "outcome": {"state": nxt.get("state"), "lv_before": lv, "lv_after": lv1,
                             "level_up": lv1 > lv, "game_over": nxt.get("state") == "GAME_OVER",
-                            "http400": nxt.get("_http") == 400, "diff": dsum},
+                            "http400": nxt.get("_http") == 400, "diff": dsum, "game_over_info": go_info},
                 "update": mem.delta(snap), "notes": notes,
             })
             say("step={0} ACT {1} {2} ({3}) -> {4} lv={5}".format(steps, name, extra or "", why, nxt.get("state"), lv1))
@@ -593,7 +734,9 @@ def play_game(client: Any, game: dict, card_id: str, budget: int, out: Path, log
             else:
                 idle = 0 if nview.fh not in {t[0] for t in tried} else idle + 1
             if nxt.get("state") == "GAME_OVER":
-                summary["game_overs"].append({"step": steps, "ekey": ekey, "level": lv})
+                summary["game_overs"].append({"step": steps, "ekey": ekey, "level": lv,
+                                              "periodic": go_info["periodic"] if go_info else None,
+                                              "since_reset": go_info["since_reset"] if go_info else None})
             data, view = nxt, nview
         summary["best_levels"] = max(summary["best_levels"], int(data.get("levels_completed") or 0))
         summary["state"] = data.get("state") or summary["state"]
@@ -607,6 +750,31 @@ def play_game(client: Any, game: dict, card_id: str, budget: int, out: Path, log
         title, summary["state"], summary["best_levels"], summary["actions"], summary["resets"],
         summary["claims"], n_priors, summary["error"]), flush=True)
     return summary
+
+
+def prepare_priors(prow: dict, weight: int) -> Tuple[List[dict], dict]:
+    """v2.2 prior policy. Goal claims that caused a level-up are kept as
+    confirmed priors at full weight. Lethal priors that name the same action/
+    color as such a goal are dropped (they came from action-limit GAME_OVERs);
+    other lethal priors are discounted to support<=1, below LETHAL_MIN_SUPPORT,
+    so they cannot penalize until fresh evidence confirms them."""
+    rows = [dict(r) for r in prow.get("confirmed", []) + prow.get("refuted_priors", [])]
+    goal_ekeys = {lu.get("ekey") for lu in prow.get("level_ups", []) if lu.get("ekey")}
+    goal_ekeys |= {r["key"][len("goal:"):] for r in rows if r["kind"] == "goal" and r.get("support", 0) >= 1}
+    out, dropped, discounted, boosted = [], [], [], []
+    for r in rows:
+        if r["kind"] == "lethal":
+            ek = r["key"][len("lethal:"):]
+            if ek in goal_ekeys:
+                dropped.append(r["key"])
+                continue
+            r["support"] = min(int(r.get("support", 0)), 1)
+            discounted.append(r["key"])
+        elif r["kind"] == "goal" and r["key"][len("goal:"):] in goal_ekeys:
+            r["_levelup_goal"] = True
+            boosted.append(r["key"])
+        out.append(r)
+    return out, {"dropped_lethal": dropped, "discounted_lethal": discounted, "boosted_goal": boosted}
 
 
 def claims_final(results: List[dict], meta: dict) -> dict:
@@ -673,6 +841,8 @@ def main() -> None:
         games = [g for g in games if (g.get("title") or "").upper() in want]
     mode = "warm-start" if priors else "cold"
     tags = [AGENT, "pmll", "self-talk", "competition", VERSION, mode]
+    if priors:
+        tags.append("warm-start-sha256:" + prior_sha)
     opaque = {"agent": AGENT, "version": VERSION, "budget_per_game": args.budget, "mode": mode,
               "method": "claim memory self-talk loop; no seeds; no LLM"
                         + ("; WARM START from prior claims_final.json" if priors else ""),
@@ -682,6 +852,13 @@ def main() -> None:
     status, opened = client.req("POST", "/api/scorecard/open", {
         "source_url": SOURCE_URL, "tags": tags, "opaque": opaque, "competition_mode": True,
     })
+    if priors and status in (400, 422):
+        # tag too long or rejected: retry with a short sha tag (full sha stays in opaque)
+        tags[-1] = "warm-start-sha256:" + prior_sha[:16]
+        status, opened = client.req("POST", "/api/scorecard/open", {
+            "source_url": SOURCE_URL, "tags": tags, "opaque": opaque, "competition_mode": True,
+        })
+    print("TAGS", tags, flush=True)
     if status != 200 or not isinstance(opened, dict) or not opened.get("card_id"):
         raise SystemExit("open failed {0} {1}".format(status, opened))
     card_id = opened["card_id"]
