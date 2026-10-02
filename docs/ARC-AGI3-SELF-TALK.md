@@ -42,6 +42,69 @@ the scorecard's per-level count can be one higher because it also counts RESETs)
 
 By tag: click 6/55 levels (score 0.673), keyboard_click 1/93, keyboard 0/29.
 
+## v2.2 and the warm-start runs
+
+| Run | Code | Mode | Score | Levels | Actions | Scorecard |
+|---|---|---|---|---|---|---|
+| v2 cold | 2.0-self-talk | cold | 0.2209 | 7 / 183 | 6315 | [9494fcf1-f20f-4fca-8348-ab5bf63fa543](https://arcprize.org/scorecards/9494fcf1-f20f-4fca-8348-ab5bf63fa543) |
+| warm1 | 2.1-self-talk-frames | **warm-start** | 0.1279 | 4 / 183 | 6319 | [6687986c-b9b5-4adb-ab69-7c845f69c137](https://arcprize.org/scorecards/6687986c-b9b5-4adb-ab69-7c845f69c137) |
+| warm2 | 2.2-self-talk-periodic | **warm-start** | 0.3500 | 4 / 183 | 6320 | [5cc98e8d-6716-4177-b547-7a2eca60f25e](https://arcprize.org/scorecards/5cc98e8d-6716-4177-b547-7a2eca60f25e) |
+
+All three runs: competition mode, all 25 games, 250 actions per game, no seeds, no LLM.
+
+**Disclosure: warm1 and warm2 are NOT cold runs.** Both were warm-started from the v2 cold
+run's rebuilt claims (`docs/arc-agi3-self-talk-v2-claims_final.json`, sha256
+`6d7460f02f057de42403e07879ebccbfaa1825049bf88bcb17ffea4a4edac228`) with `--prior-weight 3`.
+They carry knowledge from earlier plays of the same games. warm1's scorecard is tagged
+`warm-start` and has the sha256 in `opaque`. warm2's is tagged `warm-start` and
+`warm-start-sha256:6d7460f0…ad228` (full hash), and also has it in `opaque`.
+Compare them with each other, not with cold results.
+
+Level-ups (agent step; the scorecard per-level count includes RESETs; baseline is the scorecard's reference action count):
+
+| Game | cold v2 | warm1 (v2.1) | warm2 (v2.2) | warm2 baseline |
+|---|---|---|---|---|
+| LP85 | 1 (click c8, step 24) | 1 (step 15) | 1 (click c8, step 5) | 17 |
+| VC33 | 2 (click c9, steps 95, 132) | 0 | 1 (click c9, step 9) | 7 |
+| R11L | 1 (click c15, step 80) | 1 (step 248) | 1 (click c6, step 25) | 22 |
+| TN36 | 1 (click c9, step 56) | 1 (step 192) | 1 (click c9, step 170) | 32 |
+| LF52 | 1 (click c2, step 59) | 0 | 0 | |
+| M0R0 | 1 (ACTION4, step 108) | 1 (step 122) | 0 | |
+
+Why warm1 lost to cold: GAME_OVERs in VC33, R11L and TN36 come at a fixed action count since
+reset (50, 60 and 61), which looks like a per-life action limit. v2.1 blamed each one on the
+last click, so the priors marked the goal colours as lethal, and the lethal penalty outweighed
+the down-weighted goal prior.
+
+v2.2 changes (`VERSION = "2.2-self-talk-periodic"`):
+
+1. **Periodic game-overs.** `GameOverTracker` counts actions since the last RESET and since the
+   last level-up. A GAME_OVER at the same count as an earlier one is periodic: it is not
+   credited as lethal, and the earlier matching event's lethal credit is retracted. A lethal
+   claim penalizes only at support >= 2 (`LETHAL_MIN_SUPPORT`). Frames carry
+   `outcome.game_over_info`. `replay_lethal_check.py` replays a `frames.jsonl` through the tracker.
+   On warm1's frames, every VC33, R11L and TN36 game-over is periodic (the first is retracted)
+   and no lethal claim penalizes.
+2. **Prior policy** (`prepare_priors`). Lethal priors that name the same click or key as a goal
+   that caused a level-up are dropped. Other lethal priors are capped at support 1. Goal claims
+   that caused a level-up load as confirmed at full weight (`s = prior_weight, c = 0`).
+3. **Exploration floor.** With probability 0.15, or whenever "use effect" is over 60% of the last
+   20 choices, a "use effect" pick is swapped for the least-known, least-tried candidate
+   (`reason: "explore novelty"`). Goal exploitation and navigation are never swapped.
+4. **Tags.** Warm-start runs tag `warm-start-sha256:<sha256>` in addition to `opaque`.
+
+warm2 scores higher than cold because the first levels it reaches cost few actions
+(LP85 in 5 vs a baseline of 17, VC33 in 9 vs 7). It completes **fewer** levels (4 vs 7).
+
+### Known gaps
+
+* **No second levels.** In warm2 every game stalls after level 1. VC33's cold level 2 was not repeated.
+* **LF52 and M0R0 were lost in warm2.** LF52 clicked the goal colour (c2) 87 times without a
+  level-up, so its win depends on position or order rather than colour. M0R0 looks like a navigation
+  game, so a key-level goal claim (ACTION4) does not carry over. Colour-level claims cannot express either.
+* The rebuilt `docs/arc-agi3-self-talk-v2-claims_final.json` was built with the v2.1 "confirmed"
+  rule (lethal at support >= 1). v2.2 needs support >= 2 and drops conflicting lethal priors when loading.
+
 ## Decision / reasoning frames (v2.1)
 
 v2.1 (`VERSION = "2.1-self-talk-frames"`) writes one JSON line per step to
@@ -99,9 +162,15 @@ warm-start score in the same column as cold results.
 ```bash
 python3 lattice/scripts/test_persistence_self_talk.py            # unit + offline cold/warm runs
 python3 lattice/scripts/persistence_self_talk.py --offline --out /tmp/dry
+python3 lattice/scripts/replay_lethal_check.py out/frames.jsonl VC33,R11L,TN36   # v2.2 game-over replay
 ```
 
 `--offline` swaps the API client for a small local toy environment (TOY1 navigation, TOY2 click).
 It needs no network access and no `ARC_API_KEY`, and it never opens a scorecard. On the toy, cold v2.1
 levels up TOY2 at steps 7/8/9 and never solves TOY1. Warm-started from that run, it levels up TOY2 at
 steps 1/2/3 and reaches TOY1 level 1 at step 143.
+
+v2.2 adds TOY3 to the offline environment: click-only, decoys only, and a GAME_OVER every 6 actions
+of a life. In the v2.2 cold toy run 24 of 25 TOY3 game-overs are classed periodic, the first one's
+credit is retracted, and no lethal claim survives. TOY2 is won in 3 actions. Warm-started, TOY1
+levels up at steps 100, 124 and 144; cold v2.2 does not solve TOY1.
