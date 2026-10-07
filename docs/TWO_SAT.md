@@ -1,6 +1,6 @@
 # Linear 2-SAT, beside the general SAT solver
 
-`SAT.py` and `SAT.pyx` are general-width CDCL solvers (two watched literals, first-UIP clause learning, restarts), checked against exhaustive search for n ≤ 10. `SAT.c` / `SAT.h` are a general-width solver whose `sat_solve` runs plain DPLL; clause learning is declared in `SAT.h` but not implemented in `SAT.c`. None of these is a polynomial-time bound; the worst case is exponential. See [`SAT_SOLVERS.md`](SAT_SOLVERS.md).
+`SAT.py`, `SAT.pyx` and `SAT.c` / `SAT.h` are general-width CDCL solvers implementing one algorithm (two watched literals, first-UIP clause learning, restarts), each checked against exhaustive search for n ≤ 10. None of these is a polynomial-time bound; the worst case is exponential. See [`SAT_SOLVERS.md`](SAT_SOLVERS.md).
 
 `two_sat.py` is a different procedure, and only for clauses of width two. Each clause `(a ∨ b)` becomes the implications `(¬a → b)` and `(¬b → a)`. Strongly connected components of that graph decide the formula in time linear in variables plus clauses (Aspvall, Plass, Tarjan, 1979). A variable set true when its component index outranks the component of its negation is a satisfying assignment, unless some variable shares a component with its negation.
 
