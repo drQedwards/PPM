@@ -817,7 +817,7 @@ Skills summary: [`SKILL.md`](./SKILL.md) · full invoke docs: [pmll/SKILL.md](ht
 | `Ppm.c`                 | C-core CLI v0.0.3-dev — integrated single-file build (~500 LOC)  |
 | `Pypm.c`                | PyPM 0.3.x front-door dispatcher; delegates to module sources    |
 | `PMLL.c` / `PMLL.h`     | Associative/semantic silo, peek/peek_semantic, SAT bridge, init_pml=-1                |
-| `SAT.c` / `SAT.h`       | Standalone Boolean SAT solver (plain DPLL). Not wired into dependency resolution yet (road-mapped). `SAT.py` is experimental; see `docs/TWO_SAT.md` |
+| `SAT.c` / `SAT.h`       | Standalone Boolean SAT solver (plain DPLL). Not wired into dependency resolution yet (road-mapped). `SAT.py` / `SAT.pyx`: CDCL solvers; see `docs/SAT_SOLVERS.md` |
 | `Q_promise_lib/`        | Promise/continuation library (`qpromise_*`, `libqpromise.so`; single-threaded drain)  |
 | `skill.ts` / `SKILL.md` | Off-chain CodeworkPayload + Stellar skills entry                 |
 | `pmll-anchor/`          | Soroban commitment contract (source on pmll; may be absent here)                |
