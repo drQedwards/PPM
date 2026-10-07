@@ -42,10 +42,14 @@ RFC 6962 tree over 446 leaves. Leaf hash `SHA256(0x00 || canonical_json(leaf))`,
 ## Verifying
 
 ```bash
-python tools/sat_proof/verify_manifest.py /path/to/manifest-dir
+python tools/sat_proof/verify_manifest.py /path/to/manifest-dir \
+  --expect-root 723cbe658e875821ac2fbb5cd8bfd6937f3a61a1aba7e6665aa6ae5e2c6e6078
 ```
 
-The directory holds `manifest.json`, `instances/*.cnf` and `proofs/*.drat`. The script recomputes the root, re-hashes every instance and proof, checks every witness, and runs drat-trim (from `$DRAT_TRIM`, `PATH`, or `tools/drat-trim/drat-trim` under the manifest directory) on every UNSAT proof.
+The directory holds `manifest.json`, `instances/*.cnf` and `proofs/*.drat`. The script recomputes the root, re-hashes every instance and proof, checks that every witness is a consistent assignment that satisfies its formula, and runs drat-trim (from `$DRAT_TRIM`, `PATH`, or `tools/drat-trim/drat-trim` under the manifest directory) on every UNSAT proof.
+
+- Without `--expect-root`, a match only shows that the manifest agrees with itself; anyone who edits an instance can also edit the stored root. Compare against the root published here (or anchored later).
+- Without drat-trim the script fails. `--hash-only` accepts a partial check (UNSAT proofs hash-checked, not verified) and says so in its result line.
 
 The manifest, instances and proofs currently live on the build box (`/workspace/sat-proof/`). They are not yet published, so the root cannot be re-derived from this repository alone.
 
