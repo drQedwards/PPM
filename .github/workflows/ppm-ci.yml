@@ -65,7 +65,7 @@ jobs:
           pip install pmll-memory-mcp==0.1.0
           # install from local checkout
           pip install -e .
-          pip install pytest mcp
+          pip install pytest mcp cython setuptools
 
       - name: Build Q_promise_lib
         shell: bash
