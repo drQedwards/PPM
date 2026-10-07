@@ -1,7 +1,20 @@
 #!/usr/bin/env python3
 """
-Production-ready SAT Solver implementation in Python
-Features: DPLL, CDCL, VSIDS, watched literals, visualization
+Experimental SAT solver sketch in Python (not production-ready).
+
+Intended features: DPLL, CDCL, VSIDS, watched literals, visualization.
+
+Known issues (see docs/TWO_SAT.md):
+- SATSolver.solve() raises AttributeError on its first call: `_propagate`
+  calls `self._propagate_queue.popleft()`, but `_propagate_queue` is a method,
+  not a deque, and `_assign` never enqueues literals.
+- `_analyze_conflict` is a stub, not 1-UIP. The clause it would learn (the
+  negated earlier-level literals of the conflict clause) is not, in general,
+  implied by the formula, so enabling it after fixing the queue could give
+  wrong answers.
+
+For checked deciders use two_sat.py (2-SAT, linear time), three_sat.py
+(3-SAT, exact DPLL, exponential in the worst case) or xor_sat.py (XOR-SAT).
 """
 
 import time
