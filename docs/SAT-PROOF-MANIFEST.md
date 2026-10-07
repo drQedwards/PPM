@@ -51,11 +51,11 @@ The manifest, instances and proofs currently live on the build box (`/workspace/
 
 ## Anchoring: pending, unsigned
 
-Nothing has been anchored. The mainnet `pmll-anchor` contract `CCF3B64AXLS4OLY5RN4H4K2CFZAYNZCJQY5MKCKCVAKMZNH7G7F7XUUF` stores SHA-256 commitments through `store(id: BytesN<32>, commitment: BytesN<32>)`, which needs the admin's signature. The drafted call is:
+Nothing has been anchored. The mainnet `pmll-anchor` contract `CCF3B64AXLS4OLY5RN4H4K2CFZAYNZCJQY5MKCKCVAKMZNH7G7F7XUUF` stores SHA-256 commitments through `store(id: BytesN<32>, commitment: BytesN<32>)`, which needs the admin's signature. The drafted call below is unsigned and has not been submitted; it needs Dr. Q's admin signature (`<DR_Q_ADMIN>`). `pubnet` is the Stellar CLI network name for mainnet, as in `SKILL.md`.
 
 ```bash
 stellar contract invoke --id CCF3B64AXLS4OLY5RN4H4K2CFZAYNZCJQY5MKCKCVAKMZNH7G7F7XUUF \
-  --source-account <ADMIN> --network mainnet -- \
+  --source-account <DR_Q_ADMIN> --network pubnet -- \
   store --id d9d20fc50041f65a6beeeeca27348ebaf0e6044b849e009a611601202ced2425 \
         --commitment 723cbe658e875821ac2fbb5cd8bfd6937f3a61a1aba7e6665aa6ae5e2c6e6078
 ```
