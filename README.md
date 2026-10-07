@@ -103,7 +103,7 @@ Build / test / API: **[`Q_promise_lib/README.md`](Q_promise_lib/README.md)** (au
 | `ppm sign` / `ppm verify`  | Sign artifacts (Ed25519) and verify cryptographic receipts                   |
 | `ppm sbom`                 | Generate a Software Bill of Materials (SBOM)                                 |
 
-*Road-mapped:* SAT dependency solver (the standalone `SAT.c` DPLL solver exists but is not yet used for resolution), parallel wheel cache, workspaces with single lockfile,
+*Road-mapped:* SAT dependency solver (the standalone `SAT.c` CDCL solver exists but is not yet used for resolution), parallel wheel cache, workspaces with single lockfile,
 WASM wheel resolution, Conda & Poetry import plugins.
 
 ---
@@ -817,7 +817,7 @@ Skills summary: [`SKILL.md`](./SKILL.md) · full invoke docs: [pmll/SKILL.md](ht
 | `Ppm.c`                 | C-core CLI v0.0.3-dev — integrated single-file build (~500 LOC)  |
 | `Pypm.c`                | PyPM 0.3.x front-door dispatcher; delegates to module sources    |
 | `PMLL.c` / `PMLL.h`     | Associative/semantic silo, peek/peek_semantic, SAT bridge, init_pml=-1                |
-| `SAT.c` / `SAT.h`       | Standalone Boolean SAT solver (plain DPLL). Not wired into dependency resolution yet (road-mapped). `SAT.py` / `SAT.pyx`: CDCL solvers; see `docs/SAT_SOLVERS.md` |
+| `SAT.c` / `SAT.h`       | Standalone Boolean SAT solver (CDCL with first-UIP learning, optional DRUP proofs; tested by `tests/test_sat_c.py`). Not wired into dependency resolution yet (road-mapped). `SAT.py` / `SAT.pyx`: the same algorithm in Python and Cython; see `docs/SAT_SOLVERS.md` |
 | `Q_promise_lib/`        | Promise/continuation library (`qpromise_*`, `libqpromise.so`; single-threaded drain)  |
 | `skill.ts` / `SKILL.md` | Off-chain CodeworkPayload + Stellar skills entry                 |
 | `pmll-anchor/`          | Soroban commitment contract (source on pmll; may be absent here)                |

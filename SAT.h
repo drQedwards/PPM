@@ -11,6 +11,17 @@
 extern "C" {
 #endif
 
+/*
+ * CDCL SAT solver (SAT.c), same algorithm as SAT.py and SAT.pyx:
+ * two watched literals, first-UIP clause learning (every learned clause is
+ * implied by the formula), activity-based branching, phase saving, restarts
+ * with a growing interval, and a model check before SAT is returned.
+ * With config.use_clause_learning == false it runs plain DPLL with
+ * chronological backtracking. config.max_conflicts == 0 means no limit;
+ * otherwise sat_solve returns SAT_ERROR_TIMEOUT after that many conflicts.
+ * SAT is NP-complete: the worst case is exponential.
+ */
+
 /* Maximum limits for static allocation options */
 #define MAX_VARS 1000
 #define MAX_CLAUSES 10000
@@ -90,6 +101,9 @@ typedef struct {
     bool enable_visualization; /* Enable PPM visualization output */
 } SATConfig;
 
+/* Internal search state (clause store, watches, reasons); defined in SAT.c */
+typedef struct SATInternal SATInternal;
+
 /* Main solver structure */
 typedef struct {
     CNF* cnf;
@@ -101,6 +115,7 @@ typedef struct {
     WatchList* watches;
     SATConfig config;
     void* user_data;       /* User-defined data pointer */
+    SATInternal* internal; /* Owned by the solver; do not touch */
 } SATSolver;
 
 /* CNF Management Functions */
@@ -123,6 +138,8 @@ void sat_solver_destroy(SATSolver* solver);
 SATResult sat_solve(SATSolver* solver);
 SATResult sat_solve_with_assumptions(SATSolver* solver, int* assumptions, size_t num_assumptions);
 bool sat_is_satisfiable(CNF* cnf, int* assignment);
+/* Write a DRUP proof (learned clauses, then "0" on UNSAT) to proof; NULL turns it off */
+void sat_set_proof_output(SATSolver* solver, FILE* proof);
 
 /* Core DPLL Functions */
 bool dpll(SATSolver* solver, size_t var_idx);
