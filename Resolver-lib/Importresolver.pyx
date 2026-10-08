@@ -3,10 +3,10 @@
 
 from libc.stddef cimport size_t
 from libc.stdlib cimport malloc, free
-from libc.string cimport strcpy, strlen
+from libc.string cimport memcpy
 cimport cython
 
-cdef extern from "importresolver.h":
+cdef extern from "Importresolver.h" nogil:
     int ir_resolve_with_helper(
         const char *root,
         const char **reqs, size_t n_reqs,
@@ -23,36 +23,30 @@ cdef extern from "importresolver.h":
         int *out_mismatch_count
     )
 
-@cython.cfunc
-cdef char* _dup(bytes b) nogil:
+cdef char* _dup(bytes b):
+    """malloc'd NUL-terminated copy of b (caller frees); NULL on OOM."""
     cdef size_t n = len(b)
     cdef char* p = <char*> malloc(n + 1)
     if p == NULL:
         return NULL
-    # Copy bytes and NUL-terminate
-    for size_t i in range(n):
-        p[i] = <char> b[i]
+    if n:
+        memcpy(p, <const char*> b, n)
     p[n] = 0
     return p
 
-@cython.cfunc
-cdef const char** _dup_argv(list items) nogil:
-    cdef Py_ssize_t i, n = len(items)
-    cdef const char **argv = <const char **> malloc(n * sizeof(const char *))
+cdef const char** _dup_argv(list items):
+    """malloc'd argv of UTF-8 copies (str or bytes items); NULL on OOM."""
+    cdef Py_ssize_t i, j, n = len(items)
+    cdef bytes b
+    cdef const char **argv = <const char **> malloc((n if n > 0 else 1) * sizeof(const char *))
     if argv == NULL:
         return NULL
     for i in range(n):
-        # we accept str or bytes; encode to UTF-8 bytes
-        with gil:
-            v = items[i]
-            if isinstance(v, bytes):
-                b = <bytes> v
-            else:
-                b = (<str> v).encode('utf-8')
+        v = items[i]
+        b = v if isinstance(v, bytes) else (<str> v).encode('utf-8')
         argv[i] = _dup(b)
         if argv[i] == NULL:
-            # free partial
-            for Py_ssize_t j in range(i):
+            for j in range(i):
                 free(<void*> argv[j])
             free(argv)
             return NULL
@@ -99,9 +93,7 @@ def resolve(root: str,
         if c_helper: free(c_helper)
         raise MemoryError()
 
-    cdef const char **c_reqs = NULL
-    with nogil:
-        c_reqs = _dup_argv(requirements)
+    cdef const char **c_reqs = _dup_argv(requirements)
     if c_reqs == NULL:
         free(c_root); free(c_index); 
         if c_extra: free(c_extra)
@@ -109,8 +101,9 @@ def resolve(root: str,
         raise MemoryError()
 
     cdef int rc
+    cdef size_t n_reqs = <size_t> len(requirements)
     with nogil:
-        rc = ir_resolve_with_helper(c_root, c_reqs, <size_t> len(requirements),
+        rc = ir_resolve_with_helper(c_root, c_reqs, n_reqs,
                                     c_index,
                                     c_extra if extra_index_url is not None else NULL,
                                     c_py,

@@ -4,7 +4,7 @@
  *  Build this into the same shared object you load as a PPM plugin.
  */
 
-#include "pandas.h"
+#include "Pandas.h"
 
 #include <dlfcn.h>
 #include <stdio.h>

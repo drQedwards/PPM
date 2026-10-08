@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "panda_py.h"
+#include <string.h>
+#include "Panda_py.h"
 
 /* mandatory symbol — PPM looks this up with dlsym */
 int pypm_plugin_main(int argc, char **argv) {

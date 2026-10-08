@@ -1,4 +1,4 @@
- Transformer.c
+// Transformer.c
 // C implementation that embeds Python and calls into Transformer.py
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
