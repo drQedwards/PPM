@@ -1,22 +1,18 @@
 """
-q_promise_bridge.py — Registry for in-flight Q-promise continuations.
+q_promise_bridge.py — In-process registry for in-flight Q-promise work.
 
-Mirrors the ``QMemNode`` singly-linked chain defined in
-``Q_promise_lib/Q_promises.h``::
+A small pure-Python model of the promise lifecycle in Q_promise_lib
+(``qpromise.h``): an entry starts ``"pending"`` and becomes ``"resolved"``
+once ``resolve()`` stores a payload. It does not call the C library, and it
+only models PENDING -> RESOLVED; the C API also has REJECTED / CANCELLED and
+then / catch / finally continuations that run in ``qpromise_drain()``.
 
-    typedef struct QMemNode {
-        long              index;
-        const char       *payload;
-        struct QMemNode  *next;
-    } QMemNode;
+For the real C library use the bindings in ``Q_promise_lib/Q_promises.py``
+(ctypes over ``libqpromise.so``) or ``Q_promise_lib/Q_promises.pyx`` (Cython).
+The older ``QMemNode`` / ``q_mem_create_chain`` / ``q_then`` chain API that
+this module used to describe was removed from Q_promise_lib.
 
-In the C library a chain is traversed via ``q_then(head, cb)``, invoking a
-callback for every node.  Here we model the same lifecycle in pure Python:
-each promise starts as ``"pending"`` (``QMemNode.payload == NULL``) and
-transitions to ``"resolved"`` once ``resolve()`` is called with a payload.
-
-The ``peek_promise()`` method is a non-destructive status check — the
-Python equivalent of walking the chain without modifying it.
+``peek_promise()`` is a non-destructive status check.
 """
 
 from __future__ import annotations
@@ -28,11 +24,11 @@ from typing import Dict, Optional
 
 @dataclass
 class _QPromise:
-    """One promise entry, mirroring a single QMemNode in the chain.
+    """One promise entry (a pending or resolved unit of work).
 
     Fields:
-      - promise_id  → logical identifier (replaces the numeric ``index``)
-      - status      → ``"pending"`` | ``"resolved"``  (NULL vs non-NULL payload)
+      - promise_id  → logical identifier (callers namespace it, e.g. ``"{session}:{key}"``)
+      - status      → ``"pending"`` | ``"resolved"`` (QPROMISE_PENDING / QPROMISE_RESOLVED)
       - payload     → resolved data string, or None while pending
     """
 
@@ -44,9 +40,9 @@ class _QPromise:
 class QPromiseRegistry:
     """In-process registry of Q-promise continuations.
 
-    Provides the same lifecycle as the C ``QMemNode`` chain:
+    Models the pending -> resolved part of the C ``qpromise_t`` lifecycle:
       - ``register()``      — allocate a new pending node
-      - ``resolve()``       — write the payload (analogous to q_then callback)
+      - ``resolve()``       — store the payload (like ``qpromise_resolve``)
       - ``peek_promise()``  — read status without consuming the entry
 
     Multiple sessions share a single registry; the ``promise_id`` is the
@@ -63,14 +59,14 @@ class QPromiseRegistry:
     # ------------------------------------------------------------------
 
     def register(self, promise_id: str) -> None:
-        """Add a new pending promise (allocate a QMemNode with NULL payload)."""
+        """Add a new pending promise (like ``qpromise_create``)."""
         with self._lock:
             self._promises[promise_id] = _QPromise(promise_id=promise_id)
 
     def resolve(self, promise_id: str, payload: str) -> bool:
         """Mark *promise_id* as resolved with *payload*.
 
-        Mirrors the ``QThenCallback`` being invoked for a node.
+        Like ``qpromise_resolve``; there are no continuations to run here.
 
         Returns:
             True if the promise existed and was resolved; False if unknown.

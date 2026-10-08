@@ -27,7 +27,6 @@ Known informational failures at the time this was added:
 | `Ppm-lib/Pypm.c` | needs the external `toml.h` (tomlc99), which is not vendored |
 | `Torch-lib/Torch_plugin.c` | calls `torch_install` and other functions that are never declared |
 | `Panda-lib/Pandas_bridge.pyx` | uses raw CPython API names that it never declares |
-| `Pypm.pyx` | broken PMLL binding, to be repaired separately |
 | `*.cu` | nvcc is not available on the runner, so these are skipped |
 
 When you fix one of these, move it into the matching `REQUIRED_*` list in the same PR.

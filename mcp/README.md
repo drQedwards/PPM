@@ -352,10 +352,10 @@ Add to `.vscode/mcp.json` (or open **MCP: Open User Configuration** from the Com
          │                    │
          ▼                    ▼
    PMLL.c / PMLL.h      Q_promise_lib/
-   (memory_silo_t)       (QMemNode chain)
+   (memory_silo_t)       (qpromise_t)
 ```
 
-The server is **pure TypeScript** — no C compilation is required at runtime.  The KV store (`kv-store.ts`) mirrors the semantics of `PMLL.c::init_silo()` and `update_silo()` in TypeScript, and the promise registry (`q-promise-bridge.ts`) mirrors the `QMemNode` chain from `Q_promise_lib/Q_promises.h`.
+The server is **pure TypeScript** — no C compilation is required at runtime.  The KV store (`kv-store.ts`) mirrors the semantics of `PMLL.c::init_silo()` and `update_silo()` in TypeScript, and the promise registry (`q-promise-bridge.ts`) models the pending → resolved state of `qpromise_t` from `Q_promise_lib/qpromise.h` (it does not call the C library).
 
 The long-term memory graph (`memory-graph.ts`) is adapted from [Context+](https://github.com/ForLoopCodes/contextplus) by [@ForLoopCodes](https://github.com/ForLoopCodes), providing an in-memory property graph with typed nodes, weighted edges, temporal decay scoring (e^(-λt)), and semantic search via stable hashing embeddings. The solution engine (`solution-engine.ts`) bridges both layers, enabling unified context resolution and auto-promotion of frequently accessed short-term entries to the long-term graph.
 
@@ -364,7 +364,7 @@ The long-term memory graph (`memory-graph.ts`) is adapted from [Context+](https:
 | TypeScript module              | Mirrors / Adapted from                        | Key primitives                        |
 |--------------------------------|-----------------------------------------------|---------------------------------------|
 | `kv-store.PMMemoryStore`       | `PMLL.h::memory_silo_t`                       | `init_silo()`, `update_silo()`        |
-| `q-promise-bridge`             | `Q_promises.h::QMemNode`                      | `q_mem_create_chain()`, `q_then()`    |
+| `q-promise-bridge`             | `qpromise.h::qpromise_t` (pending/resolved)   | `qpromise_create()`, `qpromise_resolve()` |
 | `peek.peekContext()`           | Recursive conflict check in PMLL              | `check_conflict()`, `pml_refine()`    |
 | `memory-graph.ts`              | [Context+](https://github.com/ForLoopCodes/contextplus) memory graph | Nodes, edges, decay, traversal |
 | `embeddings.ts`                | [Context+](https://github.com/ForLoopCodes/contextplus) embeddings   | Stable hashing embeds (TF-IDF legacy), cosine similarity |
