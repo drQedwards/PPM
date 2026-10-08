@@ -3,7 +3,7 @@
 
 from libc.stddef cimport size_t
 
-cdef extern from "importresolver.h":
+cdef extern from "Importresolver.h" nogil:
     int ir_resolve_with_helper(
         const char *root,
         const char **reqs, size_t n_reqs,

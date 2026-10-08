@@ -23,7 +23,7 @@ if USE_CUDA:
 
 ext = Extension(
     name="importresolver",
-    sources=["importresolver.pyx"],
+    sources=["Importresolver.pyx"],
     include_dirs=["."],
     libraries=libraries,
     library_dirs=library_dirs,

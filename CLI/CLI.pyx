@@ -1,9 +1,6 @@
 # distutils: language = c
 # cython: boundscheck=False, wraparound=False
 
-from libc.stdlib cimport free, strdup
-from libc.string  cimport strcmp
-
 cdef extern from "CLI.h":
     int ppm_cli_import(const char *pkg_spec, int verbose)
 

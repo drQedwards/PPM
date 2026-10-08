@@ -1,4 +1,4 @@
-#include "numpy-lib.h"
+#include "Numpy.h"
 
 int vector_add_double(const double* a, const double* b, double* out, size_t n) {
     if (!out) return 1;

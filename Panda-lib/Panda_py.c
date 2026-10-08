@@ -1,5 +1,5 @@
 #include <Python.h>
-#include "panda_py.h"
+#include "Panda_py.h"
 
 static int run_py_snippet(const char *code) {
     Py_Initialize();

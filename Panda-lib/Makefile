@@ -4,8 +4,8 @@ CFLAGS  := -O2 -fPIC -I$(PY_INC) -Wall -Wextra
 LDFLAGS := -shared $(PY_LIB)
 TARGET  := panda.so
 
-$(TARGET): panda.c panda_py.c
-	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
+$(TARGET): Panda.c Panda_py.c Panda_py.h
+	$(CC) $(CFLAGS) Panda.c Panda_py.c $(LDFLAGS) -o $@
 
 install: $(TARGET)
 	mkdir -p ~/.pypm/plugins

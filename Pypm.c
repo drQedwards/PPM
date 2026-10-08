@@ -11,7 +11,7 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
-#include "pypm.h"          /* shared interface */
+#include "Pypm.h"          /* shared interface */
 #include "PMLL.h"
 
 /* ---------------------------------------------------------------------------
@@ -31,7 +31,7 @@ int cmd_lock   (int, char **);   /* lock diff / sync */
  * ------------------------------------------------------------------------- */
 static void usage(void)
 {
-    puts("pypm " PYP_VERSION
+    puts("pypm " PYPM_VERSION
          "\nUSAGE: pypm <command> [options]\n"
          "\nCore commands:\n"
          "  doctor                 Diagnose build environment\n"
