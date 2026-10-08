@@ -35,21 +35,31 @@ cdef char* _dup(bytes b):
     return p
 
 cdef const char** _dup_argv(list items):
-    """malloc'd argv of UTF-8 copies (str or bytes items); NULL on OOM."""
+    """malloc'd argv of copies of the bytes in items (caller frees); NULL on OOM.
+
+    On any failure (OOM or a non-bytes item) everything allocated here is freed
+    before returning NULL / re-raising."""
     cdef Py_ssize_t i, j, n = len(items)
-    cdef bytes b
     cdef const char **argv = <const char **> malloc((n if n > 0 else 1) * sizeof(const char *))
     if argv == NULL:
         return NULL
-    for i in range(n):
-        v = items[i]
-        b = v if isinstance(v, bytes) else (<str> v).encode('utf-8')
-        argv[i] = _dup(b)
-        if argv[i] == NULL:
-            for j in range(i):
-                free(<void*> argv[j])
-            free(argv)
-            return NULL
+    i = 0
+    try:
+        while i < n:
+            argv[i] = _dup(<bytes?> items[i])
+            if argv[i] == NULL:
+                break
+            i += 1
+    except BaseException:
+        for j in range(i):
+            free(<void*> argv[j])
+        free(argv)
+        raise
+    if i < n:
+        for j in range(i):
+            free(<void*> argv[j])
+        free(argv)
+        return NULL
     return argv
 
 @cython.boundscheck(False)
@@ -78,6 +88,11 @@ def resolve(root: str,
     cdef bytes bextra = extra_index_url.encode("utf-8") if extra_index_url is not None else b""
     cdef bytes bpy = python_exec.encode("utf-8")
     cdef bytes bhelper = helper_path.encode("utf-8")
+    # Stable snapshot, encoded before any C allocation: an encoding error raises
+    # here with nothing to free, and the count used for the call and for cleanup
+    # cannot change while the C call runs without the GIL.
+    cdef list breqs = [v if isinstance(v, bytes) else v.encode("utf-8") for v in requirements]
+    cdef size_t n_reqs = <size_t> len(breqs)
 
     cdef char *c_root = _dup(broot)
     cdef char *c_index = _dup(bindex)
@@ -93,25 +108,29 @@ def resolve(root: str,
         if c_helper: free(c_helper)
         raise MemoryError()
 
-    cdef const char **c_reqs = _dup_argv(requirements)
+    cdef const char **c_reqs = NULL
+    try:
+        c_reqs = _dup_argv(breqs)
+    finally:
+        if c_reqs == NULL:
+            free(c_root); free(c_index)
+            if c_extra: free(c_extra)
+            free(c_py); free(c_helper)
     if c_reqs == NULL:
-        free(c_root); free(c_index); 
-        if c_extra: free(c_extra)
-        free(c_py); free(c_helper)
         raise MemoryError()
 
     cdef int rc
-    cdef size_t n_reqs = <size_t> len(requirements)
+    cdef size_t k
     with nogil:
         rc = ir_resolve_with_helper(c_root, c_reqs, n_reqs,
                                     c_index,
-                                    c_extra if extra_index_url is not None else NULL,
+                                    c_extra,  # NULL when extra_index_url is None
                                     c_py,
                                     c_helper)
 
     # cleanup
-    for i in range(len(requirements)):
-        free(<void*> c_reqs[i])
+    for k in range(n_reqs):
+        free(<void*> c_reqs[k])
     free(c_reqs)
     free(c_root); free(c_index); 
     if c_extra: free(c_extra)

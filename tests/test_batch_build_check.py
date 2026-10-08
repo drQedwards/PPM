@@ -31,3 +31,16 @@ def test_required_makefiles_exist():
 
 def test_no_unit_is_both_required_kinds():
     assert not set(bbc.REQUIRED_C) & set(bbc.REQUIRED_CXX)
+
+
+def test_failed_command_keeps_a_diagnostic(tmp_path):
+    import sys
+    r = bbc._run([sys.executable, "-c", "print('make: *** [panda.so] boom'); raise SystemExit(3)"], tmp_path)
+    assert r["ok"] is False and r["rc"] == 3
+    assert r["first_errors"] and "boom" in r["first_errors"][-1]
+
+
+def test_tracked_files_are_nul_split():
+    files = bbc._tracked((".py",))
+    assert "tools/ci/batch_build_check.py" in files
+    assert all((ROOT / f).is_file() for f in files)

@@ -79,6 +79,8 @@ def _run(cmd: List[str], cwd: Path, timeout: int = 300) -> Dict[str, object]:
     lines = out.splitlines()
     errs = [ln.replace(str(ROOT) + "/", "") for ln in lines if ERR_RE.search(ln)]
     errs.sort(key=lambda ln: 0 if re.search(r"\.pyx:\d+:\d+: ", ln) else 1)  # Cython: real location first
+    if rc != 0 and not errs:  # e.g. a failing make recipe or self-test: keep its last output lines
+        errs = [ln.replace(str(ROOT) + "/", "") for ln in lines if ln.strip()][-3:] or [f"exit code {rc}"]
     return {"ok": rc == 0, "rc": rc, "warnings": sum(1 for ln in lines if WARN_RE.search(ln)),
             "first_errors": errs[:3]}
 
@@ -93,8 +95,8 @@ def _numpy_include() -> Optional[str]:
 
 def _tracked(exts) -> List[str]:
     try:
-        out = subprocess.run(["git", "ls-files"], cwd=str(ROOT), capture_output=True, text=True, check=True).stdout
-        files = out.split()
+        out = subprocess.run(["git", "ls-files", "-z"], cwd=str(ROOT), capture_output=True, text=True, check=True).stdout
+        files = [f for f in out.split("\0") if f]
     except Exception:
         files = [str(p.relative_to(ROOT)) for p in ROOT.rglob("*") if p.is_file()]
     return sorted(f for f in files if f.endswith(exts) and not SKIP_DIRS.search(f))
