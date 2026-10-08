@@ -302,6 +302,31 @@ def _get_neighbor_id(edge: MemoryEdge, from_id: str) -> str:
     return edge.target if edge.source == from_id else edge.source
 
 
+def find_node_by_label(
+    session_id: str,
+    label: str,
+    node_type: Optional[NodeType] = None,
+) -> Optional[MemoryNode]:
+    """Exact (case-sensitive) label lookup, optionally restricted to a type.
+
+    When several nodes share the label (different types), the most recently
+    accessed one wins. A hit updates ``last_accessed`` / ``access_count``.
+    """
+    with _lock:
+        graph = _get_graph(session_id)
+        matches = [
+            n for n in graph.nodes.values()
+            if n.label == label and (node_type is None or n.type == node_type)
+        ]
+        if not matches:
+            return None
+        node = max(matches, key=lambda n: n.last_accessed)
+        node.last_accessed = time.time()
+        node.access_count += 1
+        _persist_node(session_id, node)
+        return node
+
+
 def upsert_node(
     session_id: str,
     node_type: NodeType,

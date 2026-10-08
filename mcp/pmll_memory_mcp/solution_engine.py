@@ -24,6 +24,7 @@ from typing import Any, Dict, Optional
 
 from .kv_store import PMMemoryStore
 from .memory_graph import (
+    find_node_by_label,
     upsert_node,
     search_graph,
     get_graph_stats,
@@ -35,33 +36,57 @@ from .memory_graph import (
 # ---------------------------------------------------------------------------
 PROMOTION_THRESHOLD = 3
 
+# Semantic fallback in resolve_context must reach this cosine score (0..1).
+# Unrelated keys scored about 0.3-0.35 against small graphs in testing, so a
+# lower bound of 0.5 turns those into misses. Exact label hits score 1.0.
+MIN_SEMANTIC_SCORE = 0.5
+
 
 def resolve_context(
     session_id: str,
     key: str,
     store: PMMemoryStore,
+    min_score: Optional[float] = None,
 ) -> Dict[str, Any]:
     """Resolve context from both short-term and long-term memory layers.
 
+    Order:
+      1. Short-term KV exact key (``score`` 1.0, ``match`` "exact").
+      2. Long-term graph node whose label equals ``key`` exactly
+         (``score`` 1.0, ``match`` "exact").
+      3. Long-term semantic search, accepted only when the top cosine score
+         is at least ``min_score`` (default ``MIN_SEMANTIC_SCORE``);
+         ``match`` is "semantic".
+    Anything else is a miss, so a key that was never stored does not come
+    back as an unrelated node.
+
     Returns:
-        ``{"source": "short_term"|"long_term"|"miss", "value": str|None, "score": float}``
+        ``{"source": "short_term"|"long_term"|"miss", "value": str|None,
+        "score": float, "match": "exact"|"semantic"|None, "node_id": str|None}``
     """
+    threshold = MIN_SEMANTIC_SCORE if min_score is None else float(min_score)
+
     # Layer 1: Short-term KV cache
     hit, value, _index = store.peek(key)
     if hit and value is not None:
-        return {"source": "short_term", "value": value, "score": 1.0}
+        return {"source": "short_term", "value": value, "score": 1.0, "match": "exact", "node_id": None}
 
-    # Layer 2: Long-term memory graph (semantic search)
+    # Layer 2: Long-term graph, exact label
+    node = find_node_by_label(session_id, key)
+    if node is not None:
+        return {"source": "long_term", "value": node.content, "score": 1.0, "match": "exact",
+                "node_id": node.id}
+
+    # Layer 3: Long-term graph, semantic search above the threshold
     graph_result = search_graph(session_id, key, max_depth=1, top_k=1)
     if graph_result.direct:
         top = graph_result.direct[0]
-        return {
-            "source": "long_term",
-            "value": top.node.content,
-            "score": top.relevance_score / 100.0,
-        }
+        score = top.relevance_score / 100.0
+        if score >= threshold:
+            return {"source": "long_term", "value": top.node.content, "score": score,
+                    "match": "semantic", "node_id": top.node.id}
 
-    return {"source": "miss", "value": None, "score": 0.0}
+    return {"source": "miss", "value": None, "score": 0.0, "match": None, "node_id": None}
 
 
 def promote_to_long_term(

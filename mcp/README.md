@@ -192,7 +192,7 @@ These tools are adapted from [Context+](https://github.com/ForLoopCodes/contextp
 
 | Tool                   | Input                                             | Output                                                 | Description                                                           |
 |------------------------|---------------------------------------------------|--------------------------------------------------------|-----------------------------------------------------------------------|
-| `resolve_context`      | `session_id`, `key`                               | `{source, value, score}`                               | Unified context lookup: short-term KV → long-term graph → miss        |
+| `resolve_context`      | `session_id`, `key`, `min_score?`                 | `{source, value, score, match, nodeId}` (Python: `node_id`) | Unified context lookup: short-term KV → exact graph label → semantic graph (score ≥ `min_score`, default 0.5) → miss |
 | `promote_to_long_term` | `session_id`, `key`, `value`, `node_type?`, `metadata?` | `{promoted, nodeId}`                              | Promote a short-term KV entry to the long-term memory graph           |
 | `memory_status`        | `session_id`                                      | `{shortTerm, longTerm, promotionThreshold}`            | Unified view of short-term KV and long-term graph memory status       |
 

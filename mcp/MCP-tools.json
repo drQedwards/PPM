@@ -175,12 +175,13 @@
     },
     {
       "name": "resolve_context",
-      "description": "Unified context lookup: short-term KV -> long-term graph -> miss. Returns source and score.",
+      "description": "Unified context lookup: short-term KV -> exact graph label -> semantic graph (score >= min_score, default 0.5) -> miss. Returns source, score and match.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "session_id": { "type": "string" },
-          "key": { "type": "string" }
+          "key": { "type": "string" },
+          "min_score": { "type": "number", "minimum": 0, "maximum": 1 }
         },
         "required": ["session_id", "key"]
       }
