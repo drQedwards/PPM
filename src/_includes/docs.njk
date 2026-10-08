@@ -60,7 +60,7 @@
           {% if item.section == section %}
             {% set itemPath = "/docs/" + item.slug + "/" %}
             {% set itemUrl = itemPath | url %}
-            <a href="{{ itemUrl }}"{% if page.url == itemUrl %} aria-current="page"{% endif %}>{{ item.title }}</a>
+            <a href="{{ itemUrl }}"{% if page.url == itemPath %} aria-current="page"{% endif %}>{{ item.title }}</a>
           {% endif %}
         {% endfor %}
       {% endfor %}

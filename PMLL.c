@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
+#include <limits.h>
 #include "PMLL.h"
 
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
@@ -371,6 +372,17 @@ int sat_bridge_assignment_meanings(pml_t *pml)
 
 /* ─── conflict / refine / loop ───────────────────────────────────────────── */
 
+/* Variable index of a literal, or -1 when the literal is invalid: zero,
+ * INT_MIN (abs() is undefined there) or |lit| > num_vars. Invalid literals
+ * are ignored: they never satisfy a clause and are never assigned. */
+static int lit_var(int lit, int num_vars)
+{
+    int v;
+    if (lit == 0 || lit == INT_MIN) return -1;
+    v = (lit < 0 ? -lit : lit) - 1;
+    return v < num_vars ? v : -1;
+}
+
 int check_conflict(clause_t *clauses, int *assignment, int num_clauses, int num_vars)
 {
     for (int i = 0; i < num_clauses; i++) {
@@ -378,8 +390,8 @@ int check_conflict(clause_t *clauses, int *assignment, int num_clauses, int num_
         int undecided = 0;
         for (int j = 0; j < clauses[i].length; j++) {
             int lit = clauses[i].literals[j];
-            int var = abs(lit) - 1;
-            if (var >= num_vars) continue;
+            int var = lit_var(lit, num_vars);
+            if (var < 0) continue;
             /* -1 = unassigned: not falsified; clause may still be satisfiable */
             if (assignment[var] == -1) { undecided = 1; continue; }
             if (assignment[var] == (lit > 0)) { satisfied = 1; break; }
@@ -390,74 +402,125 @@ int check_conflict(clause_t *clauses, int *assignment, int num_clauses, int num_
     return 0;
 }
 
+/*
+ * Unit propagation to a fixed point. Every variable it assigns is pushed on
+ * trail[*top]. Returns 1 on a conflict (some clause has all literals false),
+ * else 0.
+ */
+static int pml_propagate(pml_t *p, int *trail, int *top)
+{
+    int changed = 1;
+    while (changed) {
+        changed = 0;
+        for (int i = 0; i < p->num_clauses; i++) {
+            clause_t *c = &p->clauses[i];
+            int satisfied = 0, free_count = 0, free_lit = 0;
+            for (int j = 0; j < c->length; j++) {
+                int lit = c->literals[j];
+                int var = lit_var(lit, p->num_vars);
+                if (var < 0) continue;
+                if (p->assignment[var] == -1) {
+                    if (free_count == 0 || free_lit != lit) {
+                        free_count++;
+                        free_lit = lit;
+                    }
+                } else if (p->assignment[var] == (lit > 0)) {
+                    satisfied = 1;
+                    break;
+                }
+            }
+            if (satisfied) continue;
+            if (free_count == 0) return 1;
+            if (free_count == 1) {
+                int var = lit_var(free_lit, p->num_vars);
+                p->assignment[var] = free_lit > 0 ? 1 : 0;
+                trail[(*top)++] = var;
+                changed = 1;
+            }
+        }
+    }
+    return 0;
+}
+
+/*
+ * Complete DPLL search: unit propagation, then branch on the lowest
+ * unassigned variable (0 first, then 1), undoing assignments on backtrack.
+ * Each branch costs one unit of *budget. Returns PML_SAT, PML_UNSAT, or
+ * PML_UNRESOLVED when the budget runs out. On anything other than PML_SAT
+ * the assignment is restored to what it was on entry. Worst-case running
+ * time is exponential in num_vars.
+ */
+static int pml_dpll(pml_t *p, int *trail, int top, long *budget)
+{
+    int base = top;
+    int var = -1;
+    int result = PML_UNSAT;
+
+    if (pml_propagate(p, trail, &top)) goto undo;
+    for (int i = 0; i < p->num_vars; i++) {
+        if (p->assignment[i] == -1) { var = i; break; }
+    }
+    if (var < 0) {
+        if (!check_conflict(p->clauses, p->assignment, p->num_clauses, p->num_vars))
+            return PML_SAT;
+        goto undo;
+    }
+    for (int value = 0; value <= 1; value++) {
+        int r;
+        if (*budget <= 0) { result = PML_UNRESOLVED; goto undo; }
+        (*budget)--;
+        p->assignment[var] = value;
+        trail[top] = var;
+        r = pml_dpll(p, trail, top + 1, budget);
+        if (r == PML_SAT) return PML_SAT;
+        p->assignment[var] = -1;
+        if (r == PML_UNRESOLVED) { result = PML_UNRESOLVED; goto undo; }
+    }
+undo:
+    while (top > base) p->assignment[trail[--top]] = -1;
+    return result;
+}
+
+/*
+ * Run the search once from the current partial assignment and record the
+ * outcome in pml_ptr->flag: PML_SAT only after the complete assignment has
+ * passed check_conflict, PML_UNSAT when the search space is exhausted, and
+ * PML_UNRESOLVED when the branch budget runs out. recursion_level is kept
+ * for API compatibility; the budget allows a complete search for up to 21
+ * variables and is capped at 2^22 branches above that.
+ */
 void pml_refine(pml_t *pml_ptr, int recursion_level)
 {
-    int n = pml_ptr->num_vars;
-    clause_t *clauses = pml_ptr->clauses;
-    int *assignment = pml_ptr->assignment;
-    memory_silo_t *silo = pml_ptr->silo;
-
-    /* Unit Propagation */
-    for (int i = 0; i < pml_ptr->num_clauses; i++) {
-        if (clauses[i].length == 1 && recursion_level == 0) {
-            int lit = clauses[i].literals[0];
-            int var = abs(lit) - 1;
-            if (var < n && assignment[var] == -1) {
-                assignment[var] = (lit > 0) ? 1 : 0;
-                update_silo(silo, var, assignment[var], 0);
-            }
-        }
-    }
-
-    int unassigned = -1;
-    for (int i = 0; i < n; i++) {
-        if (assignment[i] == -1) {
-            unassigned = i;
-            break;
-        }
-    }
-    if (unassigned == -1) {
-        /* All variables assigned — set solved flag (distinct from assignment values) */
-        pml_ptr->flag = 1;
-        sat_bridge_assignment_meanings(pml_ptr);
+    int n, *trail, result;
+    long budget;
+    (void)recursion_level;
+    if (!pml_ptr) return;
+    n = pml_ptr->num_vars;
+    budget = 1L << (n < 22 ? (n > 0 ? n + 1 : 1) : 22);
+    trail = (int *)malloc((size_t)(n > 0 ? n : 1) * sizeof(int));
+    if (!trail) {
+        pml_ptr->flag = PML_UNRESOLVED;
         return;
     }
-
-    assignment[unassigned] = 0;
-    if (check_conflict(clauses, assignment, pml_ptr->num_clauses, n)) {
-        assignment[unassigned] = 1;
-        if (check_conflict(clauses, assignment, pml_ptr->num_clauses, n)) {
-            assignment[unassigned] = -1;
-            update_silo(silo, unassigned, -1, 0);
-            if (recursion_level < max_prop_depth(n)) {
-                pml_refine(pml_ptr, recursion_level + 1); /* Ouroboros recursion */
-            }
-            return;
-        }
+    result = pml_dpll(pml_ptr, trail, 0, &budget);
+    free(trail);
+    pml_ptr->flag = result;
+    if (result == PML_SAT) {
+        for (int i = 0; i < n; i++)
+            update_silo(pml_ptr->silo, i, pml_ptr->assignment[i], 0);
+        sat_bridge_assignment_meanings(pml_ptr);
     }
-    update_silo(silo, unassigned, assignment[unassigned], 0);
 }
 
 void pml_logic_loop(pml_t *pml_ptr, int max_depth)
 {
-    int max_steps = pml_ptr->num_vars * pml_ptr->num_vars +
-                    2 * pml_ptr->num_vars * (int)log2(pml_ptr->num_vars > 1 ? pml_ptr->num_vars : 2) +
-                    pml_ptr->num_vars; /* phi(n) */
-    int steps = 0;
-
-    while (steps < max_steps) {
-        if (pml_ptr->flag == 1) break;
-        pml_refine(pml_ptr, 0);
-        steps++;
-        if (max_steps >= 10 && steps % (max_steps / 10) == 0 && max_depth > 0) {
-            pml_logic_loop(pml_ptr, max_depth - 1);
-        }
-    }
-
-    if (steps >= max_steps && pml_ptr->flag != 1) {
-        printf("Max steps reached, possible unsatisfiable.\n");
-        pml_ptr->flag = 1;
-    }
+    (void)max_depth;
+    if (!pml_ptr || pml_ptr->flag != PML_UNRESOLVED) return;
+    pml_refine(pml_ptr, 0);
+    if (pml_ptr->flag == PML_UNSAT)
+        printf("Unsatisfiable: the search space is exhausted.\n");
+    else if (pml_ptr->flag == PML_UNRESOLVED)
+        printf("Search budget exhausted: result unknown (not marked solved).\n");
 }
 
 /* PPM output: grayscale image of assignments (255=true, 0=false, 128=unassigned) */
@@ -498,7 +561,7 @@ pml_t *init_pml(int num_vars, int num_clauses, clause_t *clauses)
         pml->assignment[i] = -1; /* unassigned — never sticky 0/1 from calloc */
     /* Tree covers vars; extra slots for 3SAT clause/literal associative strings. */
     pml->silo = init_silo(num_vars + num_clauses + 16);
-    pml->flag = 0; /* not solved; do not conflate with assignment truth */
+    pml->flag = PML_UNRESOLVED; /* not solved; do not conflate with assignment truth */
     if (!pml->silo) {
         free(pml->assignment);
         free(pml);
@@ -602,7 +665,8 @@ int main(void)
         else if (pml->assignment[i] == 0) printf("x%d=0 ", i + 1);
         else printf("x%d=? ", i + 1);
     }
-    printf("\nflag=%d\n", pml->flag);
+    printf("\nflag=%d (%s)\n", pml->flag,
+           pml->flag == PML_SAT ? "SAT" : pml->flag == PML_UNSAT ? "UNSAT" : "unresolved");
     output_to_ppm(pml, "solution.ppm");
 
     free_pml(pml);

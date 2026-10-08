@@ -482,3 +482,76 @@ describe("executeGraphQL", () => {
     expect(body.variables).toEqual({});
   });
 });
+
+// ---------------------------------------------------------------------------
+// Private-network guard (SSRF) — review finding on the public HTTP endpoint
+// ---------------------------------------------------------------------------
+
+import {
+  assertPublicEndpoint,
+  isNonPublicAddress,
+  setGraphQLPrivateNetworkGuard,
+} from "../src/graphql.js";
+
+describe("isNonPublicAddress", () => {
+  it.each([
+    "127.0.0.1", "10.1.2.3", "172.16.0.1", "192.168.1.1", "169.254.169.254",
+    "100.64.0.1", "0.0.0.0", "224.0.0.1", "::1", "::", "fdaa::3", "fe80::1",
+    "::ffff:127.0.0.1", "[::1]", "not-an-ip",
+  ])("blocks %s", (addr) => {
+    expect(isNonPublicAddress(addr)).toBe(true);
+  });
+
+  it.each(["93.184.216.34", "8.8.8.8", "2606:4700:4700::1111"])("allows %s", (addr) => {
+    expect(isNonPublicAddress(addr)).toBe(false);
+  });
+});
+
+describe("assertPublicEndpoint", () => {
+  it.each([
+    "http://127.0.0.1:8080/graphql",
+    "http://169.254.169.254/latest/meta-data",
+    "http://[::1]/graphql",
+    "http://[fdaa::1]:4000/graphql",
+    "http://localhost/graphql",
+  ])("rejects %s", async (url) => {
+    await expect(assertPublicEndpoint(url)).rejects.toThrow(/private, loopback or reserved/);
+  });
+
+  it("rejects non-http schemes", async () => {
+    await expect(assertPublicEndpoint("file:///etc/passwd")).rejects.toThrow(/http or https/);
+  });
+
+  it("accepts a public IP literal without DNS", async () => {
+    await expect(assertPublicEndpoint("https://93.184.216.34/graphql")).resolves.toBeUndefined();
+  });
+});
+
+describe("executeGraphQL with the guard on", () => {
+  afterEach(() => {
+    setGraphQLPrivateNetworkGuard(false);
+    vi.unstubAllGlobals();
+  });
+
+  it("does not call fetch for a loopback endpoint", async () => {
+    const mockFetch = vi.fn();
+    vi.stubGlobal("fetch", mockFetch);
+    setGraphQLPrivateNetworkGuard(true);
+    await expect(executeGraphQL("http://127.0.0.1:9/graphql", "{ a }")).rejects.toThrow();
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("refuses to follow a redirect", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 302, statusText: "Found" }));
+    setGraphQLPrivateNetworkGuard(true);
+    await expect(executeGraphQL("https://93.184.216.34/graphql", "{ a }")).rejects.toThrow(/redirect/);
+  });
+
+  it("leaves stdio mode unchanged when the guard is off", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: {} }) });
+    vi.stubGlobal("fetch", mockFetch);
+    await executeGraphQL("http://127.0.0.1:9/graphql", "{ a }");
+    expect(mockFetch).toHaveBeenCalledOnce();
+    expect(mockFetch.mock.calls[0][1].redirect).toBeUndefined();
+  });
+});

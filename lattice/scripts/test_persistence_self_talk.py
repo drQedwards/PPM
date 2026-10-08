@@ -50,7 +50,21 @@ class ClaimMemoryTest(unittest.TestCase):
         self.assertEqual(n, 1)
         self.assertTrue(cl.prior)
         self.assertGreaterEqual(cl.s, 1)
-        self.assertLessEqual(cl.s + cl.c, 4)
+        self.assertLessEqual(cl.s + cl.c, 3)
+
+    def test_prior_cap_is_never_exceeded(self):
+        for s, c, w in [(1, 20, 3), (2, 44, 3), (2, 2, 3), (5, 0, 3), (1, 1, 1), (7, 3, 4)]:
+            m = ClaimMemory()
+            m.load_priors([{"key": "k", "kind": "goal", "support": s, "contra": c}], weight=w)
+            cl = m.peek(key="k")
+            self.assertLessEqual(cl.s + cl.c, w, (s, c, w))
+            self.assertGreaterEqual(cl.s, 1, (s, c, w))
+
+    def test_zero_prior_weight_seeds_nothing(self):
+        m = ClaimMemory()
+        n = m.load_priors([{"key": "goal:click:c9", "kind": "goal", "support": 1, "contra": 0}], weight=0)
+        self.assertEqual(n, 0)
+        self.assertIsNone(m.peek(key="goal:click:c9"))
 
 
 class PeriodicGameOverTest(unittest.TestCase):
@@ -78,6 +92,26 @@ class PeriodicGameOverTest(unittest.TestCase):
             periodic, _ = t.classify()
             t.record(periodic, [])
             self.assertFalse(periodic, n)
+
+    def test_periods_only_match_their_own_counter(self):
+        # Two GAME_OVERs at reset-count 20 (10 and 5 actions after level-ups)
+        # set a reset-relative period of 20. A later GAME_OVER at reset-count
+        # 30 that is 20 actions after a level-up must not match it.
+        import persistence_self_talk as pst
+        t = pst.GameOverTracker()
+        for since_level in (10, 5):
+            t.on_reset()
+            for i in range(20):
+                t.on_step(i == 20 - since_level - 1)
+            periodic, _ = t.classify()
+            t.record(periodic, [])
+        self.assertIn(("r", 20), t.periods)
+        t.on_reset()
+        for i in range(30):
+            t.on_step(i == 9)
+        self.assertEqual((t.since_reset, t.since_level), (30, 20))
+        periodic, _ = t.classify()
+        self.assertFalse(periodic)
 
     def test_retract_and_min_support(self):
         import persistence_self_talk as pst
@@ -139,6 +173,21 @@ class OfflineRunTest(unittest.TestCase):
             res = json.loads((warm / "results.json").read_text())
             self.assertTrue(all(r["warm_start_priors"] > 0 for r in res if r["title"] in leveled))
             self.assertIn("warm-start-sha256:" + wf["meta"]["warm_start_sha256"], out)
+            self.assertEqual(wf["meta"]["warm_start_prior_weight"], 3)
+            self.assertNotIn("warm_start_prior_weight", cf["meta"])
+
+    def test_levelup_goal_prior_with_zero_totals(self):
+        # load_priors skips a goal row with support + contra == 0; the level-up
+        # goal boost must create the claim instead of crashing on peek() -> None.
+        with tempfile.TemporaryDirectory() as td:
+            prior = Path(td) / "prior.json"
+            prior.write_text(json.dumps({"games": {"TOY2": {
+                "level_ups": [{"ekey": "click:c9"}],
+                "confirmed": [{"key": "goal:click:c9", "kind": "goal", "support": 0, "contra": 0}]}}}))
+            out = run(Path(td) / "warm", "--warm-start", str(prior))
+            self.assertIn("NOT a cold run", out)
+            out0 = run(Path(td) / "warm0", "--warm-start", str(prior), "--prior-weight", "0")
+            self.assertIn("NOT a cold run", out0)
 
 
 if __name__ == "__main__":

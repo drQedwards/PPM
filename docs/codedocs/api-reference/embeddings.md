@@ -1,6 +1,6 @@
 ---
 title: "Embeddings"
-description: "Reference for the TF-IDF vectorizer and vector utilities exported by pmll_memory_mcp."
+description: "Reference for the hashing vectorizer, the legacy TF-IDF vectorizer, and vector utilities exported by pmll_memory_mcp."
 ---
 
 The embeddings module provides the long-term layer's local vectorization primitives.
@@ -57,7 +57,7 @@ vectorize(text: str) -> list[float]
 embed(text: str) -> list[float]
 ```
 
-Adds the text to the module-level vectorizer and returns its vector.
+Returns a stable `EMBED_DIM`-dimensional (128) L2-normalized vector from the module-level `HashingVectorizer` (`get_hasher()`). It does not add the text to any vocabulary, so the same text always maps to the same vector.
 
 ### `cosine_similarity`
 
@@ -65,13 +65,13 @@ Adds the text to the module-level vectorizer and returns its vector.
 cosine_similarity(a: list[float], b: list[float]) -> float
 ```
 
-Returns a score between `0.0` and `1.0` for aligned non-negative vectors.
+Returns the cosine of the angle between the vectors, padding the shorter one with zeros. Hashing vectors can have negative components, so the score ranges from `-1.0` to `1.0`.
 
 ## Behavior Notes
 
 - `TfIdfVectorizer` gives you an isolated corpus. That is the right choice when you need reproducible vector dimensions inside one test or workflow.
-- `embed()` uses the module-level singleton managed by `get_vectorizer()` in the source. That is convenient for the graph layer because every new node contributes to the shared vocabulary.
-- `cosine_similarity()` only compares the overlapping vector length. In practice that works because both vectors usually come from the same vectorizer instance.
+- `embed()` uses the module-level `HashingVectorizer` from `get_hasher()`. There is no shared vocabulary, so stored vectors do not drift as new nodes are added. `TfIdfVectorizer` and `get_vectorizer()` are legacy and are not used for retrieval.
+- `cosine_similarity()` zero-pads the shorter vector. Vectors from `embed()` always have the same length, `EMBED_DIM`.
 
 ## Example
 

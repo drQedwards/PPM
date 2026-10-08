@@ -1,9 +1,9 @@
 ---
 title: "Semantic Memory Graph"
-description: "See how the long-term memory layer stores typed nodes, weighted edges, and TF-IDF embeddings."
+description: "See how the long-term memory layer stores typed nodes, weighted edges, and stable hashing embeddings."
 ---
 
-The semantic memory graph is the long-term layer in `pmll-memory-mcp`. It is implemented in `mcp/pmll_memory_mcp/memory_graph.py` and uses `mcp/pmll_memory_mcp/embeddings.py` to build lightweight TF-IDF vectors without any external service.
+The semantic memory graph is the long-term layer in `pmll-memory-mcp`. It is implemented in `mcp/pmll_memory_mcp/memory_graph.py` and uses `mcp/pmll_memory_mcp/embeddings.py` to build lightweight, fixed-dimension hashing vectors (128 dimensions, L2-normalized) without any external service.
 
 ## What It Is
 
@@ -89,8 +89,8 @@ for item in retrieve_with_traversal(session_id, start_id, max_depth=2):
 <Callout type="warn">`embed()` updates the module-level vectorizer every time you add a document. That means embedding dimensions evolve as the corpus grows. Do not assume vectors generated early in a process are directly comparable to vectors exported from a different process with a different corpus state.</Callout>
 
 <Accordions>
-<Accordion title="Why TF-IDF was chosen instead of external embeddings">
-The package is explicitly designed to run without Ollama, OpenAI, or another embedding service, as the comments in `embeddings.py` say. That makes installs easy and keeps the server usable in CI and offline environments. The trade-off is retrieval quality: TF-IDF is strong when your query shares vocabulary with stored content, but it is weaker on paraphrases than a neural embedding model. If you need better semantic recall, this is the first subsystem to swap out.
+<Accordion title="Why hashing embeddings were chosen instead of external embeddings">
+The package is explicitly designed to run without Ollama, OpenAI, or another embedding service, as the comments in `embeddings.py` say. That makes installs easy and keeps the server usable in CI and offline environments. The trade-off is retrieval quality: token hashing is strong when your query shares vocabulary with stored content, but it is weaker on paraphrases than a neural embedding model. If you need better semantic recall, this is the first subsystem to swap out.
 </Accordion>
 <Accordion title="Trade-off of auto-linking with a fixed similarity threshold">
 `add_interlinked_context()` uses a hard-coded `SIMILARITY_THRESHOLD` of `0.72`. That is easy to reason about and cheap to compute, and it helps the graph become useful with almost no manual edge authoring. The downside is that false positives and false negatives are both possible, especially when documents are short or highly repetitive. In practice, bulk ingestion works best when `content` fields contain meaningful descriptive text instead of bare names.

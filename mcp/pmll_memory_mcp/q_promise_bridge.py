@@ -21,6 +21,7 @@ Python equivalent of walking the chain without modifying it.
 
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass, field
 from typing import Dict, Optional
 
@@ -54,6 +55,8 @@ class QPromiseRegistry:
 
     def __init__(self) -> None:
         self._promises: Dict[str, _QPromise] = {}
+        # MCP 2.x runs sync tools in worker threads; keep each operation atomic.
+        self._lock = threading.Lock()
 
     # ------------------------------------------------------------------
     # Core operations
@@ -61,7 +64,8 @@ class QPromiseRegistry:
 
     def register(self, promise_id: str) -> None:
         """Add a new pending promise (allocate a QMemNode with NULL payload)."""
-        self._promises[promise_id] = _QPromise(promise_id=promise_id)
+        with self._lock:
+            self._promises[promise_id] = _QPromise(promise_id=promise_id)
 
     def resolve(self, promise_id: str, payload: str) -> bool:
         """Mark *promise_id* as resolved with *payload*.
@@ -71,12 +75,13 @@ class QPromiseRegistry:
         Returns:
             True if the promise existed and was resolved; False if unknown.
         """
-        promise = self._promises.get(promise_id)
-        if promise is None:
-            return False
-        promise.status = "resolved"
-        promise.payload = payload
-        return True
+        with self._lock:
+            promise = self._promises.get(promise_id)
+            if promise is None:
+                return False
+            promise.status = "resolved"
+            promise.payload = payload
+            return True
 
     def peek_promise(
         self, promise_id: str
@@ -87,10 +92,11 @@ class QPromiseRegistry:
             (found, status, payload) — ``found`` is False when the promise
             ID is unknown.
         """
-        promise = self._promises.get(promise_id)
-        if promise is None:
-            return False, None, None
-        return True, promise.status, promise.payload
+        with self._lock:
+            promise = self._promises.get(promise_id)
+            if promise is None:
+                return False, None, None
+            return True, promise.status, promise.payload
 
     # ------------------------------------------------------------------
     # Introspection helpers

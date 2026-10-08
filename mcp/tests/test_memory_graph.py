@@ -343,3 +343,52 @@ class TestSqlitePersistence:
         clear_graph("s-clear")
         loaded = reload_session_from_db("s-clear")
         assert loaded["nodes"] == 0
+
+
+class TestReviewFindings:
+    """Regression tests for CodeRabbit findings on memory_graph.py."""
+
+    def test_first_get_graph_keeps_its_cache_entry(self, tmp_path, monkeypatch):
+        # Simulate a fresh import: no connection yet, so the first _conn()
+        # call runs configure_db(), which clears _graph_stores.
+        import pmll_memory_mcp.memory_graph as mg
+        monkeypatch.setenv("PMLL_GRAPH_DB", str(tmp_path / "fresh.sqlite3"))
+        mg._db_conn.close()
+        monkeypatch.setattr(mg, "_db_conn", None)
+        g = mg._get_graph("fresh")
+        assert mg._graph_stores.get("fresh") is g
+        node = upsert_node("fresh", "note", "n1", "content one")
+        assert node.id in mg._get_graph("fresh").nodes
+
+    def test_import_with_bad_record_keeps_existing_graph(self):
+        from pmll_memory_mcp.memory_graph import import_graph, export_graph
+        a = upsert_node("imp", "concept", "keep_a", "alpha content")
+        b = upsert_node("imp", "concept", "keep_b", "beta content")
+        create_relation("imp", a.id, b.id, "related_to")
+        before = export_graph("imp")
+        bad = {"nodes": {"x": {"id": "x", "type": "note", "label": "no content"}}}
+        with pytest.raises(ValueError):
+            import_graph("imp", bad)
+        assert export_graph("imp") == before
+        assert reload_session_from_db("imp") == {"nodes": 2, "edges": 1}
+
+    def test_import_round_trip_replaces_graph(self):
+        from pmll_memory_mcp.memory_graph import import_graph, export_graph
+        a = upsert_node("src", "concept", "a", "alpha")
+        b = upsert_node("src", "file", "b.py", "beta")
+        create_relation("src", a.id, b.id, "depends_on")
+        upsert_node("dst", "note", "old", "to be replaced")
+        import_graph("dst", export_graph("src"))
+        assert reload_session_from_db("dst") == {"nodes": 2, "edges": 1}
+        labels = {n["label"] for n in export_graph("dst")["nodes"].values()}
+        assert labels == {"a", "b.py"}
+
+    def test_search_persists_last_accessed(self):
+        import time as _time
+        n = upsert_node("touch", "concept", "auth", "login password session")
+        old = n.last_accessed
+        _time.sleep(0.01)
+        search_graph("touch", "login session", top_k=1)
+        reload_session_from_db("touch")
+        from pmll_memory_mcp.memory_graph import _get_graph
+        assert _get_graph("touch").nodes[n.id].last_accessed > old

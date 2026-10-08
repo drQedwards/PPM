@@ -20,6 +20,7 @@ import ctypes
 import json
 import os
 import sys
+import threading
 from typing import Any, Dict, List, Optional
 
 try:
@@ -75,12 +76,17 @@ mcp = _MCPServer(
 
 # Shared state: one MemoryController per server lifetime
 _mc: Optional[MemoryController] = None
+_mc_lock = threading.Lock()
 
 
 def _get_mc() -> MemoryController:
+    """Lazily create the shared controller. MCP 2.x runs sync tools in worker
+    threads, so creation is locked: concurrent first calls get one instance."""
     global _mc
     if _mc is None:
-        _mc = MemoryController(pool_size=1024, backend=make_backend(), store_dir=None)
+        with _mc_lock:
+            if _mc is None:
+                _mc = MemoryController(pool_size=1024, backend=make_backend(), store_dir=None)
     return _mc
 
 

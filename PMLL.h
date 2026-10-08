@@ -6,6 +6,13 @@
 /* Fixed embedding dimensionality for silo semantic vectors (hashing trick). */
 #define PMLL_EMBED_DIM 32
 
+/* pml_t.flag values. PML_SAT is set only after the full assignment has
+ * passed check_conflict; a search that runs out of budget stays
+ * PML_UNRESOLVED and is never reported as solved. */
+#define PML_UNRESOLVED 0
+#define PML_SAT 1
+#define PML_UNSAT 2
+
 /* Structure definitions */
 typedef struct {
     int length;
@@ -36,7 +43,7 @@ typedef struct {
     clause_t *clauses;
     int *assignment;    /* -1 unassigned, 0 false, 1 true */
     memory_silo_t *silo;
-    int flag;           /* 1 = solved / terminated (NOT an assignment value) */
+    int flag;           /* PML_UNRESOLVED / PML_SAT / PML_UNSAT (NOT an assignment value) */
 } pml_t;
 
 /* Function prototypes — silo / tree */
@@ -73,7 +80,10 @@ int sat_bridge_literal(pml_t *pml, int lit, const char *assoc_meaning);
 int sat_bridge_clause(pml_t *pml, int clause_idx, const char *assoc_meaning);
 int sat_bridge_assignment_meanings(pml_t *pml);
 
-/* Core PML / SAT refine loop */
+/* Core PML / SAT refine loop. Literals that are 0, INT_MIN or name a
+ * variable above num_vars are ignored. pml_refine runs a complete DPLL
+ * search with backtracking (exponential in the worst case) under a branch
+ * budget and sets pml_t.flag; pml_logic_loop calls it once. */
 int check_conflict(clause_t *clauses, int *assignment, int num_clauses, int num_vars);
 void pml_refine(pml_t *pml_ptr, int recursion_level);
 void pml_logic_loop(pml_t *pml_ptr, int max_depth);
