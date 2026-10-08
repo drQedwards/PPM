@@ -1,30 +1,25 @@
 /**
- * q-promise-bridge.ts — Registry for in-flight Q-promise continuations.
+ * q-promise-bridge.ts — In-process registry for in-flight Q-promise work.
  *
- * Mirrors the `QMemNode` singly-linked chain defined in
- * `Q_promise_lib/Q_promises.h`:
+ * A small TypeScript model of the promise lifecycle in Q_promise_lib
+ * (`qpromise.h`): an entry starts `"pending"` and becomes `"resolved"` once
+ * `resolve()` stores a payload. It does not call the C library, and it only
+ * models PENDING -> RESOLVED; the C API also has REJECTED / CANCELLED and
+ * then / catch / finally continuations that run in `qpromise_drain()`.
  *
- *     typedef struct QMemNode {
- *         long              index;
- *         const char       *payload;
- *         struct QMemNode  *next;
- *     } QMemNode;
+ * The older `QMemNode` / `q_mem_create_chain` / `q_then` chain API that this
+ * module used to describe was removed from Q_promise_lib. Python bindings for
+ * the real library: `Q_promise_lib/Q_promises.py` (ctypes) and `Q_promises.pyx`.
  *
- * In the C library a chain is traversed via `q_then(head, cb)`, invoking a
- * callback for every node.  Here we model the same lifecycle in pure TypeScript:
- * each promise starts as `"pending"` (`QMemNode.payload == NULL`) and
- * transitions to `"resolved"` once `resolve()` is called with a payload.
- *
- * The `peekPromise()` method is a non-destructive status check — the
- * TypeScript equivalent of walking the chain without modifying it.
+ * `peekPromise()` is a non-destructive status check.
  */
 
 /**
- * One promise entry, mirroring a single QMemNode in the chain.
+ * One promise entry (a pending or resolved unit of work).
  *
  * Fields:
- *   - promiseId  → logical identifier (replaces the numeric `index`)
- *   - status     → `"pending"` | `"resolved"` (NULL vs non-NULL payload)
+ *   - promiseId  → logical identifier (callers namespace it, e.g. `"{sessionId}:{key}"`)
+ *   - status     → `"pending"` | `"resolved"` (QPROMISE_PENDING / QPROMISE_RESOLVED)
  *   - payload    → resolved data string, or null while pending
  */
 interface QPromise {
@@ -39,9 +34,9 @@ export type PeekPromiseResult = [boolean, string | null, string | null];
 /**
  * In-process registry of Q-promise continuations.
  *
- * Provides the same lifecycle as the C `QMemNode` chain:
+ * Models the pending -> resolved part of the C `qpromise_t` lifecycle:
  *   - `register()`     — allocate a new pending node
- *   - `resolve()`      — write the payload (analogous to q_then callback)
+ *   - `resolve()`      — store the payload (like `qpromise_resolve`)
  *   - `peekPromise()`  — read status without consuming the entry
  *
  * Multiple sessions share a single registry; the `promiseId` is the
@@ -54,7 +49,7 @@ export class QPromiseRegistry {
   // Core operations
   // ------------------------------------------------------------------
 
-  /** Add a new pending promise (allocate a QMemNode with NULL payload). */
+  /** Add a new pending promise (like `qpromise_create`). */
   register(promiseId: string): void {
     this._promises.set(promiseId, {
       promiseId,
@@ -66,7 +61,7 @@ export class QPromiseRegistry {
   /**
    * Mark `promiseId` as resolved with `payload`.
    *
-   * Mirrors the `QThenCallback` being invoked for a node.
+   * Like `qpromise_resolve`; there are no continuations to run here.
    *
    * @returns true if the promise existed and was resolved; false if unknown.
    */

@@ -78,7 +78,7 @@ mcp = _MCPServer(
 )
 
 # Module-level Q-promise registry shared across all sessions.
-# Mirrors the global QMemNode chain pool in Q_promise_lib.
+# In-process model of Q_promise_lib promise state (see q_promise_bridge.py).
 _promise_registry = QPromiseRegistry()
 
 # Track which sessions have been initialised (session_id → silo_size).
@@ -172,8 +172,9 @@ def set(session_id: str, key: str, value: str) -> Dict[str, Any]:
 def resolve(session_id: str, promise_id: str) -> Dict[str, Any]:
     """Check or resolve a Q-promise continuation.
 
-    Mirrors the ``QThenCallback`` mechanism in Q_promise_lib/Q_promises.h —
-    the callback is invoked when a QMemNode's payload becomes available.
+    Reads the server's in-process promise registry (q_promise_bridge), a
+    model of the pending -> resolved lifecycle in Q_promise_lib/qpromise.h.
+    It does not call the C library.
 
     If the promise is already resolved, returns its payload immediately.
     If still pending, returns ``{"status": "pending", "payload": null}``.

@@ -8,7 +8,7 @@
  * 1. The in-process KV store (`PMMemoryStore`) — analogous to reading the
  *    PMLL memory silo (PMLL.c::init_silo / update_silo) for a cached result.
  * 2. The Q-promise registry (`QPromiseRegistry`) — analogous to checking
- *    whether a `QMemNode` chain is still in-flight (Q_promise_lib pending).
+ *    whether that work is still in flight (a pending promise, as in Q_promise_lib).
  *
  * If both layers miss, the caller is expected to proceed with the real tool
  * call and then invoke `store.set(key, value)` to populate the cache for

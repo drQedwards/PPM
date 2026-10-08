@@ -97,9 +97,32 @@ The seed (`QMemNode` / `q_mem_create_chain` / `q_then`) was a linked-list
 “memory chain” walker with Known/Unknown payloads — **not** a promise. That
 API is removed. `Promises.c` is now a small demo of the new API.
 `Q_promises.h` is a compatibility include redirecting to `qpromise.h`.
-Python/Cython wrappers are updated to a thin ctypes-free documentation stub
-pointing at the C library (optional Cython rebuild is out of scope for the
-core promise work). Independent of FastMCP / MCPServer.
+Independent of FastMCP / MCPServer.
+
+## Python bindings
+
+Two bindings expose the same API (`Silo`, `Promise`, `drain`, `jobs_pending`,
+`PENDING` / `RESOLVED` / `REJECTED` / `CANCELLED`):
+
+| File | How | Build |
+|------|-----|-------|
+| `Q_promises.py` | ctypes over `libqpromise.so` (or `$QPROMISE_LIB`) | `make shared` |
+| `Q_promises.pyx` | Cython, compiles `qpromise.c` + `../PMLL.c` in | see `tests/test_q_promises_binding.py` |
+
+```python
+from Q_promises import Silo, Promise, drain, PENDING
+silo = Silo(64)
+p = Promise.from_peek(silo, "build:<sha256>")    # miss -> PENDING, bound to key
+if p.state == PENDING:
+    done = p.then(lambda v: v.upper())           # runs inside drain()
+    p.resolve_commit('{"status":"ok"}')          # resolve + silo_set under the key
+    drain()
+silo.peek("build:<sha256>")                      # ('{"status":"ok"}', 0)
+```
+
+Handler return values become the dependent promise's value; raising rejects it
+with `str(exc)`; returning a `Promise` adopts it. Same single-threaded rule as
+the C library. `tests/test_q_promises_binding.py` runs one suite against both.
 
 ## Files
 
@@ -108,5 +131,6 @@ core promise work). Independent of FastMCP / MCPServer.
 | `qpromise.h` / `qpromise.c` | Public API + implementation |
 | `Q_promises.h` | Compat redirect |
 | `test_qpromise.c` | Deterministic suite |
+| `Q_promises.py` / `Q_promises.pyx` | Python bindings (ctypes / Cython) |
 | `Promises.c` | Demo: peek → pending → commit → then |
 | `Makefile` | `shared`, `test`, `test-asan`, `demo` |

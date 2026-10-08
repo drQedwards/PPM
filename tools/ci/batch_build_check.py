@@ -6,7 +6,7 @@ Policy (see tools/ci/README.md):
     there fails the job.
   * Every other unit is INFORMATIONAL: compiled and reported, never fatal.
     Known-failing units (CLI/CLI.c, Ppm-lib/Pypm.c, Torch, Pandas_bridge.pyx,
-    Pypm.pyx, CUDA without nvcc) live here until they are fixed.
+    CUDA without nvcc) live here until they are fixed.
 
 Usage:  python tools/ci/batch_build_check.py [--json out.json]
 Exit code: 0 when every REQUIRED unit passes, 1 otherwise.
@@ -42,7 +42,7 @@ REQUIRED_C = [
 REQUIRED_CXX = ["solution.cpp", "CLI/LLM-CLI-BUILDER-PPM.cpp", "Ppm-lib/Pypm.cpp"]
 REQUIRED_PYX = [
     "SAT.pyx", "Q_promise_lib/Q_promises.pyx", "Numpy-lib/Numpy.pyx",
-    "Resolver-lib/Importresolver.pyx", "CLI/CLI.pyx",
+    "Resolver-lib/Importresolver.pyx", "CLI/CLI.pyx", "Pypm.pyx",
 ]
 # Executables that must link (sources, extra flags); "run" ones must exit 0.
 REQUIRED_LINKS = [
