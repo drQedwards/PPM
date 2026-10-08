@@ -19,20 +19,20 @@ layout: docs.njk
   {% endif %}
 </p>
 <div class="doc">
-{{ doc.markdown | renderMarkdown | safe }}
+{{ doc.markdown | renderMarkdown(doc, docPages) | safe }}
 </div>
 <nav class="pager" aria-label="Pagination">
   <span>
     {% if pagination.href.previous %}
       {% set prevDoc = docPages[pagination.pageNumber - 1] %}
-      <a href="{{ pagination.href.previous }}">Previous{% if prevDoc %}: {{ prevDoc.title }}{% endif %}</a>
+      <a href="{{ pagination.href.previous | url }}">Previous{% if prevDoc %}: {{ prevDoc.title }}{% endif %}</a>
     {% endif %}
   </span>
   <span class="count">{{ doc.n }} / {{ doc.total }}</span>
   <span>
     {% if pagination.href.next %}
       {% set nextDoc = docPages[pagination.pageNumber + 1] %}
-      <a href="{{ pagination.href.next }}">Next{% if nextDoc %}: {{ nextDoc.title }}{% endif %}</a>
+      <a href="{{ pagination.href.next | url }}">Next{% if nextDoc %}: {{ nextDoc.title }}{% endif %}</a>
     {% endif %}
   </span>
 </nav>

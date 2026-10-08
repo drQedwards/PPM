@@ -6,7 +6,7 @@
  * scoring, and graph traversal for the PMLL MCP solution engine.
  *
  * Architecture:
- *   - Nodes: concept, file, symbol, note — each with TF-IDF embeddings
+ *   - Nodes: concept, file, symbol, note — each with stable hashing embeddings
  *   - Edges: typed relations with temporal decay (e^(-λt))
  *   - Search: cosine similarity + graph neighbor traversal
  *   - Persistence: in-process Map + JSON export/import (Python package uses SQLite;

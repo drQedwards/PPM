@@ -34,6 +34,7 @@ for line in open(path):
         for k in e["credited"]:
             credit[g][k] -= 1
         e["credited"] = []
+        e["retracted"] = True
     cred = [] if periodic else [key]
     for k in cred:
         credit[g][k] += 1
@@ -43,7 +44,7 @@ for g in rows:
     print("==", g)
     for st, sr, ek, ev in rows[g]:
         label = "periodic (not lethal)" if ev["periodic"] else "ATTRIBUTED lethal"
-        if ev["periodic"] and not ev["credited"] and st == rows[g][0][0]:
+        if ev.get("retracted"):
             label = "credited at the time, RETRACTED when the next game-over matched the interval"
         print("   step={0:3d} since_reset={1:3d} last={2:10s} -> {3}".format(st, sr, ek, label))
     print("   v2.1 lethal support:", dict(v21[g]))

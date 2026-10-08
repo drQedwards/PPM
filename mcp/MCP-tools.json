@@ -75,7 +75,7 @@
     },
     {
       "name": "upsert_memory_node",
-      "description": "Create or update a memory node with auto-generated TF-IDF embeddings.",
+      "description": "Create or update a memory node with auto-generated stable hashing embeddings.",
       "inputSchema": {
         "type": "object",
         "properties": {

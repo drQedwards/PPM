@@ -547,6 +547,8 @@ class GameOverTracker:
         self.since_reset = 0
         self.since_level = 0
         self.events: List[dict] = []   # {"r": int, "l": int, "credited": [...], "periodic": bool}
+        # (counter, period) with counter "r" (since RESET) or "l" (since level-up),
+        # so a period seen on one counter only matches that same counter.
         self.periods: set = set()
 
     def on_reset(self) -> None:
@@ -565,12 +567,12 @@ class GameOverTracker:
     def classify(self) -> Tuple[bool, List[dict]]:
         """Call on a GAME_OVER (after on_step). Returns (periodic, earlier events to retract)."""
         r, lv = self.since_reset, self.since_level
-        known = any(self._match(r, p) or self._match(lv, p) for p in self.periods)
+        known = any(self._match(r if kind == "r" else lv, p) for kind, p in self.periods)
         matches = [e for e in self.events if self._match(e["r"], r) or self._match(e["l"], lv)]
         periodic = known or bool(matches)
         if periodic:
             for e in matches:
-                self.periods.add(e["r"] if self._match(e["r"], r) else e["l"])
+                self.periods.add(("r", e["r"]) if self._match(e["r"], r) else ("l", e["l"]))
                 e["periodic"] = True
         retract = [e for e in matches if e["credited"]]
         return periodic, retract
@@ -613,9 +615,12 @@ def play_game(client: Any, game: dict, card_id: str, budget: int, out: Path, log
             rows, prior_report = prepare_priors(prow, prior_weight)
             n_priors = mem.load_priors(rows, prior_weight)
             for r in rows:  # level-up goal claims: confirmed prior at full weight
-                if r.get("_levelup_goal"):
-                    cl = mem.peek(key=r["key"])
-                    cl.s, cl.c = max(prior_weight, 1), 0
+                if r.get("_levelup_goal") and prior_weight > 0:
+                    # get(), not peek(): load_priors skips rows with zero totals,
+                    # so the claim may not exist yet.
+                    cl = mem.get(r["key"], r["kind"], r.get("text", r["key"]), dict(r.get("data") or {}))
+                    cl.prior = True
+                    cl.s, cl.c = prior_weight, 0
             prior_rep = prior_report
     claims_path = out / "claims" / "{0}.jsonl".format(title)
     claims_path.write_text("")
@@ -804,7 +809,7 @@ def main() -> None:
     ap.add_argument("--warm-start", default="", metavar="PATH",
                     help="OPT-IN: load a prior claims_final.json as priors. A warm-started run is NOT a cold run "
                          "and must be disclosed (it is tagged 'warm-start' on the scorecard). Default: cold.")
-    ap.add_argument("--prior-weight", type=int, default=3, help="cap on support+contra per prior claim")
+    ap.add_argument("--prior-weight", type=int, default=3, help="cap on support+contra per prior claim (0 = seed no priors)")
     ap.add_argument("--offline", action="store_true",
                     help="dry run against a local toy environment; no network, no scorecard")
     ap.add_argument("--no-frames", action="store_true", help="disable out/frames.jsonl")
@@ -872,6 +877,8 @@ def main() -> None:
     meta = {"agent": AGENT, "version": VERSION, "card_id": card_id, "budget": args.budget, "mode": mode,
             "warm_start": args.warm_start or None, "warm_start_sha256": prior_sha, "offline": args.offline,
             "written": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
+    if args.warm_start:
+        meta["warm_start_prior_weight"] = args.prior_weight
     (out / "claims_final.json").write_text(json.dumps(claims_final(results, meta), indent=2))
     status, summary = client.req("POST", "/api/scorecard/close", {"card_id": card_id}, timeout=60)
     if status != 200:

@@ -156,6 +156,8 @@ def configure_db(path: Optional[str] = None) -> str:
             os.makedirs(parent, exist_ok=True)
         _db_conn = sqlite3.connect(_db_path, check_same_thread=False)
         _db_conn.row_factory = sqlite3.Row
+        # Wait for another process's write lock instead of failing at once.
+        _db_conn.execute("PRAGMA busy_timeout = 5000")
         _db_conn.executescript(_SCHEMA)
         _db_conn.commit()
         return _db_path
@@ -208,7 +210,7 @@ def _row_to_edge(row: sqlite3.Row) -> MemoryEdge:
     )
 
 
-def _persist_node(session_id: str, node: MemoryNode) -> None:
+def _persist_node(session_id: str, node: MemoryNode, commit: bool = True) -> None:
     _conn().execute(
         """
         INSERT OR REPLACE INTO nodes
@@ -222,10 +224,11 @@ def _persist_node(session_id: str, node: MemoryNode) -> None:
             node.access_count, json.dumps(node.metadata),
         ),
     )
-    _conn().commit()
+    if commit:
+        _conn().commit()
 
 
-def _persist_edge(session_id: str, edge: MemoryEdge) -> None:
+def _persist_edge(session_id: str, edge: MemoryEdge, commit: bool = True) -> None:
     _conn().execute(
         """
         INSERT OR REPLACE INTO edges
@@ -237,7 +240,8 @@ def _persist_edge(session_id: str, edge: MemoryEdge) -> None:
             edge.weight, edge.created_at, json.dumps(edge.metadata),
         ),
     )
-    _conn().commit()
+    if commit:
+        _conn().commit()
 
 
 def _delete_edge_ids(session_id: str, edge_ids: List[str]) -> None:
@@ -274,6 +278,9 @@ def _load_session(session_id: str, graph: _GraphStore) -> None:
 
 def _get_graph(session_id: str) -> _GraphStore:
     with _lock:
+        # Open the database first: the first _conn() call runs configure_db(),
+        # which clears _graph_stores and would orphan a store registered here.
+        _conn()
         if session_id not in _graph_stores:
             _graph_stores[session_id] = _GraphStore()
         graph = _graph_stores[session_id]
@@ -389,7 +396,7 @@ def search_graph(
         direct_hits: List[TraversalResult] = []
         for node, score in scored[:top_k]:
             node.last_accessed = time.time()
-            _persist_node(session_id, node)
+            _persist_node(session_id, node, commit=False)
             direct_hits.append(
                 TraversalResult(
                     node=node, depth=0, path_relations=[],
@@ -403,6 +410,7 @@ def search_graph(
                 graph, session_id, hit.node.id, query_vec, 1, max_depth,
                 [hit.node.label], visited, neighbor_results, edge_filter,
             )
+        _conn().commit()  # one commit for every last_accessed update above
         neighbor_results.sort(key=lambda r: r.relevance_score, reverse=True)
         return GraphSearchResult(
             direct=direct_hits,
@@ -448,7 +456,7 @@ def _traverse_neighbors(
             )
         )
         neighbor.last_accessed = time.time()
-        _persist_node(session_id, neighbor)
+        _persist_node(session_id, neighbor, commit=False)
         _traverse_neighbors(
             graph, session_id, neighbor_id, query_vec, depth + 1, max_depth,
             [*path_labels, f"--[{edge.relation}]-->", neighbor.label],
@@ -539,7 +547,7 @@ def retrieve_with_traversal(
             return []
         start_node.last_accessed = time.time()
         start_node.access_count += 1
-        _persist_node(session_id, start_node)
+        _persist_node(session_id, start_node, commit=False)
         results: List[TraversalResult] = [
             TraversalResult(
                 node=start_node, depth=0,
@@ -551,6 +559,7 @@ def retrieve_with_traversal(
             graph, session_id, start_node_id, 1, max_depth, [start_node.label],
             visited, results, edge_filter,
         )
+        _conn().commit()  # one commit for the start node and every neighbor
         return results
 
 
@@ -578,7 +587,7 @@ def _collect_traversal(
             continue
         visited.add(neighbor_id)
         neighbor.last_accessed = time.time()
-        _persist_node(session_id, neighbor)
+        _persist_node(session_id, neighbor, commit=False)
         decayed = _decay_weight(edge)
         depth_penalty = 1 / (1 + depth * 0.3)
         score = decayed * depth_penalty * 100
@@ -639,30 +648,64 @@ def export_graph(session_id: str) -> Dict[str, Any]:
         }
 
 
+def _records(data: Dict[str, Any], field: str) -> List[Dict[str, Any]]:
+    raw = data.get(field) or {}
+    if isinstance(raw, dict):
+        raw = list(raw.values())
+    if not isinstance(raw, list) or not all(isinstance(r, dict) for r in raw):
+        raise ValueError(f"import_graph: '{field}' must be a mapping or list of objects")
+    return raw
+
+
 def import_graph(session_id: str, data: Dict[str, Any]) -> None:
+    """Replace the session graph with ``data`` (the shape export_graph returns).
+
+    Every record is validated before anything is deleted, and the delete plus
+    all inserts run in one SQLite transaction, so a bad record raises
+    ValueError and leaves the existing graph untouched."""
+    if not isinstance(data, dict):
+        raise ValueError("import_graph: data must be a dict")
+    nodes: List[MemoryNode] = []
+    edges: List[MemoryEdge] = []
+    try:
+        for raw in _records(data, "nodes"):
+            nodes.append(MemoryNode(
+                id=str(raw["id"]), type=raw["type"], label=str(raw["label"]),
+                content=str(raw["content"]),
+                embedding=[float(x) for x in (raw.get("embedding")
+                                              or embed(f"{raw['label']} {raw['content']}"))],
+                created_at=float(raw.get("created_at", time.time())),
+                last_accessed=float(raw.get("last_accessed", time.time())),
+                access_count=int(raw.get("access_count", 1)),
+                metadata=dict(raw.get("metadata") or {}),
+            ))
+        for raw in _records(data, "edges"):
+            edges.append(MemoryEdge(
+                id=str(raw["id"]), source=str(raw["source"]), target=str(raw["target"]),
+                relation=raw["relation"], weight=float(raw.get("weight", 1.0)),
+                created_at=float(raw.get("created_at", time.time())),
+                metadata=dict(raw.get("metadata") or {}),
+            ))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError(f"import_graph: invalid record: {exc!r}") from exc
     with _lock:
-        clear_graph(session_id)
-        graph = _get_graph(session_id)
-        for raw in (data.get("nodes") or {}).values():
-            node = MemoryNode(
-                id=raw["id"], type=raw["type"], label=raw["label"], content=raw["content"],
-                embedding=list(raw.get("embedding") or embed(f"{raw['label']} {raw['content']}")),
-                created_at=raw.get("created_at", time.time()),
-                last_accessed=raw.get("last_accessed", time.time()),
-                access_count=raw.get("access_count", 1),
-                metadata=dict(raw.get("metadata") or {}),
-            )
-            graph.nodes[node.id] = node
-            _persist_node(session_id, node)
-        for raw in (data.get("edges") or {}).values():
-            edge = MemoryEdge(
-                id=raw["id"], source=raw["source"], target=raw["target"],
-                relation=raw["relation"], weight=raw.get("weight", 1.0),
-                created_at=raw.get("created_at", time.time()),
-                metadata=dict(raw.get("metadata") or {}),
-            )
-            graph.edges[edge.id] = edge
-            _persist_edge(session_id, edge)
+        conn = _conn()
+        try:
+            conn.execute("DELETE FROM nodes WHERE session_id = ?", (session_id,))
+            conn.execute("DELETE FROM edges WHERE session_id = ?", (session_id,))
+            for node in nodes:
+                _persist_node(session_id, node, commit=False)
+            for edge in edges:
+                _persist_edge(session_id, edge, commit=False)
+            conn.commit()
+        except sqlite3.Error:
+            conn.rollback()
+            raise
+        graph = _GraphStore()
+        graph.nodes = {n.id: n for n in nodes}
+        graph.edges = {e.id: e for e in edges}
+        graph.loaded = True
+        _graph_stores[session_id] = graph
 
 
 def clear_graph(session_id: str) -> int:

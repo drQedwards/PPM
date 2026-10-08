@@ -106,4 +106,4 @@ print(resolve_context(session_id, "billing-cache", store))
 
 Use this workflow when you need memory that survives a single task and remains queryable by meaning, not just by exact key. The source design makes it especially useful for codebase notes, tool outputs, and cross-step summaries.
 
-<Callout type="warn">Search quality depends heavily on the descriptive quality of `label` and `content`. If you only store opaque IDs or one-word fragments, TF-IDF similarity will be weak and auto-linking will be noisy.</Callout>
+<Callout type="warn">Search quality depends heavily on the descriptive quality of `label` and `content`. If you only store opaque IDs or one-word fragments, hashing-embedding similarity will be weak and auto-linking will be noisy.</Callout>

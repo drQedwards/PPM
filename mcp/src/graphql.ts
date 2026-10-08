@@ -28,6 +28,9 @@
  * by the `graphql` MCP tool to execute arbitrary or pre-built operations.
  */
 
+import { lookup } from "node:dns/promises";
+import { BlockList, isIP } from "node:net";
+
 // ---------------------------------------------------------------------------
 // Pre-built operation documents
 // ---------------------------------------------------------------------------
@@ -393,6 +396,8 @@ export async function executeGraphQL(
   variables: Record<string, unknown> = {},
   headers: Record<string, string> = {},
 ): Promise<GraphQLResponse> {
+  const guarded = privateNetworkBlocked();
+  if (guarded) await assertPublicEndpoint(endpoint);
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
@@ -400,11 +405,100 @@ export async function executeGraphQL(
       ...headers,
     },
     body: JSON.stringify({ query: operation, variables }),
+    // A redirect could point at a private address after the check above.
+    ...(guarded ? { redirect: "manual" as const } : {}),
   });
+
+  if (guarded && response.status >= 300 && response.status < 400) {
+    throw new Error(`GraphQL endpoint redirected (HTTP ${response.status}); redirects are not followed`);
+  }
 
   if (!response.ok) {
     throw new Error(`GraphQL HTTP error: ${response.status} ${response.statusText}`);
   }
 
   return response.json() as Promise<GraphQLResponse>;
+}
+
+// ---------------------------------------------------------------------------
+// Private-network guard (SSRF)
+// ---------------------------------------------------------------------------
+
+/*
+ * When the server is reachable over HTTP (MCP_TRANSPORT=http, e.g. the Fly
+ * deployment), the `graphql` tool must not let a remote caller make this
+ * machine POST to loopback, private, link-local (cloud metadata) or other
+ * internal addresses and read the response. startHttp() turns the guard on;
+ * PMLL_GRAPHQL_BLOCK_PRIVATE=1 turns it on for stdio too, and
+ * PMLL_GRAPHQL_ALLOW_PRIVATE=1 turns it off. The check resolves the hostname
+ * and rejects the request if any resolved address is non-public. It does not
+ * pin the address used by fetch, so DNS rebinding between the check and the
+ * request is not covered.
+ */
+
+let _blockPrivate = false;
+
+/** Enable or disable the private-network guard (startHttp enables it). */
+export function setGraphQLPrivateNetworkGuard(enabled: boolean): void {
+  _blockPrivate = enabled;
+}
+
+function privateNetworkBlocked(): boolean {
+  if (process.env.PMLL_GRAPHQL_ALLOW_PRIVATE === "1") return false;
+  return _blockPrivate || process.env.PMLL_GRAPHQL_BLOCK_PRIVATE === "1";
+}
+
+const _blocked = new BlockList();
+for (const [net, bits] of [
+  ["0.0.0.0", 8], ["10.0.0.0", 8], ["100.64.0.0", 10], ["127.0.0.0", 8],
+  ["169.254.0.0", 16], ["172.16.0.0", 12], ["192.0.0.0", 24], ["192.0.2.0", 24],
+  ["192.168.0.0", 16], ["198.18.0.0", 15], ["198.51.100.0", 24], ["203.0.113.0", 24],
+  ["224.0.0.0", 4], ["240.0.0.0", 4],
+] as const) {
+  _blocked.addSubnet(net, bits, "ipv4");
+}
+for (const [net, bits] of [
+  ["::", 128], ["::1", 128], ["64:ff9b::", 96], ["100::", 64], ["2001:db8::", 32],
+  ["fc00::", 7], ["fe80::", 10], ["fec0::", 10], ["ff00::", 8],
+] as const) {
+  _blocked.addSubnet(net, bits, "ipv6");
+}
+
+/** True when `address` (an IP literal) is loopback, private, link-local or reserved. */
+export function isNonPublicAddress(address: string): boolean {
+  let addr = address.replace(/^\[|\]$/g, "");
+  const zone = addr.indexOf("%");
+  if (zone !== -1) addr = addr.slice(0, zone);
+  const mapped = addr.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/i);
+  if (mapped) addr = mapped[1];
+  const family = isIP(addr);
+  if (family === 4) return _blocked.check(addr, "ipv4");
+  if (family === 6) {
+    if (/^::ffff:/i.test(addr)) return true; // hex-form IPv4-mapped: treat as internal
+    return _blocked.check(addr, "ipv6");
+  }
+  return true; // not an IP literal: refuse rather than guess
+}
+
+/** Throw unless `endpoint` is http(s) and every address it resolves to is public. */
+export async function assertPublicEndpoint(endpoint: string): Promise<void> {
+  let url: URL;
+  try {
+    url = new URL(endpoint);
+  } catch {
+    throw new Error("GraphQL endpoint is not a valid URL");
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    throw new Error(`GraphQL endpoint must use http or https, not ${url.protocol}`);
+  }
+  const host = url.hostname.replace(/^\[|\]$/g, "");
+  const addresses = isIP(host)
+    ? [host]
+    : (await lookup(host, { all: true, verbatim: true })).map((a) => a.address);
+  if (addresses.length === 0 || addresses.some(isNonPublicAddress)) {
+    throw new Error(
+      `GraphQL endpoint ${url.hostname} resolves to a private, loopback or reserved address; ` +
+        "blocked on the public HTTP server (set PMLL_GRAPHQL_ALLOW_PRIVATE=1 to allow)",
+    );
+  }
 }

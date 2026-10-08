@@ -74,7 +74,7 @@ sequenceDiagram
 
 ### Simple in-memory data structures instead of infrastructure dependencies
 
-`embeddings.py` implements TF-IDF and cosine similarity directly rather than depending on a hosted embedding provider. That choice keeps the package runnable in CI, local shells, and air-gapped environments. The trade-off is that semantic quality depends on the local corpus and token overlap, not a pre-trained language model.
+`embeddings.py` implements stable hashing embeddings (plus a legacy TF-IDF class) and cosine similarity directly rather than depending on a hosted embedding provider. That choice keeps the package runnable in CI, local shells, and air-gapped environments. The trade-off is that semantic quality depends on the local corpus and token overlap, not a pre-trained language model.
 
 ### Short-term and long-term layers stay separate until the solution engine
 

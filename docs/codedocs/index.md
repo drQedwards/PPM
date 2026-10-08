@@ -114,7 +114,7 @@ Expected output:
 
 - Session-isolated KV storage via `PMMemoryStore` in `mcp/pmll_memory_mcp/kv_store.py`
 - In-flight deduplication via `QPromiseRegistry` and `peek_context`
-- Dependency-free TF-IDF embeddings in `mcp/pmll_memory_mcp/embeddings.py`
+- Dependency-free stable hashing embeddings in `mcp/pmll_memory_mcp/embeddings.py` (a TF-IDF class is kept as legacy)
 - Long-term graph search, traversal, and edge decay in `mcp/pmll_memory_mcp/memory_graph.py`
 - A solution engine that resolves from short-term first, then semantic long-term memory
 - Two server implementations: TypeScript in `mcp/src/index.ts` and Python in `mcp/pmll_memory_mcp/server.py`

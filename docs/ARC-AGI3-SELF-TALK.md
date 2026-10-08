@@ -165,12 +165,18 @@ python3 lattice/scripts/persistence_self_talk.py --offline --out /tmp/dry
 python3 lattice/scripts/replay_lethal_check.py out/frames.jsonl VC33,R11L,TN36   # v2.2 game-over replay
 ```
 
-`--offline` swaps the API client for a small local toy environment (TOY1 navigation, TOY2 click).
-It needs no network access and no `ARC_API_KEY`, and it never opens a scorecard. On the toy, cold v2.1
-levels up TOY2 at steps 7/8/9 and never solves TOY1. Warm-started from that run, it levels up TOY2 at
-steps 1/2/3 and reaches TOY1 level 1 at step 143.
+`--offline` swaps the API client for a small local toy environment: TOY1 (navigation), TOY2 (click),
+and, since v2.2, TOY3 (click-only, decoys only, a GAME_OVER every 6 actions of a life). It needs no
+network access and no `ARC_API_KEY`, and it never opens a scorecard. The toy runs are deterministic.
+With the current script and the default 250-action budget:
 
-v2.2 adds TOY3 to the offline environment: click-only, decoys only, and a GAME_OVER every 6 actions
-of a life. In the v2.2 cold toy run 24 of 25 TOY3 game-overs are classed periodic, the first one's
-credit is retracted, and no lethal claim survives. TOY2 is won in 3 actions. Warm-started, TOY1
-levels up at steps 100, 124 and 144; cold v2.2 does not solve TOY1.
+* **Cold** (`--offline --out /tmp/cold`): TOY2 is won in 3 actions (level-ups at steps 1, 2, 3).
+  TOY1 reaches level 2 (level-ups at steps 210 and 244) but is not won. In TOY3, 40 of 41
+  game-overs are classed periodic, the first one's credit is retracted, and no lethal claim survives.
+* **Warm** (`--warm-start /tmp/cold/claims_final.json`, default `--prior-weight 3`): TOY1 is won in
+  100 actions (level-ups at steps 26, 62, 100). TOY2 and TOY3 are the same as cold.
+
+`--prior-weight N` caps support + contra for every seeded claim at N; `--prior-weight 0` seeds no
+priors. Figures quoted in earlier versions of this page (v2.1: cold TOY2 at steps 7/8/9, warm TOY1
+level 1 at step 143; first v2.2 write-up: 24 of 25 TOY3 game-overs periodic, warm TOY1 at steps
+100/124/144) were recorded with earlier commits and are not reproduced by the current script.

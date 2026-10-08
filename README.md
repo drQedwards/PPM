@@ -30,7 +30,7 @@ Long-term graph tools adapt [Context+](https://github.com/ForLoopCodes/contextpl
 4. [CLI Commands](#-cli-commands)
 5. [GPU & Security Features](#-gpu--security-features)
 6. [Plugin System](#-plugin-system)
-7. [Configuration](#-configuration)
+7. [Configuration](#configuration)
 8. [PMLL Memory MCP Server](#-pmll-memory-mcp-server)
 9. [Stellar commitments](#-stellar-commitments-pmll-anchor)
 10. [Architecture](#-architecture)
@@ -55,7 +55,7 @@ Q-promise does **not** replace the silo. A promise may *reference* a memory key 
 
 ### Intended loop
 
-```
+```text
 retrieve (peek / peek_semantic)
   → compute / request work
   → promise PENDING
@@ -133,6 +133,7 @@ cc -Wall -Wextra -ldl -lcurl -o pypm Ppm.c
 cd Q_promise_lib
 make clean && make test
 make shared   # → libqpromise.so
+cd ..
 ```
 
 ### Optional: CUDA-accelerated build
@@ -290,6 +291,8 @@ pypm plugin run hello
 
 ---
 
+<a id="configuration"></a>
+
 ## ⚙️ Configuration
 
 ### `pypm.toml`
@@ -390,7 +393,7 @@ if (result.hit) {
 
 | Tool      | Input                                              | Output                                                      | Description                                       |
 |-----------|----------------------------------------------------|-------------------------------------------------------------|---------------------------------------------------|
-| `init`    | `session_id: str`, `silo_size: int = 256`          | `{status, session_id, silo_size}`                           | Set up PMLL silo + Q-promise state for session    |
+| `init`    | `session_id: str`, `silo_size: int = 256`          | `{status, session_id, silo_size, cleared}`                  | Set up or reset the session silo + Q-promise state (`cleared` is always true) |
 | `peek`    | `session_id: str`, `key: str`                      | `{hit, value?, index?}` or `{hit, status, promise_id}`      | Non-destructive cache + promise check             |
 | `set`     | `session_id: str`, `key: str`, `value: str`        | `{status: "stored", index}`                                 | Store KV pair in the silo                         |
 | `resolve` | `session_id: str`, `promise_id: str`               | `{status: "resolved"\|"pending", payload?}`                 | Check/resolve a Q-promise continuation            |
@@ -408,7 +411,7 @@ These tools are adapted from [Context+](https://github.com/ForLoopCodes/contextp
 
 | Tool                      | Input                                                           | Output                                                | Description                                                                        |
 |---------------------------|-----------------------------------------------------------------|-------------------------------------------------------|------------------------------------------------------------------------------------|
-| `upsert_memory_node`      | `session_id`, `type`, `label`, `content`, `metadata?`           | `{node}`                                              | Create or update a memory node with auto-generated TF-IDF embeddings               |
+| `upsert_memory_node`      | `session_id`, `type`, `label`, `content`, `metadata?`           | `{node}`                                              | Create or update a memory node with auto-generated stable hashing embeddings      |
 | `create_relation`         | `session_id`, `source_id`, `target_id`, `relation`, `weight?`, `metadata?` | `{edge}`                                   | Create typed edges (relates_to, depends_on, implements, references, similar_to, contains) |
 | `search_memory_graph`     | `session_id`, `query`, `max_depth?`, `top_k?`, `edge_filter?`  | `{direct, neighbors, totalNodes, totalEdges}`         | Semantic search with graph traversal — direct matches + neighbor walk              |
 | `prune_stale_links`       | `session_id`, `threshold?`                                      | `{removed, remaining}`                                | Remove decayed edges (e^(-λt) below threshold) and orphan nodes with low access    |
@@ -527,7 +530,7 @@ pmll-memory-mcp          # starts the stdio MCP server
     },
     {
       "name": "upsert_memory_node",
-      "description": "Create or update a memory node with auto-generated TF-IDF embeddings.",
+      "description": "Create or update a memory node with auto-generated stable hashing embeddings.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -825,7 +828,7 @@ Skills summary: [`SKILL.md`](./SKILL.md) · full invoke docs: [pmll/SKILL.md](ht
 | `mcp/`                  | TypeScript PMLL Memory MCP server (15 tools)                     |
 | `mcp/src/memory-graph.ts` | Long-term memory graph adapted from [Context+](https://github.com/ForLoopCodes/contextplus) |
 | `mcp/src/solution-engine.ts` | Solution engine bridging short-term KV + long-term graph    |
-| `mcp/src/embeddings.ts`  | TF-IDF embeddings and cosine similarity for semantic search     |
+| `mcp/src/embeddings.ts`  | Stable hashing embeddings and cosine similarity for semantic search (TF-IDF class kept as legacy) |
 | `CLI/`                  | Extended CLI interface                                           |
 | `Panda-lib/` `Torch-lib/` `Numpy-lib/` | Library integration shims                       |
 | `scripts/`              | Build helpers and automation scripts                             |
@@ -898,7 +901,7 @@ Skills summary: [`SKILL.md`](./SKILL.md) · full invoke docs: [pmll/SKILL.md](ht
   `memory_status`.
 - **GraphQL tool** — `graphql` tool for flexible query/mutation access.
 - 15 total tools (5 short-term KV + 1 GraphQL + 6 long-term graph + 3 solution engine).
-- TF-IDF embeddings with cosine similarity search across the memory graph.
+- Stable hashing embeddings (fixed dimension, no shared vocabulary) with cosine similarity search across the memory graph.
 - Temporal decay scoring (e^(-λt)) on graph edges with automatic pruning.
 - Auto-similarity linking (cosine ≥ 0.72) on bulk context additions.
 - Unified context resolution path: short-term → long-term → miss.

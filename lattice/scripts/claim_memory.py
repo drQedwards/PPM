@@ -149,18 +149,30 @@ class ClaimMemory:
                 fh.write(json.dumps(row, separators=(",", ":")) + "\n")
 
     def load_priors(self, rows: Iterable[dict], weight: int = 3) -> int:
-        """Seed claims from a prior run. Counts are capped at `weight` (keeping
-        the support/contra ratio) so fresh evidence can overturn a prior."""
+        """Seed claims from a prior run. support + contra is capped at `weight`
+        (keeping the support/contra ratio) so fresh evidence can overturn a
+        prior. A positive support keeps at least 1 only when that still fits
+        under the cap. weight <= 0 seeds nothing."""
         n = 0
+        if weight <= 0:
+            return 0
         for r in rows:
             s, c = int(r.get("support", 0)), int(r.get("contra", 0))
             tot = s + c
             if tot <= 0:
                 continue
-            scale = min(1.0, float(weight) / tot)
+            cap = min(tot, int(weight))
+            scale = float(cap) / tot
+            ps, pc = int(round(s * scale)), int(round(c * scale))
+            if s and not ps:
+                ps = 1
+            while ps + pc > cap:   # rounding (or the support floor) overshot
+                if pc > 0 and (pc >= ps or ps <= 1):
+                    pc -= 1
+                else:
+                    ps -= 1
             cl = self.get(r["key"], r["kind"], r.get("text", r["key"]), dict(r.get("data") or {}))
-            cl.s = max(1 if s else 0, int(round(s * scale)))
-            cl.c = int(round(c * scale))
+            cl.s, cl.c = ps, pc
             cl.prior = True
             n += 1
         return n

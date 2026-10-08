@@ -15,7 +15,7 @@
  *   graphql — Execute GraphQL queries/mutations against the memory store.
  *
  * Long-term memory graph (6 tools — adapted from Context+ by @ForLoopCodes):
- *   upsert_memory_node      — Create/update memory nodes with TF-IDF embeddings.
+ *   upsert_memory_node      — Create/update memory nodes with stable hashing embeddings.
  *   create_relation          — Create typed edges between nodes.
  *   search_memory_graph      — Semantic search with graph traversal.
  *   prune_stale_links        — Remove decayed edges and orphan nodes.
@@ -57,7 +57,13 @@ import { z } from "zod";
 import { getStore, dropStore, resetStore } from "./kv-store.js";
 import { QPromiseRegistry } from "./q-promise-bridge.js";
 import { peekContext } from "./peek.js";
-import { executeGraphQL, GRAPHQL_QUERY, GRAPHQL_MUTATION, GRAPHQL_DEFAULT_VARIABLES } from "./graphql.js";
+import {
+  executeGraphQL,
+  GRAPHQL_QUERY,
+  GRAPHQL_MUTATION,
+  GRAPHQL_DEFAULT_VARIABLES,
+  setGraphQLPrivateNetworkGuard,
+} from "./graphql.js";
 import {
   upsertNode,
   createRelation,
@@ -395,7 +401,7 @@ server.tool(
   "upsert_memory_node",
   "Create or update a memory node in the long-term semantic graph. " +
     "Nodes represent concepts, files, symbols, or notes with auto-generated " +
-    "TF-IDF embeddings for semantic search. Part of the Context+ solution " +
+    "stable hashing embeddings for semantic search. Part of the Context+ solution " +
     "engine for durable context retention and retrieval.",
   {
     session_id: z.string().describe("The session identifier (from `init`)."),
@@ -800,6 +806,8 @@ const server = createServer();
  * per request, as the SDK requires) plus `GET /healthz` for health checks.
  */
 async function startHttp(port: number): Promise<void> {
+  // Remote callers must not be able to point the graphql tool at internal hosts.
+  setGraphQLPrivateNetworkGuard(true);
   const httpServer = createHttpServer(async (req, res) => {
     const path = (req.url ?? "/").split("?")[0];
     if (path === "/healthz" && (req.method === "GET" || req.method === "HEAD")) {
