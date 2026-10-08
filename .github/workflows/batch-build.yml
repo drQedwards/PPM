@@ -1,0 +1,48 @@
+name: batch-build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  batch-build:
+    name: Batch build (C / C++ / Cython)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install toolchain
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential python3-dev libcurl4-openssl-dev
+          python -m pip install -U pip
+          pip install cython numpy
+
+      - name: Batch build (fails only on required units)
+        shell: bash
+        run: python tools/ci/batch_build_check.py --json batch-build-results.json
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: batch-build-results-${{ github.sha }}
+          path: batch-build-results.json
+          if-no-files-found: warn
