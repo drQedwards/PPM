@@ -37,12 +37,16 @@ Cross-checks: the pmll and drQedwards/math copies of the solvers agree on all 42
 723cbe658e875821ac2fbb5cd8bfd6937f3a61a1aba7e6665aa6ae5e2c6e6078
 ```
 
-RFC 6962 tree over 446 leaves. Leaf hash `SHA256(0x00 || canonical_json(leaf))`, node hash `SHA256(0x01 || left || right)`. Canonical JSON is `json.dumps(sort_keys=True, separators=(",", ":"), ensure_ascii=False)` in UTF-8. Leaves, in order: header (schema, status, generated_at), claims, environment, summary, each source file, each test run, each instance. The header includes the generation time, so rebuilding the manifest gives a new root; the root above belongs to the manifest generated 2026-10-06T22:02:59-04:00.
+RFC 6962 tree over 455 leaves (4 header/claims/environment/summary leaves, 19 source files, 5 test runs, 427 instances; the order is in `proofs/sat-manifest/merkle_leaves.json`). Leaf hash `SHA256(0x00 || canonical_json(leaf))`, node hash `SHA256(0x01 || left || right)`. Canonical JSON is `json.dumps(sort_keys=True, separators=(",", ":"), ensure_ascii=False)` in UTF-8. Leaves, in order: header (schema, status, generated_at), claims, environment, summary, each source file, each test run, each instance. The header includes the generation time, so rebuilding the manifest gives a new root; the root above belongs to the manifest generated 2026-10-06T22:02:59-04:00.
+
+## Published files
+
+The manifest and everything it hashes are published in this repository under [`proofs/sat-manifest/`](../proofs/sat-manifest/) (about 2.2 MB, plain files, byte-identical in drQedwards/pmll and drQedwards/PPM): `manifest.json`, `merkle_leaves.json`, the 427 `instances/*.cnf`, the 15 `proofs/*.drat`, the two harness scripts under `harness/` whose hashes appear in `sources.harness`, and a `SHA256SUMS` file. Anyone can now recompute the root from a clean checkout; nothing from the build machine is needed.
 
 ## Verifying
 
 ```bash
-python tools/sat_proof/verify_manifest.py /path/to/manifest-dir \
+python tools/sat_proof/verify_manifest.py proofs/sat-manifest \
   --expect-root 723cbe658e875821ac2fbb5cd8bfd6937f3a61a1aba7e6665aa6ae5e2c6e6078
 ```
 
@@ -51,17 +55,19 @@ The directory holds `manifest.json`, `instances/*.cnf` and `proofs/*.drat`. The 
 - Without `--expect-root`, a match only shows that the manifest agrees with itself; anyone who edits an instance can also edit the stored root. Compare against the root published here (or anchored later).
 - Without drat-trim the script fails. `--hash-only` accepts a partial check (UNSAT proofs hash-checked, not verified) and says so in its result line.
 
-The manifest, instances and proofs currently live on the build box (`/workspace/sat-proof/`). They are not yet published, so the root cannot be re-derived from this repository alone.
+`proofs/sat-manifest/README.md` gives the drat-trim commit the manifest was built with (`2e3b2dc`) and the commands to build it. `tests/test_sat_manifest.py` recomputes the root in hash-only mode on every CI run, checks `SHA256SUMS` and the harness hashes, and checks that a tampered instance or a wrong expected root is rejected.
 
 ## Anchoring: pending, unsigned
 
-Nothing has been anchored. The mainnet `pmll-anchor` contract `CCF3B64AXLS4OLY5RN4H4K2CFZAYNZCJQY5MKCKCVAKMZNH7G7F7XUUF` stores SHA-256 commitments through `store(id: BytesN<32>, commitment: BytesN<32>)`, which needs the admin's signature. The drafted call below is unsigned and has not been submitted; it needs Dr. Q's admin signature (`<DR_Q_ADMIN>`). `pubnet` is the Stellar CLI network name for mainnet, as used in drQedwards/pmll `SKILL.md`.
+Nothing has been anchored. The mainnet `pmll-anchor` contract `CCF3B64AXLS4OLY5RN4H4K2CFZAYNZCJQY5MKCKCVAKMZNH7G7F7XUUF` stores SHA-256 commitments through `store(id: BytesN<32>, commitment: BytesN<32>)`, which needs the admin's signature. The drafted call below is unsigned and has not been submitted; it needs Dr. Q's signature as the contract admin, `GBFOFCD3XDANQWSGMHKJJ2V3YXS2QQD7RNC4LMDBVNBTUJOQZ3RLSB3E` (read from the contract's `Admin` instance storage). `pubnet` is the Stellar CLI network name for mainnet, as used in drQedwards/pmll `SKILL.md`.
 
 ```bash
 stellar contract invoke --id CCF3B64AXLS4OLY5RN4H4K2CFZAYNZCJQY5MKCKCVAKMZNH7G7F7XUUF \
-  --source-account <DR_Q_ADMIN> --network pubnet -- \
+  --source-account GBFOFCD3XDANQWSGMHKJJ2V3YXS2QQD7RNC4LMDBVNBTUJOQZ3RLSB3E --network pubnet -- \
   store --id d9d20fc50041f65a6beeeeca27348ebaf0e6044b849e009a611601202ced2425 \
         --commitment 723cbe658e875821ac2fbb5cd8bfd6937f3a61a1aba7e6665aa6ae5e2c6e6078
 ```
 
 `id` is `sha256("drQedwards/pmll:sat-proof:3-sat-exact@8e49955:manifest-v0")`. An anchor would only show that this digest existed at that time; it adds nothing to the mathematical content.
+
+The `anchor_draft.cli` string inside `manifest.json` still says `--network mainnet`; use `pubnet` as above. `anchor_draft` is not a Merkle leaf, so it was left byte-for-byte as built rather than edited.
