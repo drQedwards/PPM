@@ -106,7 +106,7 @@ You MUST use Context+ tools instead of native equivalents. Only fall back to nat
 
 | Tool                   | When to Use                                                           |
 |------------------------|-----------------------------------------------------------------------|
-| `resolve_context`      | Unified context lookup — checks short-term KV first, falls back to long-term semantic graph. |
+| `resolve_context`      | Unified context lookup — short-term KV, then an exact graph label, then semantic graph search above `min_score` (default 0.5); otherwise a miss. |
 | `promote_to_long_term` | Promote a frequently-accessed short-term KV entry to the long-term memory graph. |
 | `memory_status`        | Get a unified view of both short-term (KV cache) and long-term (semantic graph) memory layers. |
 

@@ -125,6 +125,27 @@ function getNeighborId(edge: MemoryEdge, fromId: string): string {
 // ---------------------------------------------------------------------------
 
 /**
+ * Exact (case-sensitive) label lookup, optionally restricted to a node type.
+ * When several nodes share the label, the most recently accessed one wins.
+ * A hit updates lastAccessed / accessCount.
+ */
+export function findNodeByLabel(
+  sessionId: string,
+  label: string,
+  type?: NodeType,
+): MemoryNode | null {
+  const graph = getGraph(sessionId);
+  const matches = Object.values(graph.nodes).filter(
+    (n) => n.label === label && (type === undefined || n.type === type),
+  );
+  if (matches.length === 0) return null;
+  const node = matches.reduce((a, b) => (b.lastAccessed > a.lastAccessed ? b : a));
+  node.lastAccessed = Date.now();
+  node.accessCount++;
+  return node;
+}
+
+/**
  * Create or update a memory node in the session graph.
  * If a node with the same label and type exists, updates it in place.
  */

@@ -14,6 +14,7 @@ from .q_promise_bridge import QPromiseRegistry
 from .peek import peek_context
 from .embeddings import TfIdfVectorizer, HashingVectorizer, embed, cosine_similarity, EMBED_DIM
 from .memory_graph import (
+    find_node_by_label,
     upsert_node,
     create_relation,
     search_graph,
@@ -51,6 +52,7 @@ __all__ = [
     "import_graph",
     "reload_session_from_db",
     "resolve_context",
+    "find_node_by_label",
     "promote_to_long_term",
     "get_memory_status",
 ]

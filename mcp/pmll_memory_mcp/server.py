@@ -448,21 +448,26 @@ def retrieve_memory_traversal(
 def resolve_memory_context(
     session_id: str,
     key: str,
+    min_score: Optional[float] = None,
 ) -> Dict[str, Any]:
     """Unified context resolution across both short-term and long-term memory.
 
-    Checks KV cache first, then falls back to semantic graph search. This is
-    the primary Context+ solution engine tool for unified KV + graph retrieval.
+    Checks the KV cache, then a graph node whose label equals ``key``
+    exactly, then semantic graph search, which only counts when its score is
+    at least ``min_score`` (default 0.5). A key that was never stored returns
+    ``source: "miss"`` instead of the nearest unrelated node.
 
     Args:
         session_id: The session identifier (from ``init``).
         key:        The context key to resolve.
+        min_score:  Minimum cosine score (0..1) for a semantic hit.
 
     Returns:
-        ``{"source": "short_term"|"long_term"|"miss", "value": str|None, "score": float}``
+        ``{"source": "short_term"|"long_term"|"miss", "value": str|None,
+        "score": float, "match": "exact"|"semantic"|None, "node_id": str|None}``
     """
     store = get_store(session_id)
-    return resolve_context(session_id, key, store)
+    return resolve_context(session_id, key, store, min_score)
 
 
 # ---------------------------------------------------------------------------

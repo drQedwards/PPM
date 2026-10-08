@@ -76,7 +76,12 @@ import {
   type NodeType,
   type RelationType,
 } from "./memory-graph.js";
-import { resolveContext, promoteToLongTerm, getMemoryStatus } from "./solution-engine.js";
+import {
+  resolveContext,
+  promoteToLongTerm,
+  getMemoryStatus,
+  MIN_SEMANTIC_SCORE,
+} from "./solution-engine.js";
 
 // ---------------------------------------------------------------------------
 // MCP server instance
@@ -710,16 +715,24 @@ server.tool(
 server.tool(
   "resolve_context",
   "Unified context resolution across both short-term (KV cache) and " +
-    "long-term (semantic graph) memory layers. Checks KV cache first, " +
-    "then falls back to semantic graph search. This is the primary " +
-    "Context+ solution engine tool for unified KV + graph retrieval.",
+    "long-term (semantic graph) memory layers. Checks the KV cache, then a " +
+    "graph node whose label equals `key` exactly, then semantic graph search, " +
+    "which only counts when its score is at least `min_score` (default 0.5). " +
+    "A key that was never stored returns `source: \"miss\"` instead of the " +
+    "nearest unrelated node.",
   {
     session_id: z.string().describe("The session identifier (from `init`)."),
     key: z.string().describe("The context key to resolve."),
+    min_score: z
+      .number()
+      .min(0)
+      .max(1)
+      .optional()
+      .describe("Minimum cosine score (0..1) for a semantic long-term hit (default 0.5)."),
   },
-  async ({ session_id, key }) => {
+  async ({ session_id, key, min_score }) => {
     const store = getStore(session_id);
-    const result = resolveContext(session_id, key, store);
+    const result = resolveContext(session_id, key, store, min_score ?? MIN_SEMANTIC_SCORE);
     return {
       content: [
         {

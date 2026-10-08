@@ -98,3 +98,65 @@ describe("getMemoryStatus", () => {
     expect(status.longTerm.nodes).toBe(1);
   });
 });
+
+// ---------------------------------------------------------------------------
+// resolveContext: exact label lookup + semantic threshold
+// ---------------------------------------------------------------------------
+
+describe("resolveContext exact label and min score", () => {
+  const SHA_A = "build:b70a337709832f585bc8ad4464182e34ef3cd9bf5d96826b34bede83379248bc";
+  const SHA_NEVER = "build:5f0c2a9e7d4b1c3a8e6f2d0b9a7c5e3f1d8b6a4c2e0f9d7b5a3c1e8f6d4b2a0c";
+
+  function populate(): void {
+    upsertNode("s1", "file", SHA_A, '{"status":"ok","w":0}');
+    upsertNode("s1", "note", "build:6d31470f6c8b", "Batch build: 28/58 units OK; 10 CUDA units skipped.");
+    upsertNode("s1", "concept", "module:Panda", "Panda: kinds=c,pyx; failing=Panda.c");
+  }
+
+  it("a never-stored key is a miss, not the nearest node", () => {
+    populate();
+    const store = getStore("s1");
+    const r = resolveContext("s1", SHA_NEVER, store);
+    expect(r.source).toBe("miss");
+    expect(r.value).toBeNull();
+    expect(r.match).toBeNull();
+  });
+
+  it("an exact label returns that node with score 1", () => {
+    populate();
+    const r = resolveContext("s1", SHA_A, getStore("s1"));
+    expect(r.source).toBe("long_term");
+    expect(r.match).toBe("exact");
+    expect(r.score).toBe(1);
+    expect(r.value).toBe('{"status":"ok","w":0}');
+    expect(r.nodeId).toMatch(/^mn-/);
+  });
+
+  it("exact label beats a semantically closer node", () => {
+    upsertNode("s1", "concept", "auth", "graph-value");
+    upsertNode("s1", "concept", "auth login", "auth auth auth login");
+    const r = resolveContext("s1", "auth", getStore("s1"));
+    expect(r.match).toBe("exact");
+    expect(r.value).toBe("graph-value");
+  });
+
+  it("semantic hits above the threshold still resolve", () => {
+    upsertNode("s1", "concept", "database pooling", "PostgreSQL connection pooling configuration");
+    const r = resolveContext("s1", "PostgreSQL connection pooling configuration", getStore("s1"));
+    expect(r.source).toBe("long_term");
+    expect(r.match).toBe("semantic");
+    expect(r.score).toBeGreaterThanOrEqual(0.5);
+  });
+
+  it("min_score controls the semantic fallback", () => {
+    populate();
+    const store = getStore("s1");
+    expect(resolveContext("s1", SHA_NEVER, store, 0).source).toBe("long_term");
+    expect(resolveContext("s1", SHA_NEVER, store, 0).match).toBe("semantic");
+    expect(resolveContext("s1", SHA_NEVER, store, 1).source).toBe("miss");
+  });
+
+  it("an empty graph is a miss at any threshold", () => {
+    expect(resolveContext("s1", "anything", getStore("s1"), 0).source).toBe("miss");
+  });
+});

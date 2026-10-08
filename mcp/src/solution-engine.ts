@@ -20,6 +20,7 @@
 
 import { PMMemoryStore } from "./kv-store.js";
 import {
+  findNodeByLabel,
   upsertNode,
   searchGraph,
   getGraphStats,
@@ -32,32 +33,58 @@ import {
 const PROMOTION_THRESHOLD = 3;
 
 /**
- * Resolve context by checking both short-term (KV) and long-term (graph)
- * memory layers. Returns the best match from either layer.
+ * Semantic fallback in resolveContext must reach this cosine score (0..1).
+ * Unrelated keys scored about 0.3-0.35 against small graphs in testing, so a
+ * lower bound of 0.5 turns those into misses. Exact label hits score 1.0.
+ */
+export const MIN_SEMANTIC_SCORE = 0.5;
+
+export interface ResolveContextResult {
+  source: "short_term" | "long_term" | "miss";
+  value: string | null;
+  score: number;
+  match: "exact" | "semantic" | null;
+  nodeId: string | null;
+}
+
+/**
+ * Resolve context from both memory layers, in order:
+ *   1. short-term KV exact key (score 1, match "exact")
+ *   2. long-term node whose label equals `key` exactly (score 1, match "exact")
+ *   3. long-term semantic search, only if the top score >= minScore
+ *      (default MIN_SEMANTIC_SCORE), match "semantic"
+ * Anything else is a miss, so a never-stored key is not answered with an
+ * unrelated node.
  */
 export function resolveContext(
   sessionId: string,
   key: string,
   store: PMMemoryStore,
-): { source: "short_term" | "long_term" | "miss"; value: string | null; score: number } {
+  minScore: number = MIN_SEMANTIC_SCORE,
+): ResolveContextResult {
   // Layer 1: Short-term KV cache
   const [hit, value] = store.peek(key);
   if (hit && value !== null) {
-    return { source: "short_term", value, score: 1.0 };
+    return { source: "short_term", value, score: 1.0, match: "exact", nodeId: null };
   }
 
-  // Layer 2: Long-term memory graph (semantic search)
+  // Layer 2: Long-term graph, exact label
+  const exact = findNodeByLabel(sessionId, key);
+  if (exact) {
+    return { source: "long_term", value: exact.content, score: 1.0, match: "exact", nodeId: exact.id };
+  }
+
+  // Layer 3: Long-term graph, semantic search above the threshold
   const graphResult = searchGraph(sessionId, key, 1, 1);
   if (graphResult.direct.length > 0) {
     const top = graphResult.direct[0];
-    return {
-      source: "long_term",
-      value: top.node.content,
-      score: top.relevanceScore / 100,
-    };
+    const score = top.relevanceScore / 100;
+    if (score >= minScore) {
+      return { source: "long_term", value: top.node.content, score, match: "semantic", nodeId: top.node.id };
+    }
   }
 
-  return { source: "miss", value: null, score: 0 };
+  return { source: "miss", value: null, score: 0, match: null, nodeId: null };
 }
 
 /**
