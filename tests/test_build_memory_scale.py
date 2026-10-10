@@ -168,6 +168,24 @@ def test_batch_rolls_back_and_drops_cache_on_error(db):
     assert mg.find_node_by_label("s", "lost") is None and mg.find_node_by_label("s", "kept")
 
 
+def test_batch_keeps_body_error_when_rollback_fails(db, monkeypatch):
+    real = mg._conn()
+
+    class FailingRollback:
+        def rollback(self):
+            raise sqlite3.OperationalError("rollback failed")
+
+        def __getattr__(self, name):
+            return getattr(real, name)
+
+    with pytest.raises(RuntimeError, match="body error"):
+        with mg.batch():
+            mg.upsert_node("s", "concept", "x", "v")
+            monkeypatch.setattr(mg, "_conn", lambda: FailingRollback())
+            raise RuntimeError("body error")
+    assert mg._graph_stores == {}
+
+
 def test_load_sqlite_commits_once(db, monkeypatch, tmp_path):
     nodes = {f"n{i}": {"type": "concept", "label": f"n{i}", "content": "c", "metadata": {}} for i in range(30)}
     edges = [(f"n{i}", f"n{i + 1}", "depends_on") for i in range(29)]

@@ -131,6 +131,17 @@ def test_memory_graph_roundtrip_and_staleness(gomod, db):
     assert [r["path"] for r in rows] == ["core/vm", "crypto/sec"]  # re-listing does
 
 
+@needs_go
+def test_go_list_failure_is_reported(tmp_path, monkeypatch):
+    monkeypatch.setenv("GOWORK", "off")
+    monkeypatch.setenv("GOTOOLCHAIN", "local")
+    monkeypatch.setenv("GO111MODULE", "on")
+    empty = tmp_path / "no_module"
+    empty.mkdir()
+    with pytest.raises(RuntimeError, match="go list (failed|found no packages)"):
+        gbb.go_list(empty)
+
+
 def test_skips_cleanly_without_go(monkeypatch, capsys):
     monkeypatch.setattr(gbb.shutil, "which", lambda name: None)
     assert gbb.go_available() is False

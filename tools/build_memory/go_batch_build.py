@@ -66,6 +66,8 @@ def go_list(root: Path) -> List[Dict[str, Any]]:
     """Packages of the module at ``root`` (``go list -e -json ./...``)."""
     p = subprocess.run(["go", "list", "-e", "-json", "./..."], cwd=str(root),
                        capture_output=True, text=True)
+    if p.returncode != 0 and not p.stdout.strip():
+        raise RuntimeError(f"go list failed in {root}: {p.stderr.strip()[:500]}")
     out, dec, i, pkgs = p.stdout, json.JSONDecoder(), 0, []
     while i < len(out):
         while i < len(out) and out[i].isspace():
@@ -74,7 +76,12 @@ def go_list(root: Path) -> List[Dict[str, Any]]:
             break
         obj, i = dec.raw_decode(out, i)
         pkgs.append(obj)
-    return pkgs
+    real = [q for q in pkgs if q.get("Dir")]
+    if not real:
+        errs = [(q.get("Error") or {}).get("Err", "") for q in pkgs]
+        detail = "; ".join(e for e in errs if e) or p.stderr.strip()[:500] or "no packages"
+        raise RuntimeError(f"go list found no packages in {root}: {detail}")
+    return real
 
 
 def _cgo_includes(start: List[Path], root: Path) -> List[Path]:

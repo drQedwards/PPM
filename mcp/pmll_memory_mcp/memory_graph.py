@@ -150,6 +150,8 @@ def batch() -> Iterator[None]:
             if _batch_depth == 0:
                 try:
                     _conn().rollback()
+                except sqlite3.Error:
+                    pass  # keep the error from the batch body, not the rollback's
                 finally:
                     _graph_stores.clear()
             raise
