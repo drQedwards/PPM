@@ -449,6 +449,7 @@ def resolve_memory_context(
     session_id: str,
     key: str,
     min_score: Optional[float] = None,
+    exact_only: Optional[bool] = None,
 ) -> Dict[str, Any]:
     """Unified context resolution across both short-term and long-term memory.
 
@@ -461,13 +462,16 @@ def resolve_memory_context(
         session_id: The session identifier (from ``init``).
         key:        The context key to resolve.
         min_score:  Minimum cosine score (0..1) for a semantic hit.
+        exact_only: Skip the semantic step. Default: true for structured keys
+                    (``path:``, ``src:``, ``module:``, ``build:``) when
+                    ``min_score`` is not given, else false.
 
     Returns:
         ``{"source": "short_term"|"long_term"|"miss", "value": str|None,
         "score": float, "match": "exact"|"semantic"|None, "node_id": str|None}``
     """
     store = get_store(session_id)
-    return resolve_context(session_id, key, store, min_score)
+    return resolve_context(session_id, key, store, min_score, exact_only)
 
 
 # ---------------------------------------------------------------------------
