@@ -6,7 +6,13 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { getStore, _sessionStoresMap } from "../src/kv-store.js";
 import { _graphStoresMap } from "../src/memory-graph.js";
 import { upsertNode } from "../src/memory-graph.js";
-import { resolveContext, promoteToLongTerm, getMemoryStatus } from "../src/solution-engine.js";
+import {
+  resolveContext,
+  promoteToLongTerm,
+  getMemoryStatus,
+  isStructuredKey,
+  MIN_SEMANTIC_SCORE,
+} from "../src/solution-engine.js";
 import { resetVectorizer } from "../src/embeddings.js";
 
 beforeEach(() => {
@@ -158,5 +164,76 @@ describe("resolveContext exact label and min score", () => {
 
   it("an empty graph is a miss at any threshold", () => {
     expect(resolveContext("s1", "anything", getStore("s1"), 0).source).toBe("miss");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// resolveContext: structured keys are exact-only (go-ethereum near misses)
+// ---------------------------------------------------------------------------
+
+describe("resolveContext structured keys", () => {
+  const ZERO_SRC = "src:" + "0".repeat(64);
+  const NEAR_PATH = "path:go-ethereum/core/does-not-exist";
+  const PKGS: Record<string, string> = {
+    "core/vm": "3c3d758ba5c249f3",
+    "core/vm/program": "6c71d1fdbb4a78c9",
+    "crypto/keccak": "a1b2c3d4e5f60718",
+    "core/types": "0f1e2d3c4b5a6978",
+    "eth/tracers/native": "1122334455667788",
+  };
+
+  function gethLike(): void {
+    for (const [p, sha16] of Object.entries(PKGS)) {
+      const sha = sha16.repeat(4);
+      upsertNode("s1", "file", `path:go-ethereum/${p}`,
+        `go-ethereum/${p}: content sha256 ${sha16} built with status ok`, { sha256: sha, path: p });
+      const name = p.split("/").pop();
+      upsertNode("s1", "file", `src:${sha}`, `${name} [go] OK; warnings=0. Path go-ethereum/${p}.`, { sha256: sha });
+    }
+    upsertNode("s1", "concept", "module:go:core", "go:core: kinds=go; units=3; failing=none");
+  }
+
+  it.each([NEAR_PATH, ZERO_SRC])("never-stored structured key %s is a miss", (key) => {
+    gethLike();
+    expect(resolveContext("s1", key, getStore("s1"))).toEqual({
+      source: "miss", value: null, score: 0, match: null, nodeId: null,
+    });
+  });
+
+  it.each([NEAR_PATH, ZERO_SRC])("forcing the semantic step on %s returns some other node", (key) => {
+    gethLike();
+    const r = resolveContext("s1", key, getStore("s1"), 0, false);
+    expect(r.match).toBe("semantic");
+    expect(r.value).not.toContain("does-not-exist");
+  });
+
+  it("exact structured keys still hit", () => {
+    gethLike();
+    for (const key of ["path:go-ethereum/core/vm", `src:${PKGS["core/vm"].repeat(4)}`, "module:go:core"]) {
+      const r = resolveContext("s1", key, getStore("s1"));
+      expect(r.match).toBe("exact");
+      expect(r.score).toBe(1);
+    }
+  });
+
+  it("exactOnly=true also applies to free text", () => {
+    upsertNode("s1", "concept", "database pooling", "PostgreSQL connection pooling configuration");
+    const store = getStore("s1");
+    expect(resolveContext("s1", "PostgreSQL connection pooling configuration", store).match).toBe("semantic");
+    expect(resolveContext("s1", "PostgreSQL connection pooling configuration", store, undefined, true).source)
+      .toBe("miss");
+  });
+
+  it("an explicit minScore keeps the old semantic behaviour", () => {
+    gethLike();
+    expect(resolveContext("s1", NEAR_PATH, getStore("s1"), 0).match).toBe("semantic");
+    expect(MIN_SEMANTIC_SCORE).toBe(0.5);
+  });
+
+  it.each([
+    ["path:a/b", true], ["src:00", true], ["module:x", true], ["build:abc", true],
+    ["path:", false], ["path: spaced", false], ["auth", false], ["xpath:a", false], ["Path:a", false],
+  ])("isStructuredKey(%s) is %s", (key, expected) => {
+    expect(isStructuredKey(key as string)).toBe(expected);
   });
 });

@@ -80,7 +80,6 @@ import {
   resolveContext,
   promoteToLongTerm,
   getMemoryStatus,
-  MIN_SEMANTIC_SCORE,
 } from "./solution-engine.js";
 
 // ---------------------------------------------------------------------------
@@ -719,7 +718,8 @@ server.tool(
     "graph node whose label equals `key` exactly, then semantic graph search, " +
     "which only counts when its score is at least `min_score` (default 0.5). " +
     "A key that was never stored returns `source: \"miss\"` instead of the " +
-    "nearest unrelated node.",
+    "nearest unrelated node. Structured keys (path:, src:, module:, build:) " +
+    "are exact-only unless `min_score` is given or `exact_only` is false.",
   {
     session_id: z.string().describe("The session identifier (from `init`)."),
     key: z.string().describe("The context key to resolve."),
@@ -729,10 +729,14 @@ server.tool(
       .max(1)
       .optional()
       .describe("Minimum cosine score (0..1) for a semantic long-term hit (default 0.5)."),
+    exact_only: z
+      .boolean()
+      .optional()
+      .describe("Skip the semantic step. Default: true for structured keys (path:, src:, module:, build:) when min_score is not given, else false."),
   },
-  async ({ session_id, key, min_score }) => {
+  async ({ session_id, key, min_score, exact_only }) => {
     const store = getStore(session_id);
-    const result = resolveContext(session_id, key, store, min_score ?? MIN_SEMANTIC_SCORE);
+    const result = resolveContext(session_id, key, store, min_score, exact_only);
     return {
       content: [
         {

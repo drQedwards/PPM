@@ -18,11 +18,22 @@ Node labels are the stable keys, because the memory graph upserts by
   file     path:<repo>/<path>    mutable pointer, metadata.sha256 = content last built
   concept  module:<stem>         contains -> path nodes
   note     build:<run_id>        references -> src nodes (repo HEAD, toolchain)
-  src --depends_on--> src        `#include "..."` resolved inside the repo
+  src --depends_on--> src        `#include "..."` resolved inside the repo,
+                                 plus any unit-declared ``depends_on_units``
+                                 (unit paths) and ``includes`` (file paths)
+
+A unit's ``path`` may be a file or a directory (a package, e.g. from
+go_batch_build.py). For directories, ``sha256`` is ``files_sha256`` over the
+unit's ``files`` list, which is stored on the path node so ``--stale`` can
+recompute it.
 
 Optional:
+  --root DIR         repository the unit paths are relative to (default: this repo)
+  --group NAME       how units are grouped into module:* nodes: stem (default,
+                     file basename), dir (parent directory) or toplevel
+                     (first path component). build() also takes any callable.
   --load-sqlite DB   write the graph through mcp/pmll_memory_mcp.memory_graph
-                     (SQLite; survives restarts)
+                     (SQLite; survives restarts), in one transaction
   --stale DB         compare stored path:* nodes with the files on disk and
                      list paths whose content changed since they were built
 """
@@ -34,7 +45,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -48,8 +59,44 @@ INCLUDE_RE = re.compile(r'#\s*include\s+"([^"]+)"')
 
 
 def module_of(path: str) -> str:
+    """Default grouping: file basename (stem), with this repo's aliases."""
     stem = Path(path).stem
     return MODULE_ALIASES.get(stem.lower(), stem)
+
+
+def module_by_dir(path: str) -> str:
+    """Group by parent directory (a file) or the directory itself (a package)."""
+    p = Path(path)
+    return (p.parent if p.suffix else p).as_posix() or "."
+
+
+def module_by_toplevel(path: str) -> str:
+    """Group by the first path component (e.g. core, eth, p2p)."""
+    first = Path(path).parts[0] if Path(path).parts else "."
+    return first
+
+
+GROUPERS: Dict[str, Callable[[str], str]] = {
+    "stem": module_of, "dir": module_by_dir, "toplevel": module_by_toplevel,
+}
+
+
+def files_sha256(root: Path, relpaths: Iterable[str]) -> str:
+    """Content hash of a set of files: sha256 over sorted
+    ``"<relpath>\0<sha256(file)>\n"`` lines. A missing file hashes as
+    ``missing``, so deleting one changes the result."""
+    h = hashlib.sha256()
+    for rel in sorted(set(relpaths)):
+        f = root / rel
+        h.update(f"{rel}\0{_sha_file(f) if f.is_file() else 'missing'}\n".encode())
+    return h.hexdigest()
+
+
+def dir_files(root: Path, rel: str) -> List[str]:
+    """Regular files directly inside ``rel`` (not recursive), as repo paths."""
+    d = root / rel
+    return sorted((d / f.name).relative_to(root).as_posix()
+                  for f in d.iterdir() if f.is_file()) if d.is_dir() else []
 
 
 def unit_status(u: Dict[str, Any]) -> str:
@@ -68,7 +115,11 @@ def _sha_file(p: Path) -> str:
 
 
 def build(results: Dict[str, Any], root: Path = ROOT,
-          repo: Optional[str] = None) -> Tuple[str, Dict[str, Dict[str, Any]], List[Tuple[str, str, str]], Dict[str, str]]:
+          repo: Optional[str] = None,
+          group: Optional[Callable[[str], str]] = None,
+          ) -> Tuple[str, Dict[str, Dict[str, Any]], List[Tuple[str, str, str]], Dict[str, str]]:
+    """``group`` maps a unit path to its module name (default ``module_of``)."""
+    group = group or module_of
     meta = results.get("meta", {})
     repo = repo or meta.get("repo") or root.name
     units = results.get("units", [])
@@ -104,10 +155,12 @@ def build(results: Dict[str, Any], root: Path = ROOT,
         kv[f"build:{sha}"] = json.dumps({"status": st, "w": u.get("warnings", 0), "err": err[:120], "run": run_id},
                                         separators=(",", ":"))
         plabel = f"path:{repo}/{path}"
-        node("file", plabel, f"{repo}/{path}: content sha256 {sha[:16]} built with status {st}",
-             {"sha256": sha, "repo": repo, "path": path, "status": st, "run_id": run_id})
+        pmd = {"sha256": sha, "repo": repo, "path": path, "status": st, "run_id": run_id}
+        if u.get("files"):
+            pmd["files"] = json.dumps(sorted(u["files"]), separators=(",", ":"))
+        node("file", plabel, f"{repo}/{path}: content sha256 {sha[:16]} built with status {st}", pmd)
         edges += [(f"build:{run_id}", src, "references"), (plabel, src, "references")]
-        mod = module_of(path)
+        mod = group(path)
         members.setdefault(mod, []).append((path, u.get("kind", ""), st))
         edges.append((f"module:{mod}", plabel, "contains"))
         p = root / path
@@ -123,6 +176,20 @@ def build(results: Dict[str, Any], root: Path = ROOT,
                                  {"sha256": hsha, "kind": "h", "path": rel, "run_id": run_id})
                         edges.append((src, hlabel, "depends_on"))
                         break
+        for inc in u.get("includes", []):
+            f = root / inc
+            if f.is_file():
+                hsha = _sha_file(f)
+                hlabel = f"src:{hsha}"
+                if hlabel not in nodes:
+                    node("file", hlabel, f"{f.name} [header]. Path {repo}/{inc}.",
+                         {"sha256": hsha, "kind": "h", "path": inc, "run_id": run_id})
+                edges.append((src, hlabel, "depends_on"))
+    by_path = {u["path"]: u["sha256"] for u in units}
+    for u in units:
+        for dep in u.get("depends_on_units", []):
+            if dep in by_path and by_path[dep] != u["sha256"]:
+                edges.append((f"src:{u['sha256']}", f"src:{by_path[dep]}", "depends_on"))
     for mod, mem in members.items():
         failing = sorted({p for p, _, s in mem if s == "fail"})
         kinds = sorted({k for _, k, _ in mem})
@@ -139,27 +206,60 @@ def _graph_api(root: Path):
 
 
 def load_sqlite(db: str, session: str, nodes, edges, root: Path = ROOT) -> Dict[str, Any]:
-    mg = _graph_api(root)
+    """Write nodes and edges through memory_graph. ``root`` is the repo that
+    holds mcp/ (this one by default)."""
+    root = Path(root)
+    mg = _graph_api(root if (root / "mcp" / "pmll_memory_mcp").is_dir() else ROOT)
     mg.configure_db(db)
-    ids = {label: mg.upsert_node(session, n["type"], label, n["content"], n["metadata"]).id
-           for label, n in nodes.items()}
-    made = sum(1 for s, t, r in edges if mg.create_relation(session, ids[s], ids[t], r) is not None)
+    batch = getattr(mg, "batch", None)
+    with (batch() if batch else _nullcontext()):  # one transaction, not one commit per row
+        ids = {label: mg.upsert_node(session, n["type"], label, n["content"], n["metadata"]).id
+               for label, n in nodes.items()}
+        made = sum(1 for s, t, r in edges if mg.create_relation(session, ids[s], ids[t], r) is not None)
     stats = mg.get_graph_stats(session)
     return {"nodes": stats["nodes"], "edges": stats["edges"], "edges_created": made, "db_path": stats["db_path"]}
 
 
-def stale_paths(db: str, session: str, root: Path = ROOT) -> List[Dict[str, str]]:
-    """path:* nodes whose stored sha256 differs from the file on disk now."""
-    mg = _graph_api(root)
+def current_sha256(root: Path, metadata: Dict[str, str]) -> str:
+    """Hash a path node's target the way it was hashed when built.
+
+    file -> sha256 of the file; directory -> ``files_sha256`` over the stored
+    ``files`` list (or, without one, the files directly inside it);
+    neither -> ``missing``."""
+    p = root / metadata["path"]
+    if p.is_file():
+        return _sha_file(p)
+    if p.is_dir():
+        files = json.loads(metadata["files"]) if metadata.get("files") else dir_files(root, metadata["path"])
+        return files_sha256(root, files)
+    return "missing"
+
+
+def _nullcontext():
+    import contextlib
+    return contextlib.nullcontext()
+
+
+def stale_paths(db: str, session: str, root: Path = ROOT,
+                hasher: Optional[Callable[[Path, Dict[str, str]], str]] = None,
+                mcp_root: Optional[Path] = None) -> List[Dict[str, str]]:
+    """path:* nodes whose stored sha256 differs from what is on disk now.
+
+    Files and directories (packages) are both handled, see current_sha256.
+    ``hasher(root, metadata)`` overrides the hashing (go_batch_build passes
+    one that re-lists the package). ``mcp_root`` is the repo holding mcp/
+    when ``root`` is another repository."""
+    root = Path(root)
+    mg = _graph_api(Path(mcp_root) if mcp_root else ROOT)
     mg.configure_db(db)
     graph = mg._get_graph(session)
     labels = {n.label for n in graph.nodes.values()}
+    hasher = hasher or current_sha256
     out = []
     for n in graph.nodes.values():
         if not n.label.startswith("path:") or "path" not in n.metadata:
             continue
-        p = root / n.metadata["path"]
-        cur = _sha_file(p) if p.is_file() else "missing"
+        cur = hasher(root, n.metadata)
         if cur != n.metadata.get("sha256"):
             out.append({"path": n.metadata["path"], "built_sha256": n.metadata.get("sha256", ""),
                         "current_sha256": cur, "current_content_built": str(f"src:{cur}" in labels)})
@@ -174,19 +274,23 @@ def main(argv=None) -> int:
     ap.add_argument("--load-sqlite", metavar="DB")
     ap.add_argument("--stale", metavar="DB", help="report path nodes whose file content changed (no build)")
     ap.add_argument("--session", default="pmll-build-memory")
+    ap.add_argument("--root", default=str(ROOT), help="repository the unit paths are relative to")
+    ap.add_argument("--group", choices=sorted(GROUPERS), default="stem",
+                    help="module grouping: stem (file basename, default), dir or toplevel")
     args = ap.parse_args(argv)
+    root = Path(args.root).resolve()
     if args.stale:
-        rows = stale_paths(args.stale, args.session)
+        rows = stale_paths(args.stale, args.session, root)
         print(json.dumps(rows, indent=1))
         return 0
     results = json.loads(Path(args.results).read_text())
-    run_id, nodes, edges, kv = build(results, ROOT, args.repo)
+    run_id, nodes, edges, kv = build(results, root, args.repo, GROUPERS[args.group])
     Path(args.out).write_text(json.dumps({
         "run_id": run_id, "nodes": list(nodes.values()),
         "edges": [{"source": s, "target": t, "relation": r} for s, t, r in edges], "kv": kv}, indent=1))
     print(f"run {run_id}: {len(nodes)} nodes, {len(edges)} edges, {len(kv)} silo keys -> {args.out}")
     if args.load_sqlite:
-        print("sqlite:", json.dumps(load_sqlite(args.load_sqlite, args.session, nodes, edges)))
+        print("sqlite:", json.dumps(load_sqlite(args.load_sqlite, args.session, nodes, edges, ROOT)))
     return 0
 
 

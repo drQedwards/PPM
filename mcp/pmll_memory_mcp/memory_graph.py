@@ -13,6 +13,12 @@ Architecture:
 Process restart reloads the graph from SQLite. Stores are process-local;
 MCP assumes single-threaded / externally serialized access, with an RLock
 around registry + DB writes.
+
+Scaling: each session keeps in-memory indexes (label -> node ids,
+(type, label) -> node id, (source, target, relation) -> edge id and
+node id -> edge ids), so upserts, exact label lookups, relation upserts and
+neighbour walks no longer scan the whole graph. ``batch()`` groups many
+writes into one SQLite commit.
 """
 
 from __future__ import annotations
@@ -26,8 +32,9 @@ import string
 import tempfile
 import threading
 import time
+from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, Iterator, List, Literal, Optional, Tuple
 
 from .embeddings import embed, cosine_similarity
 
@@ -113,13 +120,164 @@ CREATE INDEX IF NOT EXISTS idx_edges_session ON edges(session_id);
 _lock = threading.RLock()
 _db_path: Optional[str] = None
 _db_conn: Optional[sqlite3.Connection] = None
+_batch_depth = 0  # > 0 inside batch(): per-row commits are deferred
+
+
+def _maybe_commit() -> None:
+    if _batch_depth == 0:
+        _conn().commit()
+
+
+@contextmanager
+def batch() -> Iterator[None]:
+    """Group many writes into one SQLite transaction.
+
+    Inside ``with batch():`` the per-row commits that upsert_node,
+    create_relation and friends normally do are deferred; one commit runs
+    when the outermost block exits. If the block raises, the transaction is
+    rolled back and the in-memory session caches are dropped, so the next
+    access reloads exactly what SQLite holds. The module lock is held for the
+    whole block, so other threads wait instead of interleaving writes.
+    """
+    global _batch_depth
+    with _lock:
+        _conn()
+        _batch_depth += 1
+        try:
+            yield
+        except BaseException:
+            _batch_depth -= 1
+            if _batch_depth == 0:
+                try:
+                    _conn().rollback()
+                finally:
+                    _graph_stores.clear()
+            raise
+        else:
+            _batch_depth -= 1
+            if _batch_depth == 0:
+                _conn().commit()
 
 
 class _GraphStore:
+    """Nodes and edges of one session plus lookup indexes.
+
+    ``nodes`` / ``edges`` stay plain dicts (callers and tests read them).
+    The indexes are kept in sync by the functions in this module; if code
+    outside the module adds or removes entries directly, the size check in
+    ``_sync()`` notices and rebuilds them before the next indexed lookup.
+    """
+
     def __init__(self) -> None:
         self.nodes: Dict[str, MemoryNode] = {}
         self.edges: Dict[str, MemoryEdge] = {}
         self.loaded: bool = False
+        self._by_type_label: Dict[Tuple[str, str], str] = {}
+        self._by_label: Dict[str, Dict[str, None]] = {}
+        self._by_edge_key: Dict[Tuple[str, str, str], str] = {}
+        self._adjacency: Dict[str, Dict[str, None]] = {}
+        self._indexed: Tuple[int, int] = (0, 0)
+
+    # -- index maintenance -------------------------------------------------
+    def rebuild_index(self) -> None:
+        self._by_type_label.clear()
+        self._by_label.clear()
+        self._by_edge_key.clear()
+        self._adjacency.clear()
+        for node in self.nodes.values():
+            self._index_node(node)
+        for edge in self.edges.values():
+            self._index_edge(edge)
+        self._indexed = (len(self.nodes), len(self.edges))
+
+    def _sync(self) -> None:
+        if self._indexed != (len(self.nodes), len(self.edges)):
+            self.rebuild_index()
+
+    def _index_node(self, node: MemoryNode) -> None:
+        # Keep the first node per (type, label), like the old linear scan did.
+        self._by_type_label.setdefault((node.type, node.label), node.id)
+        self._by_label.setdefault(node.label, {})[node.id] = None
+
+    def _index_edge(self, edge: MemoryEdge) -> None:
+        self._by_edge_key.setdefault((edge.source, edge.target, edge.relation), edge.id)
+        self._adjacency.setdefault(edge.source, {})[edge.id] = None
+        self._adjacency.setdefault(edge.target, {})[edge.id] = None
+
+    def add_node(self, node: MemoryNode) -> None:
+        self._sync()
+        self.nodes[node.id] = node
+        self._index_node(node)
+        self._indexed = (len(self.nodes), len(self.edges))
+
+    def add_edge(self, edge: MemoryEdge) -> None:
+        self._sync()
+        self.edges[edge.id] = edge
+        self._index_edge(edge)
+        self._indexed = (len(self.nodes), len(self.edges))
+
+    def remove_edge(self, edge_id: str) -> None:
+        self._sync()
+        edge = self.edges.pop(edge_id, None)
+        if edge is not None:
+            key = (edge.source, edge.target, edge.relation)
+            if self._by_edge_key.get(key) == edge_id:
+                del self._by_edge_key[key]
+                for other in self.edges.values():  # rare: duplicate keys from imports
+                    if (other.source, other.target, other.relation) == key:
+                        self._by_edge_key[key] = other.id
+                        break
+            for end in (edge.source, edge.target):
+                self._adjacency.get(end, {}).pop(edge_id, None)
+        self._indexed = (len(self.nodes), len(self.edges))
+
+    def remove_node(self, node_id: str) -> None:
+        self._sync()
+        node = self.nodes.pop(node_id, None)
+        if node is not None:
+            ids = self._by_label.get(node.label, {})
+            ids.pop(node_id, None)
+            if not ids:
+                self._by_label.pop(node.label, None)
+            key = (node.type, node.label)
+            if self._by_type_label.get(key) == node_id:
+                del self._by_type_label[key]
+                for nid in ids:
+                    if self.nodes[nid].type == node.type:
+                        self._by_type_label[key] = nid
+                        break
+            self._adjacency.pop(node_id, None)
+        self._indexed = (len(self.nodes), len(self.edges))
+
+    # -- lookups -----------------------------------------------------------
+    def node_by_type_label(self, node_type: str, label: str) -> Optional[MemoryNode]:
+        self._sync()
+        nid = self._by_type_label.get((node_type, label))
+        if nid is None:
+            return None
+        node = self.nodes.get(nid)
+        if node is None or node.label != label or node.type != node_type:
+            self.rebuild_index()  # entry removed or relabelled outside the module
+            nid = self._by_type_label.get((node_type, label))
+            node = self.nodes.get(nid) if nid is not None else None
+        return node
+
+    def nodes_by_label(self, label: str) -> List[MemoryNode]:
+        self._sync()
+        out = [self.nodes[nid] for nid in self._by_label.get(label, {}) if nid in self.nodes]
+        if any(n.label != label for n in out):
+            self.rebuild_index()
+            out = [self.nodes[nid] for nid in self._by_label.get(label, {}) if nid in self.nodes]
+        return out
+
+    def edge_by_key(self, source: str, target: str, relation: str) -> Optional[MemoryEdge]:
+        self._sync()
+        eid = self._by_edge_key.get((source, target, relation))
+        return self.edges.get(eid) if eid is not None else None
+
+    def edges_for_node(self, node_id: str) -> List[MemoryEdge]:
+        self._sync()
+        return [self.edges[eid] for eid in self._adjacency.get(node_id, {}) if eid in self.edges]
 
 
 _graph_stores: Dict[str, _GraphStore] = {}
@@ -225,7 +383,7 @@ def _persist_node(session_id: str, node: MemoryNode, commit: bool = True) -> Non
         ),
     )
     if commit:
-        _conn().commit()
+        _maybe_commit()
 
 
 def _persist_edge(session_id: str, edge: MemoryEdge, commit: bool = True) -> None:
@@ -241,7 +399,7 @@ def _persist_edge(session_id: str, edge: MemoryEdge, commit: bool = True) -> Non
         ),
     )
     if commit:
-        _conn().commit()
+        _maybe_commit()
 
 
 def _delete_edge_ids(session_id: str, edge_ids: List[str]) -> None:
@@ -251,7 +409,7 @@ def _delete_edge_ids(session_id: str, edge_ids: List[str]) -> None:
         "DELETE FROM edges WHERE session_id = ? AND id = ?",
         [(session_id, eid) for eid in edge_ids],
     )
-    _conn().commit()
+    _maybe_commit()
 
 
 def _delete_node_ids(session_id: str, node_ids: List[str]) -> None:
@@ -261,7 +419,7 @@ def _delete_node_ids(session_id: str, node_ids: List[str]) -> None:
         "DELETE FROM nodes WHERE session_id = ? AND id = ?",
         [(session_id, nid) for nid in node_ids],
     )
-    _conn().commit()
+    _maybe_commit()
 
 
 def _load_session(session_id: str, graph: _GraphStore) -> None:
@@ -273,6 +431,7 @@ def _load_session(session_id: str, graph: _GraphStore) -> None:
     for row in cur.fetchall():
         edge = _row_to_edge(row)
         graph.edges[edge.id] = edge
+    graph.rebuild_index()
     graph.loaded = True
 
 
@@ -295,7 +454,7 @@ def _decay_weight(edge: MemoryEdge) -> float:
 
 
 def _get_edges_for_node(graph: _GraphStore, node_id: str) -> List[MemoryEdge]:
-    return [e for e in graph.edges.values() if e.source == node_id or e.target == node_id]
+    return graph.edges_for_node(node_id)
 
 
 def _get_neighbor_id(edge: MemoryEdge, from_id: str) -> str:
@@ -315,8 +474,8 @@ def find_node_by_label(
     with _lock:
         graph = _get_graph(session_id)
         matches = [
-            n for n in graph.nodes.values()
-            if n.label == label and (node_type is None or n.type == node_type)
+            n for n in graph.nodes_by_label(label)
+            if node_type is None or n.type == node_type
         ]
         if not matches:
             return None
@@ -336,16 +495,16 @@ def upsert_node(
 ) -> MemoryNode:
     with _lock:
         graph = _get_graph(session_id)
-        for node in graph.nodes.values():
-            if node.label == label and node.type == node_type:
-                node.content = content
-                node.last_accessed = time.time()
-                node.access_count += 1
-                if metadata:
-                    node.metadata.update(metadata)
-                node.embedding = embed(f"{label} {content}")
-                _persist_node(session_id, node)
-                return node
+        node = graph.node_by_type_label(node_type, label)
+        if node is not None:
+            node.content = content
+            node.last_accessed = time.time()
+            node.access_count += 1
+            if metadata:
+                node.metadata.update(metadata)
+            node.embedding = embed(f"{label} {content}")
+            _persist_node(session_id, node)
+            return node
         node = MemoryNode(
             id=_generate_id("mn"),
             type=node_type,
@@ -357,7 +516,7 @@ def upsert_node(
             access_count=1,
             metadata=metadata or {},
         )
-        graph.nodes[node.id] = node
+        graph.add_node(node)
         _persist_node(session_id, node)
         return node
 
@@ -374,18 +533,14 @@ def create_relation(
         graph = _get_graph(session_id)
         if source_id not in graph.nodes or target_id not in graph.nodes:
             return None
-        for edge in graph.edges.values():
-            if (
-                edge.source == source_id
-                and edge.target == target_id
-                and edge.relation == relation
-            ):
-                if weight is not None:
-                    edge.weight = weight
-                if metadata:
-                    edge.metadata.update(metadata)
-                _persist_edge(session_id, edge)
-                return edge
+        edge = graph.edge_by_key(source_id, target_id, relation)
+        if edge is not None:
+            if weight is not None:
+                edge.weight = weight
+            if metadata:
+                edge.metadata.update(metadata)
+            _persist_edge(session_id, edge)
+            return edge
         edge = MemoryEdge(
             id=_generate_id("me"),
             source=source_id,
@@ -395,7 +550,7 @@ def create_relation(
             created_at=time.time(),
             metadata=metadata or {},
         )
-        graph.edges[edge.id] = edge
+        graph.add_edge(edge)
         _persist_edge(session_id, edge)
         return edge
 
@@ -498,7 +653,7 @@ def prune_stale_links(
         cutoff = threshold if threshold is not None else STALE_THRESHOLD
         to_remove = [eid for eid, edge in graph.edges.items() if _decay_weight(edge) < cutoff]
         for eid in to_remove:
-            del graph.edges[eid]
+            graph.remove_edge(eid)
         _delete_edge_ids(session_id, to_remove)
         orphans = [
             nid for nid, node in graph.nodes.items()
@@ -509,7 +664,7 @@ def prune_stale_links(
             )
         ]
         for nid in orphans:
-            del graph.nodes[nid]
+            graph.remove_node(nid)
         _delete_node_ids(session_id, orphans)
         return {"removed": len(to_remove) + len(orphans), "remaining": len(graph.edges)}
 
@@ -729,6 +884,7 @@ def import_graph(session_id: str, data: Dict[str, Any]) -> None:
         graph = _GraphStore()
         graph.nodes = {n.id: n for n in nodes}
         graph.edges = {e.id: e for e in edges}
+        graph.rebuild_index()
         graph.loaded = True
         _graph_stores[session_id] = graph
 

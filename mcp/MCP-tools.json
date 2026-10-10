@@ -175,13 +175,14 @@
     },
     {
       "name": "resolve_context",
-      "description": "Unified context lookup: short-term KV -> exact graph label -> semantic graph (score >= min_score, default 0.5) -> miss. Returns source, score and match.",
+      "description": "Unified context lookup: short-term KV -> exact graph label -> semantic graph (score >= min_score, default 0.5) -> miss. Structured keys (path:, src:, module:, build:) are exact-only unless min_score is given or exact_only is false. Returns source, score and match.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "session_id": { "type": "string" },
           "key": { "type": "string" },
-          "min_score": { "type": "number", "minimum": 0, "maximum": 1 }
+          "min_score": { "type": "number", "minimum": 0, "maximum": 1 },
+          "exact_only": { "type": "boolean" }
         },
         "required": ["session_id", "key"]
       }

@@ -39,6 +39,21 @@ const PROMOTION_THRESHOLD = 3;
  */
 export const MIN_SEMANTIC_SCORE = 0.5;
 
+/**
+ * Structured keys name one exact thing (a path, a content hash, a module, a
+ * build run). A near miss such as `path:go-ethereum/core/does-not-exist`
+ * scored 0.686 against `core/vm/program` on the go-ethereum build graph, and
+ * an all-zero `src:` key scored 0.528 against `crypto/keccak`: both above
+ * MIN_SEMANTIC_SCORE. So these keys get exact lookup only.
+ */
+export const STRUCTURED_KEY_PREFIXES = ["path:", "src:", "module:", "build:"] as const;
+const STRUCTURED_KEY_RE = /^(?:path|src|module|build):\S/;
+
+/** True for `path:`, `src:`, `module:` and `build:` keys. */
+export function isStructuredKey(key: string): boolean {
+  return STRUCTURED_KEY_RE.test(key);
+}
+
 export interface ResolveContextResult {
   source: "short_term" | "long_term" | "miss";
   value: string | null;
@@ -55,13 +70,20 @@ export interface ResolveContextResult {
  *      (default MIN_SEMANTIC_SCORE), match "semantic"
  * Anything else is a miss, so a never-stored key is not answered with an
  * unrelated node.
+ *
+ * `exactOnly` skips step 3. Left undefined, it is decided from the call: a
+ * structured key (see isStructuredKey) is exact-only unless `minScore` was
+ * passed explicitly (the pre-existing way to ask for semantic matches);
+ * free text keeps the semantic fallback.
  */
 export function resolveContext(
   sessionId: string,
   key: string,
   store: PMMemoryStore,
-  minScore: number = MIN_SEMANTIC_SCORE,
+  minScore?: number,
+  exactOnly?: boolean,
 ): ResolveContextResult {
+  const threshold = minScore ?? MIN_SEMANTIC_SCORE;
   // Layer 1: Short-term KV cache
   const [hit, value] = store.peek(key);
   if (hit && value !== null) {
@@ -74,12 +96,16 @@ export function resolveContext(
     return { source: "long_term", value: exact.content, score: 1.0, match: "exact", nodeId: exact.id };
   }
 
+  if (exactOnly ?? (minScore === undefined && isStructuredKey(key))) {
+    return { source: "miss", value: null, score: 0, match: null, nodeId: null };
+  }
+
   // Layer 3: Long-term graph, semantic search above the threshold
   const graphResult = searchGraph(sessionId, key, 1, 1);
   if (graphResult.direct.length > 0) {
     const top = graphResult.direct[0];
     const score = top.relevanceScore / 100;
-    if (score >= minScore) {
+    if (score >= threshold) {
       return { source: "long_term", value: top.node.content, score, match: "semantic", nodeId: top.node.id };
     }
   }

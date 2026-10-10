@@ -20,6 +20,7 @@ Designed to improve context retention and retrieval for coding agents by combini
 
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, Optional
 
 from .kv_store import PMMemoryStore
@@ -41,12 +42,27 @@ PROMOTION_THRESHOLD = 3
 # lower bound of 0.5 turns those into misses. Exact label hits score 1.0.
 MIN_SEMANTIC_SCORE = 0.5
 
+# Structured keys name one exact thing (a path, a content hash, a module, a
+# build run). A near miss such as ``path:go-ethereum/core/does-not-exist``
+# scored 0.686 against ``core/vm/program`` on the go-ethereum build graph, and
+# an all-zero ``src:`` key scored 0.528 against ``crypto/keccak``: both above
+# MIN_SEMANTIC_SCORE. So these keys get exact lookup only, never the semantic
+# fallback.
+STRUCTURED_KEY_PREFIXES = ("path:", "src:", "module:", "build:")
+_STRUCTURED_KEY_RE = re.compile(r"^(?:path|src|module|build):\S")
+
+
+def is_structured_key(key: str) -> bool:
+    """True for ``path:``, ``src:``, ``module:`` and ``build:`` keys."""
+    return bool(_STRUCTURED_KEY_RE.match(key))
+
 
 def resolve_context(
     session_id: str,
     key: str,
     store: PMMemoryStore,
     min_score: Optional[float] = None,
+    exact_only: Optional[bool] = None,
 ) -> Dict[str, Any]:
     """Resolve context from both short-term and long-term memory layers.
 
@@ -59,6 +75,11 @@ def resolve_context(
          ``match`` is "semantic".
     Anything else is a miss, so a key that was never stored does not come
     back as an unrelated node.
+
+    ``exact_only`` skips layer 3. ``None`` (the default) means "decide from
+    the call": a structured key (see ``is_structured_key``) is exact-only
+    unless the caller passed ``min_score`` explicitly (the pre-existing way
+    to ask for semantic matches); free-text keys keep the semantic fallback.
 
     Returns:
         ``{"source": "short_term"|"long_term"|"miss", "value": str|None,
@@ -76,6 +97,11 @@ def resolve_context(
     if node is not None:
         return {"source": "long_term", "value": node.content, "score": 1.0, "match": "exact",
                 "node_id": node.id}
+
+    if exact_only is None:
+        exact_only = min_score is None and is_structured_key(key)
+    if exact_only:
+        return {"source": "miss", "value": None, "score": 0.0, "match": None, "node_id": None}
 
     # Layer 3: Long-term graph, semantic search above the threshold
     graph_result = search_graph(session_id, key, max_depth=1, top_k=1)
