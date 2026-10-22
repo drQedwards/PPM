@@ -1,0 +1,23 @@
+{
+ "puzzle": 71,
+ "ranges": [
+  {
+   "from": "0x77270a23328a8d2d9c",
+   "to": "0x77270a2348c6c9c3ed",
+   "keys": 95499884113,
+   "found": false,
+   "closed_at": "2026-10-22T07:07:01-0400"
+  },
+  {
+   "from": "0x77270a2348c6c9c3ed",
+   "to": "0x77270a234e6c10b3af",
+   "keys": 24247726018,
+   "found": false,
+   "run_total_keys": 24492652544,
+   "run_seconds": 780,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-22T07:20:22-04:00"
+  }
+ ],
+ "sha256": "d3f7e88c303aa428b4368fdcc0d95acdf1ace7613d33a1d498710f20172cb181"
+}
