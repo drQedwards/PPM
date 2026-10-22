@@ -1,19 +1,31 @@
 <?php
 // PMLL anchor: SHA-256 digests only (payloads stay off-chain) -> PmllAnchor.store(id, root)
-// Usage: php anchor.php --rpc URL --contract 0xADDR --from 0xADMIN [--dry]
+// Usage: php anchor.php --rpc URL --contract 0xADDR --from 0xADMIN [--dry] [--set items|crypto]
+//        [--key-env PRIVATE_KEY]  raw signed tx: `cast mktx` with the key read from that env var
+//        (never printed/logged), then eth_sendRawTransaction. Without it: eth_sendTransaction.
 //   Sends via eth_sendTransaction (unlocked dev/anvil account), then verifies the
 //   Anchor event in the receipt and get(id) read-back. Uses `cast` only for keccak.
-$o = getopt('', ['rpc:', 'contract:', 'from:', 'dry', 'out:']);
+$o = getopt('', ['rpc:', 'contract:', 'from:', 'dry', 'out:', 'set:', 'key-env:', 'manifest:']);
+$set = $o['set'] ?? 'items';
 $W = '/workspace';
 $CAST = getenv('CAST') ?: (getenv('HOME') . '/.foundry/bin/cast');
 
 function git_tree($repo) { return trim(shell_exec("git -C " . escapeshellarg($repo) . " rev-parse 'HEAD^{tree}'")); }
 $leaves = [];
-foreach (glob("$W/php-depgraph/out/*_{units,graph}.json", GLOB_BRACE) as $f)
-  $leaves['file:' . basename($f)] = hash_file('sha256', $f);
-$leaves['tree:pmll@feat/php-js-depgraph'] = hash('sha256', git_tree("$W/pmll-main"));
-$leaves['tree:ppm@feat/php-js-depgraph']  = hash('sha256', git_tree("$W/ppm-main"));
-$leaves['file:php-depgraph/README.md']    = hash_file('sha256', "$W/php-depgraph/README.md");
+if ($set === 'crypto') {
+  $C = "$W/crypto-repos";
+  foreach (glob("$C/out/*_{units,graph}.json", GLOB_BRACE) as $f) $leaves['file:' . basename($f)] = hash_file('sha256', $f);
+  foreach (['go-ethereum', 'jito-solana', 'mempool'] as $r)
+    $leaves["commit:$r"] = hash('sha256', trim(shell_exec("git -C " . escapeshellarg("$C/$r") . " rev-parse HEAD")));
+} else {
+  foreach (glob("$W/php-depgraph/out/*_{units,graph}.json", GLOB_BRACE) as $f)
+    $leaves['file:' . basename($f)] = hash_file('sha256', $f);
+  $leaves['tree:pmll@feat/php-js-depgraph'] = hash('sha256', git_tree("$W/pmll-main"));
+  $leaves['tree:ppm@feat/php-js-depgraph']  = hash('sha256', git_tree("$W/ppm-main"));
+  $leaves['file:php-depgraph/README.md']    = hash_file('sha256', "$W/php-depgraph/README.md");
+}
+// --manifest: reuse frozen leaves from an earlier run (root is recomputed, not trusted)
+if (isset($o['manifest'])) { $mf = json_decode(file_get_contents($o['manifest']), true); $leaves = $mf['leaves']; }
 ksort($leaves);
 
 // Merkle: leaf = sha256(0x00||label||0x00||digest), node = sha256(0x01||a||b), odd node promoted
@@ -26,9 +38,10 @@ while (count($lvl) > 1) {
   $lvl = $n;
 }
 $root = '0x' . bin2hex($lvl[0]);
-$id = '0x' . hash('sha256', 'pmll:depgraph:feat/php-js-depgraph:items1-3');
+$id = isset($mf) ? $mf['id'] : '0x' . hash('sha256', $set === 'crypto' ? 'pmll:depgraph:crypto-repos:geth-jito-mempool' : 'pmll:depgraph:feat/php-js-depgraph:items1-3');
+if (isset($mf) && $mf['root'] !== $root) { fwrite(STDERR, "manifest root mismatch\n"); exit(3); }
 $manifest = ['id' => $id, 'root' => $root, 'leaves' => $leaves];
-file_put_contents($o['out'] ?? "$W/php-depgraph/out/anchor_manifest.json", json_encode($manifest, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
+if (!isset($mf)) file_put_contents($o['out'] ?? "$W/php-depgraph/out/anchor_manifest_$set.json", json_encode($manifest, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
 echo "id   $id\nroot $root\nleaves " . count($leaves) . "\n";
 if (isset($o['dry'])) exit(0);
 
@@ -44,9 +57,17 @@ function rpc($url, $m, $p) {
 $sel = fn($sig) => substr(trim(shell_exec(escapeshellarg($GLOBALS['CAST']) . ' keccak ' . escapeshellarg($sig))), 0, 10);
 $w = fn($h) => str_pad(substr($h, 2), 64, '0', STR_PAD_LEFT);
 $data = $sel('store(bytes32,bytes32)') . $w($id) . $w($root);   // ABI: selector || id || commitment
-$tx = rpc($rpc, 'eth_sendTransaction', [['from' => $from, 'to' => $to, 'data' => $data]]);
+if (isset($o['key-env'])) {
+  $kv = $o['key-env'];
+  if (!preg_match('/^[A-Z_][A-Z0-9_]*$/', $kv) || !getenv($kv)) { fwrite(STDERR, "env $kv not set\n"); exit(1); }
+  $raw = trim(shell_exec(escapeshellarg($CAST) . " mktx --rpc-url " . escapeshellarg($rpc) . " --private-key \"\$$kv\" " . escapeshellarg($to) . " " . escapeshellarg($data)));
+  if (!str_starts_with($raw, '0x')) { fwrite(STDERR, "cast mktx failed\n"); exit(1); }
+  $tx = rpc($rpc, 'eth_sendRawTransaction', [$raw]);
+} else {
+  $tx = rpc($rpc, 'eth_sendTransaction', [['from' => $from, 'to' => $to, 'data' => $data]]);
+}
 echo "tx   $tx\n";
-for ($i = 0; $i < 60 && !($rc = rpc($rpc, 'eth_getTransactionReceipt', [$tx])); $i++) sleep(1);
+for ($i = 0; $i < 180 && !($rc = rpc($rpc, 'eth_getTransactionReceipt', [$tx])); $i++) sleep(2);
 $topic0 = trim(shell_exec(escapeshellarg($CAST) . ' keccak ' . escapeshellarg('Anchor(bytes32,bytes32)')));
 $ok_ev = false;
 foreach ($rc['logs'] as $l)
