@@ -1,0 +1,857 @@
+{
+  "promiseLib": "q@1.5.1",
+  "prior_best_siphon_adapt": 0.5,
+  "prior_static_rich": 0.6,
+  "siphon": {
+    "opts": {
+      "maxGens": 8,
+      "flatN": 2,
+      "nTrials": 80,
+      "nEpisodes": 30,
+      "maxSteps": 3000,
+      "seedBase": 42
+    },
+    "graph": {
+      "nodes": 2441,
+      "edges": 4959,
+      "pairs": 7
+    },
+    "flat_for_N": {
+      "mode": "flat_for_N",
+      "flatN": 2,
+      "maxGens": 8,
+      "stopReason": "flat_for_N",
+      "prunedAt": 2,
+      "jumpedAt": null,
+      "generations": [
+        {
+          "id": 0,
+          "parentId": null,
+          "lastImprovedId": 0,
+          "W": {
+            "same_sec": 3,
+            "out_share": 2,
+            "repeat": 1,
+            "delegation": 5,
+            "near_zero": 2
+          },
+          "meanSteps": 53.37102155091286,
+          "stdevSteps": 160.77899827567836,
+          "meanBool": 75.20137608806964,
+          "ratioVsParent": null,
+          "ratioVsBool": 0.6261363345867708,
+          "status": "resolved",
+          "flat": false,
+          "flatStats": {
+            "flat": false,
+            "entropy": 1.1399760226646387,
+            "entropy_max": 2.321928094887362,
+            "cv": 1.1845883502806767,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "errorMatrix": {
+            "same_sec": 42534574.56552509,
+            "out_share": 863095.1595200689,
+            "repeat": 42536532.31551689,
+            "delegation": 0,
+            "near_zero": 850004.0445579913
+          },
+          "walkSteps": 3163437,
+          "wallMs": 18548
+        },
+        {
+          "id": 1,
+          "parentId": 0,
+          "lastImprovedId": 0,
+          "W": {
+            "same_sec": 1.6257426593231183,
+            "out_share": 1.9752877514687501,
+            "repeat": 0.5418987748143737,
+            "delegation": 5,
+            "near_zero": 1.975662707733376
+          },
+          "meanSteps": 53.37102155091286,
+          "stdevSteps": 160.77899827567836,
+          "meanBool": 75.20137608806964,
+          "ratioVsParent": 1,
+          "ratioVsBool": 0.6261363345867708,
+          "status": "rejected",
+          "flat": false,
+          "flatStats": {
+            "flat": false,
+            "entropy": 1.1399760226646387,
+            "entropy_max": 2.321928094887362,
+            "cv": 1.1845883502806767,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "errorMatrix": {
+            "same_sec": 42534574.56552509,
+            "out_share": 863095.1595200689,
+            "repeat": 42536532.31551689,
+            "delegation": 0,
+            "near_zero": 850004.0445579913
+          },
+          "walkSteps": 3163437,
+          "wallMs": 17040
+        },
+        {
+          "id": 2,
+          "parentId": 1,
+          "lastImprovedId": 0,
+          "W": {
+            "same_sec": 0.47743150625641023,
+            "out_share": 1.926802997169403,
+            "repeat": 0.15913157061148792,
+            "delegation": 5,
+            "near_zero": 1.9278453927257317
+          },
+          "meanSteps": 97.04954968944101,
+          "stdevSteps": 312.6377386958611,
+          "meanBool": 75.20137608806964,
+          "ratioVsParent": 1.818394081081273,
+          "ratioVsBool": 0.9508579586435602,
+          "status": "rejected",
+          "flat": false,
+          "flatStats": {
+            "flat": false,
+            "entropy": 1.1399816794018727,
+            "entropy_max": 2.321928094887362,
+            "cv": 1.184586391756835,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "errorMatrix": {
+            "same_sec": 38785124.17962427,
+            "out_share": 786143.2389609676,
+            "repeat": 38786395.29628853,
+            "delegation": 0,
+            "near_zero": 776012.5229463401
+          },
+          "walkSteps": 3013788,
+          "wallMs": 16136
+        }
+      ],
+      "best": {
+        "id": 0,
+        "parentId": null,
+        "lastImprovedId": 0,
+        "W": {
+          "same_sec": 3,
+          "out_share": 2,
+          "repeat": 1,
+          "delegation": 5,
+          "near_zero": 2
+        },
+        "meanSteps": 53.37102155091286,
+        "stdevSteps": 160.77899827567836,
+        "meanBool": 75.20137608806964,
+        "ratioVsParent": null,
+        "ratioVsBool": 0.6261363345867708,
+        "status": "resolved",
+        "flat": false,
+        "flatStats": {
+          "flat": false,
+          "entropy": 1.1399760226646387,
+          "entropy_max": 2.321928094887362,
+          "cv": 1.1845883502806767,
+          "near_uniform_entropy": false,
+          "low_cv": false
+        },
+        "errorMatrix": {
+          "same_sec": 42534574.56552509,
+          "out_share": 863095.1595200689,
+          "repeat": 42536532.31551689,
+          "delegation": 0,
+          "near_zero": 850004.0445579913
+        },
+        "walkSteps": 3163437,
+        "wallMs": 18548
+      },
+      "finalAncestor": {
+        "id": 0,
+        "parentId": null,
+        "lastImprovedId": 0,
+        "W": {
+          "same_sec": 3,
+          "out_share": 2,
+          "repeat": 1,
+          "delegation": 5,
+          "near_zero": 2
+        },
+        "meanSteps": 53.37102155091286,
+        "stdevSteps": 160.77899827567836,
+        "meanBool": 75.20137608806964,
+        "ratioVsParent": null,
+        "ratioVsBool": 0.6261363345867708,
+        "status": "resolved",
+        "flat": false,
+        "flatStats": {
+          "flat": false,
+          "entropy": 1.1399760226646387,
+          "entropy_max": 2.321928094887362,
+          "cv": 1.1845883502806767,
+          "near_uniform_entropy": false,
+          "low_cv": false
+        },
+        "errorMatrix": {
+          "same_sec": 42534574.56552509,
+          "out_share": 863095.1595200689,
+          "repeat": 42536532.31551689,
+          "delegation": 0,
+          "near_zero": 850004.0445579913
+        },
+        "walkSteps": 3163437,
+        "wallMs": 18548
+      },
+      "nGensRun": 3,
+      "totalWalkSteps": 9340662,
+      "totalWallMs": 51724,
+      "wallMsAll": 51726,
+      "promiseLib": "q@1.5.1"
+    },
+    "early_break": {
+      "mode": "early_break",
+      "flatN": 2,
+      "maxGens": 8,
+      "stopReason": "max_gens",
+      "prunedAt": null,
+      "jumpedAt": null,
+      "generations": [
+        {
+          "id": 0,
+          "parentId": null,
+          "lastImprovedId": 0,
+          "W": {
+            "same_sec": 3,
+            "out_share": 2,
+            "repeat": 1,
+            "delegation": 5,
+            "near_zero": 2
+          },
+          "meanSteps": 53.37102155091286,
+          "stdevSteps": 160.77899827567836,
+          "meanBool": 75.20137608806964,
+          "ratioVsParent": null,
+          "ratioVsBool": 0.6261363345867708,
+          "status": "resolved",
+          "flat": false,
+          "flatStats": {
+            "flat": false,
+            "entropy": 1.1399760226646387,
+            "entropy_max": 2.321928094887362,
+            "cv": 1.1845883502806767,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "errorMatrix": {
+            "same_sec": 42534574.56552509,
+            "out_share": 863095.1595200689,
+            "repeat": 42536532.31551689,
+            "delegation": 0,
+            "near_zero": 850004.0445579913
+          },
+          "walkSteps": 3163437,
+          "wallMs": 17268
+        },
+        {
+          "id": 1,
+          "parentId": 0,
+          "lastImprovedId": 0,
+          "W": {
+            "same_sec": 1.6257426593231183,
+            "out_share": 1.9752877514687501,
+            "repeat": 0.5418987748143737,
+            "delegation": 5,
+            "near_zero": 1.975662707733376
+          },
+          "meanSteps": 53.37102155091286,
+          "stdevSteps": 160.77899827567836,
+          "meanBool": 75.20137608806964,
+          "ratioVsParent": 1,
+          "ratioVsBool": 0.6261363345867708,
+          "status": "rejected",
+          "flat": false,
+          "flatStats": {
+            "flat": false,
+            "entropy": 1.1399760226646387,
+            "entropy_max": 2.321928094887362,
+            "cv": 1.1845883502806767,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "errorMatrix": {
+            "same_sec": 42534574.56552509,
+            "out_share": 863095.1595200689,
+            "repeat": 42536532.31551689,
+            "delegation": 0,
+            "near_zero": 850004.0445579913
+          },
+          "walkSteps": 3163437,
+          "wallMs": 17358
+        },
+        {
+          "id": 2,
+          "parentId": 1,
+          "lastImprovedId": 0,
+          "W": {
+            "same_sec": 0.47743150625641023,
+            "out_share": 1.926802997169403,
+            "repeat": 0.15913157061148792,
+            "delegation": 5,
+            "near_zero": 1.9278453927257317
+          },
+          "meanSteps": 97.04954968944101,
+          "stdevSteps": 312.6377386958611,
+          "meanBool": 75.20137608806964,
+          "ratioVsParent": 1.818394081081273,
+          "ratioVsBool": 0.9508579586435602,
+          "status": "rejected",
+          "flat": false,
+          "flatStats": {
+            "flat": false,
+            "entropy": 1.1399816794018727,
+            "entropy_max": 2.321928094887362,
+            "cv": 1.184586391756835,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "errorMatrix": {
+            "same_sec": 38785124.17962427,
+            "out_share": 786143.2389609676,
+            "repeat": 38786395.29628853,
+            "delegation": 0,
+            "near_zero": 776012.5229463401
+          },
+          "walkSteps": 3013788,
+          "wallMs": 16030
+        },
+        {
+          "id": 3,
+          "parentId": 2,
+          "lastImprovedId": 0,
+          "W": {
+            "same_sec": 0.14021338568892694,
+            "out_share": 1.8793688605566516,
+            "repeat": 0.049999999999999996,
+            "delegation": 5,
+            "near_zero": 1.881145790687368
+          },
+          "meanSteps": 141.93236821408405,
+          "stdevSteps": 443.0180167225646,
+          "meanBool": 75.20137608806964,
+          "ratioVsParent": 1.4624732280393702,
+          "ratioVsBool": 1.2893421352531518,
+          "status": "rejected",
+          "flat": false,
+          "flatStats": {
+            "flat": false,
+            "entropy": 1.1403696117656779,
+            "entropy_max": 2.321928094887362,
+            "cv": 1.1844465219612839,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "errorMatrix": {
+            "same_sec": 34545947.2586469,
+            "out_share": 704812.2697432127,
+            "repeat": 34547102.658646226,
+            "delegation": 0,
+            "near_zero": 691564.2745602311
+          },
+          "walkSteps": 2875509,
+          "wallMs": 15273
+        },
+        {
+          "id": 4,
+          "parentId": 3,
+          "lastImprovedId": 0,
+          "W": {
+            "same_sec": 0.049999999999999996,
+            "out_share": 1.8327276212334167,
+            "repeat": 0.049999999999999996,
+            "delegation": 5,
+            "near_zero": 1.8355683080591068
+          },
+          "meanSteps": 142.51001220864524,
+          "stdevSteps": 438.01041938344804,
+          "meanBool": 75.20137608806964,
+          "ratioVsParent": 1.0040698538453885,
+          "ratioVsBool": 1.298645065944991,
+          "status": "rejected",
+          "flat": false,
+          "flatStats": {
+            "flat": false,
+            "entropy": 1.1408292322065376,
+            "entropy_max": 2.321928094887362,
+            "cv": 1.1842804556404776,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "errorMatrix": {
+            "same_sec": 32590906.130888574,
+            "out_share": 670479.1282026621,
+            "repeat": 32591888.664221723,
+            "delegation": 0,
+            "near_zero": 652430.8153791183
+          },
+          "walkSteps": 2831112,
+          "wallMs": 15025
+        },
+        {
+          "id": 5,
+          "parentId": 4,
+          "lastImprovedId": 0,
+          "W": {
+            "same_sec": 0.049999999999999996,
+            "out_share": 1.78709589038734,
+            "repeat": 0.049999999999999996,
+            "delegation": 5,
+            "near_zero": 1.7910998576133539
+          },
+          "meanSteps": 139.18472169365026,
+          "stdevSteps": 437.88603733972934,
+          "meanBool": 75.20137608806964,
+          "ratioVsParent": 0.9766662674189761,
+          "ratioVsBool": 1.2738107823878213,
+          "status": "resolved",
+          "flat": false,
+          "flatStats": {
+            "flat": false,
+            "entropy": 1.140759254859023,
+            "entropy_max": 2.321928094887362,
+            "cv": 1.1843057430018693,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "errorMatrix": {
+            "same_sec": 31544211.845224656,
+            "out_share": 648219.7902613602,
+            "repeat": 31545130.795224547,
+            "delegation": 0,
+            "near_zero": 631383.2419891146
+          },
+          "walkSteps": 2790366,
+          "wallMs": 14729
+        },
+        {
+          "id": 6,
+          "parentId": 5,
+          "lastImprovedId": 0,
+          "W": {
+            "same_sec": 0.049999999999999996,
+            "out_share": 1.7646860774698774,
+            "repeat": 0.049999999999999996,
+            "delegation": 5,
+            "near_zero": 1.7692703666138532
+          },
+          "meanSteps": 138.7458843537415,
+          "stdevSteps": 436.69085419678726,
+          "meanBool": 75.20137608806964,
+          "ratioVsParent": 0.9968470868456766,
+          "ratioVsBool": 1.2828624209507804,
+          "status": "rejected",
+          "flat": false,
+          "flatStats": {
+            "flat": false,
+            "entropy": 1.1407866781838225,
+            "entropy_max": 2.321928094887362,
+            "cv": 1.1842958373466117,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "errorMatrix": {
+            "same_sec": 30935664.796910036,
+            "out_share": 635976.5079714714,
+            "repeat": 30936583.24690993,
+            "delegation": 0,
+            "near_zero": 619255.7383890896
+          },
+          "walkSteps": 2772318,
+          "wallMs": 14930
+        },
+        {
+          "id": 7,
+          "parentId": 6,
+          "lastImprovedId": 0,
+          "W": {
+            "same_sec": 0.049999999999999996,
+            "out_share": 1.7207634912928447,
+            "repeat": 0.049999999999999996,
+            "delegation": 5,
+            "near_zero": 1.7264068090405253
+          },
+          "meanSteps": 132.32332507717845,
+          "stdevSteps": 439.0579240895307,
+          "meanBool": 75.20137608806964,
+          "ratioVsParent": 0.9537099114220331,
+          "ratioVsBool": 1.2296168519217194,
+          "status": "resolved",
+          "flat": false,
+          "flatStats": {
+            "flat": false,
+            "entropy": 1.140747967163443,
+            "entropy_max": 2.321928094887362,
+            "cv": 1.1843098394665224,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "errorMatrix": {
+            "same_sec": 31971935.967701282,
+            "out_share": 656795.8502153945,
+            "repeat": 31972892.567701116,
+            "delegation": 0,
+            "near_zero": 640023.8820965594
+          },
+          "walkSteps": 2827197,
+          "wallMs": 14705
+        }
+      ],
+      "best": {
+        "id": 0,
+        "parentId": null,
+        "lastImprovedId": 0,
+        "W": {
+          "same_sec": 3,
+          "out_share": 2,
+          "repeat": 1,
+          "delegation": 5,
+          "near_zero": 2
+        },
+        "meanSteps": 53.37102155091286,
+        "stdevSteps": 160.77899827567836,
+        "meanBool": 75.20137608806964,
+        "ratioVsParent": null,
+        "ratioVsBool": 0.6261363345867708,
+        "status": "resolved",
+        "flat": false,
+        "flatStats": {
+          "flat": false,
+          "entropy": 1.1399760226646387,
+          "entropy_max": 2.321928094887362,
+          "cv": 1.1845883502806767,
+          "near_uniform_entropy": false,
+          "low_cv": false
+        },
+        "errorMatrix": {
+          "same_sec": 42534574.56552509,
+          "out_share": 863095.1595200689,
+          "repeat": 42536532.31551689,
+          "delegation": 0,
+          "near_zero": 850004.0445579913
+        },
+        "walkSteps": 3163437,
+        "wallMs": 17268
+      },
+      "finalAncestor": {
+        "id": 0,
+        "parentId": null,
+        "lastImprovedId": 0,
+        "W": {
+          "same_sec": 3,
+          "out_share": 2,
+          "repeat": 1,
+          "delegation": 5,
+          "near_zero": 2
+        },
+        "meanSteps": 53.37102155091286,
+        "stdevSteps": 160.77899827567836,
+        "meanBool": 75.20137608806964,
+        "ratioVsParent": null,
+        "ratioVsBool": 0.6261363345867708,
+        "status": "resolved",
+        "flat": false,
+        "flatStats": {
+          "flat": false,
+          "entropy": 1.1399760226646387,
+          "entropy_max": 2.321928094887362,
+          "cv": 1.1845883502806767,
+          "near_uniform_entropy": false,
+          "low_cv": false
+        },
+        "errorMatrix": {
+          "same_sec": 42534574.56552509,
+          "out_share": 863095.1595200689,
+          "repeat": 42536532.31551689,
+          "delegation": 0,
+          "near_zero": 850004.0445579913
+        },
+        "walkSteps": 3163437,
+        "wallMs": 17268
+      },
+      "nGensRun": 8,
+      "totalWalkSteps": 23437164,
+      "totalWallMs": 125318,
+      "wallMsAll": 125336,
+      "promiseLib": "q@1.5.1"
+    },
+    "savings_early_vs_flat_for_N": {
+      "loops_saved": -5,
+      "walk_steps_saved": -14096502,
+      "wall_ms_saved": -73594,
+      "wall_ms_all_saved": -73610,
+      "key_equiv_saved": 0
+    }
+  },
+  "puzzle": {
+    "opts": {
+      "maxGens": 8,
+      "flatN": 2,
+      "nTrials": 200,
+      "nEpisodes": 60,
+      "seedBase": 42
+    },
+    "flat_for_N": {
+      "mode": "flat_for_N",
+      "flatN": 2,
+      "maxGens": 8,
+      "stopReason": "flat_for_N",
+      "prunedAt": 2,
+      "jumpedAt": null,
+      "generations": [
+        {
+          "id": 0,
+          "parentId": null,
+          "lastImprovedId": 0,
+          "meanSteps": 508944.0272727273,
+          "stdevSteps": 300536.3480136487,
+          "meanRand": 523913.3795454545,
+          "ratioVsParent": null,
+          "ratioVsRand": 0.9686612502707022,
+          "status": "resolved",
+          "flat": true,
+          "flatStats": {
+            "flat": true,
+            "entropy": 5.95576031354855,
+            "entropy_max": 6
+          },
+          "entropy": 5.95576031354855,
+          "walkSteps": 3996,
+          "wallMs": 27
+        },
+        {
+          "id": 1,
+          "parentId": 0,
+          "lastImprovedId": 0,
+          "meanSteps": 508944.0272727273,
+          "stdevSteps": 300536.3480136487,
+          "meanRand": 523913.3795454545,
+          "ratioVsParent": 1,
+          "ratioVsRand": 0.9686612502707022,
+          "status": "rejected",
+          "flat": true,
+          "flatStats": {
+            "flat": true,
+            "entropy": 5.95576031354855,
+            "entropy_max": 6
+          },
+          "entropy": 5.95576031354855,
+          "walkSteps": 3996,
+          "wallMs": 8
+        },
+        {
+          "id": 2,
+          "parentId": 1,
+          "lastImprovedId": 0,
+          "meanSteps": 508154.7340909091,
+          "stdevSteps": 300452.3334123388,
+          "meanRand": 523913.3795454545,
+          "ratioVsParent": 0.9984491552321623,
+          "ratioVsRand": 0.967092831327851,
+          "status": "rejected",
+          "flat": true,
+          "flatStats": {
+            "flat": true,
+            "entropy": 5.957957976672085,
+            "entropy_max": 6
+          },
+          "entropy": 5.957957976672085,
+          "walkSteps": 3981,
+          "wallMs": 8
+        }
+      ],
+      "best": {
+        "id": 0,
+        "parentId": null,
+        "lastImprovedId": 0,
+        "meanSteps": 508944.0272727273,
+        "stdevSteps": 300536.3480136487,
+        "meanRand": 523913.3795454545,
+        "ratioVsParent": null,
+        "ratioVsRand": 0.9686612502707022,
+        "status": "resolved",
+        "flat": true,
+        "flatStats": {
+          "flat": true,
+          "entropy": 5.95576031354855,
+          "entropy_max": 6
+        },
+        "entropy": 5.95576031354855,
+        "walkSteps": 3996,
+        "wallMs": 27
+      },
+      "finalAncestor": {
+        "id": 0,
+        "parentId": null,
+        "lastImprovedId": 0,
+        "meanSteps": 508944.0272727273,
+        "stdevSteps": 300536.3480136487,
+        "meanRand": 523913.3795454545,
+        "ratioVsParent": null,
+        "ratioVsRand": 0.9686612502707022,
+        "status": "resolved",
+        "flat": true,
+        "flatStats": {
+          "flat": true,
+          "entropy": 5.95576031354855,
+          "entropy_max": 6
+        },
+        "entropy": 5.95576031354855,
+        "walkSteps": 3996,
+        "wallMs": 27
+      },
+      "nGensRun": 3,
+      "totalWalkSteps": 11973,
+      "totalKeyEquiv": 85082112,
+      "totalWallMs": 43,
+      "wallMsAll": 45,
+      "train_n": 58,
+      "test_ids": [
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70
+      ],
+      "S": 1048576,
+      "n_bins": 64,
+      "promiseLib": "q@1.5.1"
+    },
+    "early_break": {
+      "mode": "early_break",
+      "flatN": 2,
+      "maxGens": 8,
+      "stopReason": "early_break_flatline",
+      "prunedAt": null,
+      "jumpedAt": 1,
+      "generations": [
+        {
+          "id": 0,
+          "parentId": null,
+          "lastImprovedId": 0,
+          "meanSteps": 508944.0272727273,
+          "stdevSteps": 300536.3480136487,
+          "meanRand": 523913.3795454545,
+          "ratioVsParent": null,
+          "ratioVsRand": 0.9686612502707022,
+          "status": "resolved",
+          "flat": true,
+          "flatStats": {
+            "flat": true,
+            "entropy": 5.95576031354855,
+            "entropy_max": 6
+          },
+          "entropy": 5.95576031354855,
+          "walkSteps": 3996,
+          "wallMs": 10
+        },
+        {
+          "id": 1,
+          "parentId": 0,
+          "lastImprovedId": 0,
+          "meanSteps": 508944.0272727273,
+          "stdevSteps": 300536.3480136487,
+          "meanRand": 523913.3795454545,
+          "ratioVsParent": 1,
+          "ratioVsRand": 0.9686612502707022,
+          "status": "rejected",
+          "flat": true,
+          "flatStats": {
+            "flat": true,
+            "entropy": 5.95576031354855,
+            "entropy_max": 6
+          },
+          "entropy": 5.95576031354855,
+          "walkSteps": 3996,
+          "wallMs": 8
+        }
+      ],
+      "best": {
+        "id": 0,
+        "parentId": null,
+        "lastImprovedId": 0,
+        "meanSteps": 508944.0272727273,
+        "stdevSteps": 300536.3480136487,
+        "meanRand": 523913.3795454545,
+        "ratioVsParent": null,
+        "ratioVsRand": 0.9686612502707022,
+        "status": "resolved",
+        "flat": true,
+        "flatStats": {
+          "flat": true,
+          "entropy": 5.95576031354855,
+          "entropy_max": 6
+        },
+        "entropy": 5.95576031354855,
+        "walkSteps": 3996,
+        "wallMs": 10
+      },
+      "finalAncestor": {
+        "id": 0,
+        "parentId": null,
+        "lastImprovedId": 0,
+        "meanSteps": 508944.0272727273,
+        "stdevSteps": 300536.3480136487,
+        "meanRand": 523913.3795454545,
+        "ratioVsParent": null,
+        "ratioVsRand": 0.9686612502707022,
+        "status": "resolved",
+        "flat": true,
+        "flatStats": {
+          "flat": true,
+          "entropy": 5.95576031354855,
+          "entropy_max": 6
+        },
+        "entropy": 5.95576031354855,
+        "walkSteps": 3996,
+        "wallMs": 10
+      },
+      "nGensRun": 2,
+      "totalWalkSteps": 7992,
+      "totalKeyEquiv": 56885248,
+      "totalWallMs": 18,
+      "wallMsAll": 18,
+      "train_n": 58,
+      "test_ids": [
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70
+      ],
+      "S": 1048576,
+      "n_bins": 64,
+      "promiseLib": "q@1.5.1"
+    },
+    "savings_early_vs_flat_for_N": {
+      "loops_saved": 1,
+      "walk_steps_saved": 3981,
+      "wall_ms_saved": 25,
+      "wall_ms_all_saved": 27,
+      "key_equiv_saved": 28196864
+    }
+  }
+}
