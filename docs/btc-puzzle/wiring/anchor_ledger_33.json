@@ -1,0 +1,10 @@
+{
+ "id": "0x3e41ca86bcce390a6366b09aa028e0e97f39d03bcb8e3ecabf87d8431a628b76",
+ "digest": "0x2daca1be3455fccea813c5f2470f1cac7f4866011fa35c29028705ac672492cd",
+ "tx": "0xfcbdb9be753a38d03d3075a499957e23235ebc364f0f3e8e673bca9fb5e71571",
+ "block": 12005018,
+ "status": 1,
+ "readback": "0x2daca1be3455fccea813c5f2470f1cac7f4866011fa35c29028705ac672492cd",
+ "match": true,
+ "note": "initial readback hit RPC lag (zero); re-read verified"
+}
