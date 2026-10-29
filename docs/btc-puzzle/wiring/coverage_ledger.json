@@ -1,0 +1,473 @@
+{
+ "puzzle": 71,
+ "ranges": [
+  {
+   "from": "0x77270a23328a8d2d9c",
+   "to": "0x77270a2348c6c9c3ed",
+   "keys": 95499884113,
+   "found": false,
+   "closed_at": "2026-10-22T07:07:01-0400"
+  },
+  {
+   "from": "0x77270a2348c6c9c3ed",
+   "to": "0x77270a234e6c10b3af",
+   "keys": 24247726018,
+   "found": false,
+   "run_total_keys": 24492652544,
+   "run_seconds": 780,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-22T07:20:22-04:00"
+  },
+  {
+   "from": "0x77270a234e6c10b3af",
+   "to": "0x77270a235cd1e32fd8",
+   "keys": 61837835305,
+   "found": false,
+   "run_total_keys": 86955112448,
+   "run_seconds": 2820,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-22T08:11:49-04:00"
+  },
+  {
+   "from": "0x77270a235cd1e32fd8",
+   "to": "0x77270a23750b87c586",
+   "keys": 104046302638,
+   "found": false,
+   "run_total_keys": 192052387840,
+   "run_seconds": 6300,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-22T12:10:50-04:00"
+  },
+  {
+   "from": "0x77270a23750b87c586",
+   "to": "0x77270a238b83d4c2a5",
+   "keys": 96507591967,
+   "found": false,
+   "run_total_keys": 289534803968,
+   "run_seconds": 9510,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-22T16:08:26-04:00"
+  },
+  {
+   "from": "0x77270a238b83d4c2a5",
+   "to": "0x77270a23a5d5e86bed",
+   "keys": 113046169928,
+   "found": false,
+   "run_total_keys": 403722854400,
+   "run_seconds": 13260,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-22T20:03:01-04:00"
+  },
+  {
+   "from": "0x77270a23a5d5e86bed",
+   "to": "0x77270a23bf7ab3da7c",
+   "keys": 110138977935,
+   "found": false,
+   "run_total_keys": 514974347264,
+   "run_seconds": 16950,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-23T00:08:52-04:00"
+  },
+  {
+   "from": "0x77270a23bf7ab3da7c",
+   "to": "0x77270a23d7f206f815",
+   "keys": 105081150873,
+   "found": false,
+   "run_total_keys": 621116923904,
+   "run_seconds": 20370,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-23T04:07:49-04:00"
+  },
+  {
+   "from": "0x77270a23d7f206f815",
+   "to": "0x77270a23f053f0b3c4",
+   "keys": 104721922991,
+   "found": false,
+   "run_total_keys": 726896644096,
+   "run_seconds": 23790,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-23T08:08:23-04:00"
+  },
+  {
+   "from": "0x77270a23f053f0b3c4",
+   "to": "0x77270a2413bc1e2d49",
+   "keys": 152071666053,
+   "found": false,
+   "run_total_keys": 880504387584,
+   "run_seconds": 29070,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-23T12:12:49-04:00"
+  },
+  {
+   "from": "0x77270a2413bc1e2d49",
+   "to": "0x77270a242a28255ea5",
+   "keys": 96301691228,
+   "found": false,
+   "run_total_keys": 977778823168,
+   "run_seconds": 32340,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-23T16:02:46-04:00"
+  },
+  {
+   "from": "0x77270a242a28255ea5",
+   "to": "0x77270a248e2b812490",
+   "keys": 429553075691,
+   "found": false,
+   "run_total_keys": 1411670818816,
+   "run_seconds": 46320,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-23T20:05:47-04:00"
+  },
+  {
+   "from": "0x77270a248e2b812490",
+   "to": "0x77270a24ee7fbd82a5",
+   "keys": 413730102805,
+   "found": false,
+   "run_total_keys": 1829580013568,
+   "run_seconds": 59670,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-24T00:05:10-04:00"
+  },
+  {
+   "from": "0x77270a24ee7fbd82a5",
+   "to": "0x77270a2532f751face",
+   "keys": 294063994921,
+   "found": false,
+   "run_total_keys": 2126614351872,
+   "run_seconds": 69180,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-24T04:00:35-04:00"
+  },
+  {
+   "from": "0x77270a2532f751face",
+   "to": "0x77270a2552b59a6f9b",
+   "keys": 136336405709,
+   "found": false,
+   "run_total_keys": 2264327892992,
+   "run_seconds": 73710,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-24T08:08:37-04:00"
+  },
+  {
+   "from": "0x77270a2552b59a6f9b",
+   "to": "0x77270a2564facb910b",
+   "keys": 78470259056,
+   "found": false,
+   "run_total_keys": 2343590780928,
+   "run_seconds": 76380,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-24T12:05:53-04:00"
+  },
+  {
+   "from": "0x77270a2564facb910b",
+   "to": "0x77270a25779ae0baa5",
+   "keys": 79995152794,
+   "found": false,
+   "run_total_keys": 2424393965568,
+   "run_seconds": 79110,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-24T16:06:15-04:00"
+  },
+  {
+   "from": "0x77270a25779ae0baa5",
+   "to": "0x77270a258ebceea253",
+   "keys": 99355584430,
+   "found": false,
+   "run_total_keys": 2524753141760,
+   "run_seconds": 82500,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-24T20:03:02-04:00"
+  },
+  {
+   "from": "0x77270a258ebceea253",
+   "to": "0x77270a25a52cd3fb49",
+   "keys": 96366582006,
+   "found": false,
+   "run_total_keys": 2622093123584,
+   "run_seconds": 85830,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-25T00:05:40-04:00"
+  },
+  {
+   "from": "0x77270a25a52cd3fb49",
+   "to": "0x77270a25ba196e110b",
+   "keys": 89868867010,
+   "found": false,
+   "run_total_keys": 2712869756928,
+   "run_seconds": 88860,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-25T04:05:18-04:00"
+  },
+  {
+   "from": "0x77270a25ba196e110b",
+   "to": "0x77270a25cc1e4a1549",
+   "keys": 77390939198,
+   "found": false,
+   "run_total_keys": 2791042422784,
+   "run_seconds": 91470,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-25T08:04:32-04:00"
+  },
+  {
+   "from": "0x77270a25cc1e4a1549",
+   "to": "0x77270a25e4aed3d815",
+   "keys": 105504162508,
+   "found": false,
+   "run_total_keys": 2897612283904,
+   "run_seconds": 95130,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-25T12:10:02-04:00"
+  },
+  {
+   "from": "0x77270a25e4aed3d815",
+   "to": "0x77270a25fc0531ba01",
+   "keys": 100233241068,
+   "found": false,
+   "run_total_keys": 2998857981952,
+   "run_seconds": 98520,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-25T16:07:46-04:00"
+  },
+  {
+   "from": "0x77270a25fc0531ba01",
+   "to": "0x77270a260deb51982a",
+   "keys": 76875292201,
+   "found": false,
+   "run_total_keys": 3076509792256,
+   "run_seconds": 101100,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-25T20:00:50-04:00"
+  },
+  {
+   "from": "0x77270a260deb51982a",
+   "to": "0x77270a2625daf9f690",
+   "keys": 102805036646,
+   "found": false,
+   "run_total_keys": 3180353263616,
+   "run_seconds": 104520,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-26T00:05:29-04:00"
+  },
+  {
+   "from": "0x77270a2625daf9f690",
+   "to": "0x77270a263c4c9d367c",
+   "keys": 96395804652,
+   "found": false,
+   "run_total_keys": 3277722763264,
+   "run_seconds": 107700,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-26T04:07:36-04:00"
+  },
+  {
+   "from": "0x77270a263c4c9d367c",
+   "to": "0x77270a2652a5fdf1ed",
+   "keys": 95988792177,
+   "found": false,
+   "run_total_keys": 3374681139200,
+   "run_seconds": 110910,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-26T08:12:57-04:00"
+  },
+  {
+   "from": "0x77270a2652a5fdf1ed",
+   "to": "0x77270a266af5fd3986",
+   "keys": 104421345177,
+   "found": false,
+   "run_total_keys": 3480157245440,
+   "run_seconds": 114570,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-26T12:09:50-04:00"
+  },
+  {
+   "from": "0x77270a266af5fd3986",
+   "to": "0x77270a268f218d7d86",
+   "keys": 155349697536,
+   "found": false,
+   "run_total_keys": 3637076131840,
+   "run_seconds": 120000,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-26T16:04:10-04:00"
+  },
+  {
+   "from": "0x77270a268f218d7d86",
+   "to": "0x77270a26a73f70c090",
+   "keys": 103580648202,
+   "found": false,
+   "run_total_keys": 3741703049216,
+   "run_seconds": 123510,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-26T20:12:34-04:00"
+  },
+  {
+   "from": "0x77270a26a73f70c090",
+   "to": "0x77270a26be0ae74201",
+   "keys": 97902821745,
+   "found": false,
+   "run_total_keys": 3840594788352,
+   "run_seconds": 126780,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-27T00:07:05-04:00"
+  },
+  {
+   "from": "0x77270a26be0ae74201",
+   "to": "0x77270a26d43ed882f7",
+   "keys": 95360729334,
+   "found": false,
+   "run_total_keys": 3936918757376,
+   "run_seconds": 129990,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-27T04:08:42-04:00"
+  },
+  {
+   "from": "0x77270a26d43ed882f7",
+   "to": "0x77270a26ecd0824cf7",
+   "keys": 105523038720,
+   "found": false,
+   "run_total_keys": 4043507685376,
+   "run_seconds": 133560,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-27T08:06:53-04:00"
+  },
+  {
+   "from": "0x77270a26ecd0824cf7",
+   "to": "0x77270a2706864b3c53",
+   "keys": 110424026972,
+   "found": false,
+   "run_total_keys": 4155047106560,
+   "run_seconds": 137340,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-27T12:06:58-04:00"
+  },
+  {
+   "from": "0x77270a2706864b3c53",
+   "to": "0x77270a271b3c56863e",
+   "keys": 88953539051,
+   "found": false,
+   "run_total_keys": 4244899166208,
+   "run_seconds": 140370,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-27T16:08:12-04:00"
+  },
+  {
+   "from": "0x77270a271b3c56863e",
+   "to": "0x77270a272d5b560349",
+   "keys": 77829471499,
+   "found": false,
+   "run_total_keys": 4323514793984,
+   "run_seconds": 143010,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-27T20:05:34-04:00"
+  },
+  {
+   "from": "0x77270a272d5b560349",
+   "to": "0x77270a273f7f01fa67",
+   "keys": 77907883806,
+   "found": false,
+   "run_total_keys": 4402209626112,
+   "run_seconds": 145650,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-28T00:03:05-04:00"
+  },
+  {
+   "from": "0x77270a273f7f01fa67",
+   "to": "0x77270a275846024faf",
+   "keys": 106417902920,
+   "found": false,
+   "run_total_keys": 4509702457344,
+   "run_seconds": 149310,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-28T04:10:08-04:00"
+  },
+  {
+   "from": "0x77270a275846024faf",
+   "to": "0x77270a276cae00e4e2",
+   "keys": 87644083507,
+   "found": false,
+   "run_total_keys": 4598231834624,
+   "run_seconds": 152310,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-28T08:11:17-04:00"
+  },
+  {
+   "from": "0x77270a276cae00e4e2",
+   "to": "0x77270a27829fdf4949",
+   "keys": 94252196967,
+   "found": false,
+   "run_total_keys": 4693436073984,
+   "run_seconds": 155670,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-28T12:02:50-04:00"
+  },
+  {
+   "from": "0x77270a27829fdf4949",
+   "to": "0x77270a27962281967c",
+   "keys": 83796053299,
+   "found": false,
+   "run_total_keys": 4778078552064,
+   "run_seconds": 158670,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-28T16:11:31-04:00"
+  },
+  {
+   "from": "0x77270a27962281967c",
+   "to": "0x77270a27a906d4d8e2",
+   "keys": 81140073062,
+   "found": false,
+   "run_total_keys": 4860038221824,
+   "run_seconds": 161370,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-28T20:05:32-04:00"
+  },
+  {
+   "from": "0x77270a27a906d4d8e2",
+   "to": "0x77270a27bf94f57d20",
+   "keys": 96873784382,
+   "found": false,
+   "run_total_keys": 4957890529280,
+   "run_seconds": 164640,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-29T00:00:38-04:00"
+  },
+  {
+   "from": "0x77270a27bf94f57d20",
+   "to": "0x77270a27d4107bd1af",
+   "keys": 87971746959,
+   "found": false,
+   "run_total_keys": 5046750879744,
+   "run_seconds": 167700,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-29T04:04:58-04:00"
+  },
+  {
+   "from": "0x77270a27d4107bd1af",
+   "to": "0x77270a27e6c3f62415",
+   "keys": 80320549478,
+   "found": false,
+   "run_total_keys": 5127882747904,
+   "run_seconds": 170430,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-29T08:07:22-04:00"
+  },
+  {
+   "from": "0x77270a27e6c3f62415",
+   "to": "0x77270a27f9de29bd72",
+   "keys": 82043967837,
+   "found": false,
+   "run_total_keys": 5210755442688,
+   "run_seconds": 173220,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-29T12:07:43-04:00"
+  },
+  {
+   "from": "0x77270a27f9de29bd72",
+   "to": "0x77270a280e5ebd02a5",
+   "keys": 88056481075,
+   "found": false,
+   "run_total_keys": 5299701383168,
+   "run_seconds": 176160,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-10-29T16:01:57-04:00"
+  }
+ ],
+ "sha256": "ff6f4a7a9cb52d0de08986c2b25a8c32bb88bec00698149dc74155955c7d0a43"
+}

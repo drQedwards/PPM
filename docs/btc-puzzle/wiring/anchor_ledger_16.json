@@ -1,0 +1,9 @@
+{
+ "id": "0x9d3937e2888e1627eaad41505673fdc4e4d8d814cfb878d97936e6ddfab24d8d",
+ "digest": "0x47edaa98371e6c3319ba16605dbe2b33fbd6ac4e62a9a11e33965ff8ae60a1da",
+ "tx": "0x250a2a86680d9529e5d9db0745a7d36b036f247c5df0dac38dd729645d898117",
+ "block": 11984852,
+ "status": 1,
+ "readback": "0x47edaa98371e6c3319ba16605dbe2b33fbd6ac4e62a9a11e33965ff8ae60a1da",
+ "match": true
+}

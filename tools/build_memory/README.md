@@ -89,3 +89,22 @@ had 509 nodes and 2,290 edges. `stale_paths` then reported nothing, with either 
 `load_sqlite` writes everything in one transaction (`memory_graph.batch()`), and the
 graph keeps label, (type, label), edge-key and adjacency indexes, so upserts no longer
 scan the whole graph. `bench_load.py memory_nodes.json --scales 1 2 4 8` times it.
+
+## PHP and JS/TS projects (static dependency graph)
+
+```bash
+php  tools/build_memory/php_depgraph.php /path/to/php-project --out php_units.json --graph php_graph.json
+node tools/build_memory/js_depgraph.mjs  /path/to/js-repo     --out js_units.json  --graph js_graph.json
+python tools/build_memory/build_to_memory.py php_units.json --root /path/to/php-project --group toplevel --load-sqlite graph.sqlite3
+```
+
+Both write the same `units` format as `go_batch_build.py` (one unit per PHP file, one per JS
+workspace package), so `build_to_memory.py` loads them unchanged. `--graph` adds a symbol-level
+`{nodes, edges}` file: namespaces, classes, functions, call edges, and iterators
+(Iterator/IteratorAggregate implementations and generators) as their own nodes, with a
+`php:root:` / `js:root:` node pointing at the entry point (composer `bin` / `autoload.files`,
+`index.php`, or package.json `main`). The PHP scanner uses `token_get_all` (no dependencies),
+runs `php -l` per file for `ok`, and counts audit flags per file (`eval`, `unserialize`,
+`assert`, exec-family calls, includes with non-static paths) as `warnings`. It is a read-only
+static scan meant for review, not a security verdict. The JS scanner is regex-based.
+Measured results are in `DEPGRAPH_RESULTS.md`.
