@@ -6,6 +6,7 @@ from datetime import datetime
 D = os.path.dirname(os.path.abspath(__file__))
 P = lambda f: os.path.join(D, f)
 ANCHOR = "0x37Da96f2a88Ae7E67A7FB305891a8c433B8B5C8D"
+os.environ["PATH"] = os.path.expanduser("~/.foundry/bin") + os.pathsep + os.environ.get("PATH", "")
 RPC = os.environ.get("SEPOLIA_RPC", "https://ethereum-sepolia-rpc.publicnode.com")
 OVERLAP = 0.01
 
