@@ -677,7 +677,17 @@
    "run_seconds": 107700,
    "overlap_backoff": 0.01,
    "closed_at": "2026-11-04T04:07:43-05:00"
+  },
+  {
+   "from": "0x77270a2c467900723e",
+   "to": "0x77270a2c5d3f2f8a3e",
+   "keys": 97814255616,
+   "found": false,
+   "run_total_keys": 3539321245696,
+   "run_seconds": 110820,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-11-04T08:08:25-05:00"
   }
  ],
- "sha256": "047ecba59c37772b12ec0359d7e5bfffc5327f25b3336b17ce61370e7f5a58fd"
+ "sha256": "0cc141b93296659fb42a44845afe5ba9f3a3708e46c321e15e5b2e1a308be48d"
 }
