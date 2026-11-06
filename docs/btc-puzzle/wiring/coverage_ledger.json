@@ -777,7 +777,17 @@
    "run_seconds": 143100,
    "overlap_backoff": 0.01,
    "closed_at": "2026-11-05T20:09:55-05:00"
+  },
+  {
+   "from": "0x77270a2d47ce56df9a",
+   "to": "0x77270a2d58b9bc0f71",
+   "keys": 72668753879,
+   "found": false,
+   "run_total_keys": 73402781696,
+   "run_seconds": 2310,
+   "overlap_backoff": 0.01,
+   "closed_at": "2026-11-06T00:05:56-05:00"
   }
  ],
- "sha256": "ca552332cfa423b2eb6264c59027d3dae8e0a3b9073371835253ea5f04c2a9a2"
+ "sha256": "af3ba5dbe956ba4ff93685681ffbbd0d16193f5a395310bbe118ced48e4d92b0"
 }
