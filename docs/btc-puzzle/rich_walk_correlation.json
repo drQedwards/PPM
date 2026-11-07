@@ -1,0 +1,26 @@
+{
+  "train_n": 57,
+  "test_n": 11,
+  "frac_mean_train": 0.5036874393438181,
+  "frac_sd_train": 0.2703108739756067,
+  "chi2_16bin_position_train": 14.579,
+  "chi2_critical_df15_approx": 25.0,
+  "position_uniform_consistent": true,
+  "chi2_active_nibbles": 19.355,
+  "nibbles_uniform_consistent": true,
+  "vanity_substring_hits": {
+    "eeee": 0,
+    "f111": 0,
+    "8566": 0,
+    "0078": 0,
+    "1111": 1,
+    "ffff": 0,
+    "dead": 0,
+    "beef": 0
+  },
+  "repeated_addr4_prefixes": 0,
+  "siphon_results_folded": false,
+  "siphon_note": "No ETH siphon / EIP-7702 result files under /workspace yet; pending.",
+  "correlation_found_for_keyspace_bias": false,
+  "note": "No usable keyspace correlation in solved puzzles. Vanity prefixes eeee/f111/8566/0078 do not appear. Position and active nibbles consistent with uniform. Rich walk priors nearly flat or alien \u2014 expect tie/loss vs random."
+}
