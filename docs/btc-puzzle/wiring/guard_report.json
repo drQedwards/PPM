@@ -1,0 +1,583 @@
+{
+ "generated": "2026-10-22T07:21:29-04:00",
+ "found_files_empty": true,
+ "weights": {
+  "same_sec": 3.0,
+  "out_share": 2.0,
+  "repeat": 0.08267923571878844,
+  "delegation": 5.0,
+  "near_zero": 2.0
+ },
+ "weights_from": "learning-walk adaptive_prune_siphon loop 1 (ratio 0.502)",
+ "edges_pulled": 400,
+ "counterparties": 225,
+ "new_counterparties": 168,
+ "fetch_errors": [
+  "base:0xeeeee90971B6264C53175D3Af6840a8dD5dc7b6C:transactions:HTTP Error 403: Forbidden",
+  "base:0xeeeee90971B6264C53175D3Af6840a8dD5dc7b6C:token-transfers:HTTP Error 403: Forbidden",
+  "base:0xf111122404b8C2FC01dfF89C65D3104fbb608008:transactions:HTTP Error 403: Forbidden",
+  "base:0xf111122404b8C2FC01dfF89C65D3104fbb608008:token-transfers:HTTP Error 403: Forbidden",
+  "base:0x8566263047EaD285194B2e8Feb53F312cf8CB463:transactions:HTTP Error 403: Forbidden",
+  "base:0x8566263047EaD285194B2e8Feb53F312cf8CB463:token-transfers:HTTP Error 403: Forbidden",
+  "base:0x09CbC0D92AABE6F53Ac7E84F0Ba0FbfD05eB80f2:transactions:HTTP Error 403: Forbidden",
+  "base:0x09CbC0D92AABE6F53Ac7E84F0Ba0FbfD05eB80f2:token-transfers:HTTP Error 403: Forbidden"
+ ],
+ "top": [
+  {
+   "address": "0x111111125421ca6dc452d289314280a0f8842a65",
+   "score": 7.428904962541222,
+   "n": 9,
+   "dir": [
+    "into_watched",
+    "out_from_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "ETH",
+    "KEKIUS"
+   ],
+   "watched": [
+    "0x09CbC0D92AABE6F53Ac7E84F0Ba0FbfD05eB80f2",
+    "0x8566263047EaD285194B2e8Feb53F312cf8CB463"
+   ],
+   "new": false,
+   "last_ts": 1792667471,
+   "last_seen": "2026-10-22T07:11:11-04:00"
+  },
+  {
+   "address": "0x7515a27fcdc852039a1a1d7a512ae2e0e406b698",
+   "score": 6.4503936775718245,
+   "n": 12,
+   "dir": [
+    "out_from_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "ETH"
+   ],
+   "watched": [
+    "0x8566263047EaD285194B2e8Feb53F312cf8CB463"
+   ],
+   "new": false,
+   "last_ts": 1792666151,
+   "last_seen": "2026-10-22T06:49:11-04:00"
+  },
+  {
+   "address": "0x159785d115914b858e366c5416a65287c52b2550",
+   "score": 6.136751420809165,
+   "n": 2,
+   "dir": [
+    "into_watched",
+    "out_from_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "\u0395\u0422\u210b",
+    "\u222a\u0405\ua4d3\u216d"
+   ],
+   "watched": [
+    "0xeeeee90971B6264C53175D3Af6840a8dD5dc7b6C"
+   ],
+   "new": true,
+   "last_ts": 1775895599,
+   "last_seen": "2026-04-11T04:19:59-04:00"
+  },
+  {
+   "address": "0xe0dd02a435a3b5e44fb326aa7490d11dc2884209",
+   "score": 6.136751420809165,
+   "n": 2,
+   "dir": [
+    "into_watched",
+    "out_from_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "DOOM",
+    "ETH"
+   ],
+   "watched": [
+    "0x8566263047EaD285194B2e8Feb53F312cf8CB463"
+   ],
+   "new": true,
+   "last_ts": 1792421795,
+   "last_seen": "2026-10-19T10:56:35-04:00"
+  },
+  {
+   "address": "0x60118d8316a7119dc6266f74cd3ebae61c0f938b",
+   "score": 6.08986923733772,
+   "n": 1,
+   "dir": [
+    "out_from_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "SLACK"
+   ],
+   "watched": [
+    "0x09CbC0D92AABE6F53Ac7E84F0Ba0FbfD05eB80f2"
+   ],
+   "new": false,
+   "last_ts": 1784034419,
+   "last_seen": "2026-07-14T09:06:59-04:00"
+  },
+  {
+   "address": "0x69bdb276a17dd90f9d3a545944ccb20e593ae8e3",
+   "score": 4.255566027617995,
+   "n": 21,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "ALCX",
+    "AST",
+    "BTC2X-FLI",
+    "COMP",
+    "DAI",
+    "DPI",
+    "DYLA",
+    "DYLB",
+    "ETH2X-FLI",
+    "ETH2x-FLI",
+    "HEX",
+    "NOVTEST",
+    "SAND",
+    "SUSHI",
+    "TESTFLI",
+    "WBTC",
+    "XSUSHI",
+    "YAMTEST",
+    "ZRX",
+    "iETH",
+    "yUSDC"
+   ],
+   "watched": [
+    "0x8566263047EaD285194B2e8Feb53F312cf8CB463"
+   ],
+   "new": true,
+   "last_ts": 1792420751,
+   "last_seen": "2026-10-19T10:39:11-04:00"
+  },
+  {
+   "address": "0x91604f590d66ace8975eed6bd16cf55647d1c499",
+   "score": 4.2434449644180905,
+   "n": 9,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "ETH"
+   ],
+   "watched": [
+    "0x09CbC0D92AABE6F53Ac7E84F0Ba0FbfD05eB80f2"
+   ],
+   "new": false,
+   "last_ts": 1786601219,
+   "last_seen": "2026-08-13T02:06:59-04:00"
+  },
+  {
+   "address": "0xd9ad275e9cf78d37982425024bd6ec0eb1e1ee93",
+   "score": 4.190376975666223,
+   "n": 9,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "BAL",
+    "CRV",
+    "LDO",
+    "S*USDC",
+    "STETH",
+    "USDC"
+   ],
+   "watched": [
+    "0x8566263047EaD285194B2e8Feb53F312cf8CB463"
+   ],
+   "new": true,
+   "last_ts": 1792428071,
+   "last_seen": "2026-10-19T12:41:11-04:00"
+  },
+  {
+   "address": "0xb4ed960387e67f5354e29ea2dbc31e1ad2de8ff0",
+   "score": 4.1608873639013275,
+   "n": 6,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "BZZ",
+    "COOMER",
+    "None",
+    "OPENSTORE",
+    "USDC",
+    "spETH"
+   ],
+   "watched": [
+    "0x8566263047EaD285194B2e8Feb53F312cf8CB463"
+   ],
+   "new": true,
+   "last_ts": 1792421075,
+   "last_seen": "2026-10-19T10:44:35-04:00"
+  },
+  {
+   "address": "0xb92fe925dc43a0ecde6c8b1a2709c170ec4fff4f",
+   "score": 4.160573595414638,
+   "n": 3,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "ENS",
+    "KEKIUS",
+    "SLACK"
+   ],
+   "watched": [
+    "0x09CbC0D92AABE6F53Ac7E84F0Ba0FbfD05eB80f2"
+   ],
+   "new": false,
+   "last_ts": 1786336427,
+   "last_seen": "2026-08-10T00:33:47-04:00"
+  },
+  {
+   "address": "0x14c348ac49ca085d36cf8258bd7d9aeb7b4c9041",
+   "score": 4.148142303507678,
+   "n": 5,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "SAND",
+    "USD1",
+    "USDC",
+    "USDT",
+    "WETH"
+   ],
+   "watched": [
+    "0xf111122404b8C2FC01dfF89C65D3104fbb608008"
+   ],
+   "new": true,
+   "last_ts": 1786552391,
+   "last_seen": "2026-08-12T12:33:11-04:00"
+  },
+  {
+   "address": "0x6a000f20005980200259b80c5102003040001068",
+   "score": 4.133068096536894,
+   "n": 3,
+   "dir": [
+    "into_watched",
+    "out_from_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "ETH",
+    "USDC"
+   ],
+   "watched": [
+    "0x09CbC0D92AABE6F53Ac7E84F0Ba0FbfD05eB80f2"
+   ],
+   "new": false,
+   "last_ts": 1783322519,
+   "last_seen": "2026-07-06T03:21:59-04:00"
+  },
+  {
+   "address": "0x2ca276b5644057649150c615747d026fed3fa0f0",
+   "score": 4.133068096536894,
+   "n": 2,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "APEX",
+    "KEKIUS"
+   ],
+   "watched": [
+    "0x09CbC0D92AABE6F53Ac7E84F0Ba0FbfD05eB80f2"
+   ],
+   "new": false,
+   "last_ts": 1786330019,
+   "last_seen": "2026-08-09T22:46:59-04:00"
+  },
+  {
+   "address": "0x62d6034d1296b984a4816b33a519b25e3cb5458c",
+   "score": 4.114618758258659,
+   "n": 3,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "ETH"
+   ],
+   "watched": [
+    "0xeeeee90971B6264C53175D3Af6840a8dD5dc7b6C"
+   ],
+   "new": true,
+   "last_ts": 0,
+   "last_seen": "1969-12-31T19:00:00-05:00"
+  },
+  {
+   "address": "0xb5b610ce03bc43776365d581a03581048caff143",
+   "score": 4.114618758258659,
+   "n": 3,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "HOGE",
+    "SPDR",
+    "USDC"
+   ],
+   "watched": [
+    "0xf111122404b8C2FC01dfF89C65D3104fbb608008"
+   ],
+   "new": true,
+   "last_ts": 1788956483,
+   "last_seen": "2026-09-09T08:21:23-04:00"
+  },
+  {
+   "address": "0xaf0939af286a35dbfab7ded7c777a5f6e8be26a8",
+   "score": 4.114618758258659,
+   "n": 3,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "1INCH",
+    "HEX",
+    "HOP"
+   ],
+   "watched": [
+    "0x8566263047EaD285194B2e8Feb53F312cf8CB463"
+   ],
+   "new": true,
+   "last_ts": 1792420751,
+   "last_seen": "2026-10-19T10:39:11-04:00"
+  },
+  {
+   "address": "0xe1cbe9373f41b5636843b1ecbe3a7588afeb0d65",
+   "score": 4.114618758258659,
+   "n": 3,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "None",
+    "UNI-V1"
+   ],
+   "watched": [
+    "0x8566263047EaD285194B2e8Feb53F312cf8CB463"
+   ],
+   "new": true,
+   "last_ts": 1792420751,
+   "last_seen": "2026-10-19T10:39:11-04:00"
+  },
+  {
+   "address": "0xeb9aa18ea983acb68d40ebd3d6f73a08d3a4b17a",
+   "score": 4.090833424378348,
+   "n": 2,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "ETH"
+   ],
+   "watched": [
+    "0xeeeee90971B6264C53175D3Af6840a8dD5dc7b6C"
+   ],
+   "new": true,
+   "last_ts": 1778645483,
+   "last_seen": "2026-05-13T00:11:23-04:00"
+  },
+  {
+   "address": "0xf46ce019fb2c70132f285987ecf2e2437148c9da",
+   "score": 4.090833424378348,
+   "n": 2,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "ETH"
+   ],
+   "watched": [
+    "0xeeeee90971B6264C53175D3Af6840a8dD5dc7b6C"
+   ],
+   "new": true,
+   "last_ts": 1778508323,
+   "last_seen": "2026-05-11T10:05:23-04:00"
+  },
+  {
+   "address": "0xeb9aa11d74ee48c885d0e37c11994e606f5eb17a",
+   "score": 4.090833424378348,
+   "n": 2,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "ETH",
+    "USDC"
+   ],
+   "watched": [
+    "0xeeeee90971B6264C53175D3Af6840a8dD5dc7b6C"
+   ],
+   "new": true,
+   "last_ts": 1778438975,
+   "last_seen": "2026-05-10T14:49:35-04:00"
+  },
+  {
+   "address": "0xc7814d61a8236303a8854fc272ca0419a7e18e32",
+   "score": 4.090833424378348,
+   "n": 2,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "HVND",
+    "SOS"
+   ],
+   "watched": [
+    "0xeeeee90971B6264C53175D3Af6840a8dD5dc7b6C"
+   ],
+   "new": true,
+   "last_ts": 1792409507,
+   "last_seen": "2026-10-19T07:31:47-04:00"
+  },
+  {
+   "address": "0xf5d1da48855052a5a17c0f35ddf4eebf826ca5d0",
+   "score": 4.090833424378348,
+   "n": 2,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "ChainLink Token",
+    "LINK"
+   ],
+   "watched": [
+    "0xeeeee90971B6264C53175D3Af6840a8dD5dc7b6C"
+   ],
+   "new": true,
+   "last_ts": 1778377955,
+   "last_seen": "2026-05-09T21:52:35-04:00"
+  },
+  {
+   "address": "0xdc8dbd3ebf748e4ff7137ed14069819ea0f8c9ab",
+   "score": 4.090833424378348,
+   "n": 2,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "USDC",
+    "USDT"
+   ],
+   "watched": [
+    "0xeeeee90971B6264C53175D3Af6840a8dD5dc7b6C"
+   ],
+   "new": true,
+   "last_ts": 1777654787,
+   "last_seen": "2026-05-01T12:59:47-04:00"
+  },
+  {
+   "address": "0x40b36a7901accb485799cd3aa216106e920ab344",
+   "score": 4.090833424378348,
+   "n": 2,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "LEI LEI",
+    "NRA"
+   ],
+   "watched": [
+    "0xeeeee90971B6264C53175D3Af6840a8dD5dc7b6C"
+   ],
+   "new": true,
+   "last_ts": 1777485107,
+   "last_seen": "2026-04-29T13:51:47-04:00"
+  },
+  {
+   "address": "0xda93812d7d1f3d326ef8156d94175238948da04f",
+   "score": 4.090833424378348,
+   "n": 2,
+   "dir": [
+    "into_watched"
+   ],
+   "chains": [
+    "ethereum"
+   ],
+   "assets": [
+    "USDT"
+   ],
+   "watched": [
+    "0xeeeee90971B6264C53175D3Af6840a8dD5dc7b6C"
+   ],
+   "new": true,
+   "last_ts": 1777109375,
+   "last_seen": "2026-04-25T05:29:35-04:00"
+  }
+ ]
+}

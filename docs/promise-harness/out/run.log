@@ -1,0 +1,32 @@
+promiseLib: q@1.5.1
+loading siphon graph…
+graph nodes=2441 edges=4959 pairs=7
+
+=== SIPHON: flat_for_N ===
+stop=flat_for_N gens=3 bestSteps=53.4 bestVsBool=0.6261 wallMs=51724
+
+=== SIPHON: early_break ===
+stop=max_gens gens=8 bestSteps=53.4 bestVsBool=0.6261 wallMs=125318
+siphon savings (early vs flat_for_N): {
+  loops_saved: -5,
+  walk_steps_saved: -14096502,
+  wall_ms_saved: -73594,
+  wall_ms_all_saved: -73610,
+  key_equiv_saved: 0
+}
+
+=== PUZZLE: flat_for_N ===
+stop=flat_for_N gens=3 bestSteps=508944 bestVsRand=0.9687 wallMs=43
+
+=== PUZZLE: early_break ===
+stop=early_break_flatline gens=2 bestSteps=508944 bestVsRand=0.9687 wallMs=18
+puzzle savings (early vs flat_for_N): {
+  loops_saved: 1,
+  walk_steps_saved: 3981,
+  wall_ms_saved: 25,
+  wall_ms_all_saved: 27,
+  key_equiv_saved: 28196864
+}
+
+Wrote RESULTS.md and out/results.json
+SIPHON best vsBool early= 0.6261 prior 0.50; beats? false

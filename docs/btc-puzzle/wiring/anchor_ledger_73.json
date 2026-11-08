@@ -1,0 +1,10 @@
+{
+ "id": "0xe794b852208842d8da25f5b910e3d949811709bee5635fe81bcd3a2e96d30192",
+ "digest": "0x178c37ae38cc329632873b715e32c8002c829760308495384e21437203ffa721",
+ "tx": "0xebc64200f3460e066e867b7b43f5998fdb8e651479608c454106bdd849f607c8",
+ "block": 12067320,
+ "status": 1,
+ "readback": "0x178c37ae38cc329632873b715e32c8002c829760308495384e21437203ffa721",
+ "match": true,
+ "note": "first readback hit RPC lag (zero); re-read via cast call matched"
+}
