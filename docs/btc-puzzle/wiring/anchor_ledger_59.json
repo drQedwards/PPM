@@ -1,0 +1,9 @@
+{
+ "id": "0x2d528ae6ad213112a5e2de11aa50425e8280ae92ffca1b8c8a5562f319f5c560",
+ "digest": "0xe6a91820e3f61ce40f6fbc2f3ec9ca1416edbd282a9b8ef490c3f57bbb8caba1",
+ "tx": "0xbcc9f0f9b5251371e96a21a80d0ac0d882b2414aae2e6005f3d46daa1ee50f18",
+ "block": 12050706,
+ "status": 1,
+ "readback": "0xe6a91820e3f61ce40f6fbc2f3ec9ca1416edbd282a9b8ef490c3f57bbb8caba1",
+ "match": true
+}

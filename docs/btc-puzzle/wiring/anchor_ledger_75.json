@@ -1,0 +1,10 @@
+{
+ "id": "0x9773b9489e8225a45234e79f3192aacb455d4665c7a9992c3d00f9648ca4f6bf",
+ "digest": "0xbd470082a46bf9e839db77cb60c22751bd801d67f588b2a43827e9ab28e02248",
+ "tx": "0x7fb8dd4412db0f2a6f9528197ad42bf9d4e2e9222eb60c5de3de52dd54d53593",
+ "block": 12069675,
+ "status": 1,
+ "readback": "0xbd470082a46bf9e839db77cb60c22751bd801d67f588b2a43827e9ab28e02248",
+ "match": true,
+ "note": "initial readback raced a lagging RPC node (zero); re-read via publicnode after inclusion matched"
+}

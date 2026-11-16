@@ -1,0 +1,10 @@
+{
+ "id": "0xd2dfb35ebcea6529180508c9c06a2e2ca733fd81c1bb304b03b3dd28d0dcafdc",
+ "digest": "0xa5d0a7b50f6ae18aa6cab30c04d6f426a2a2c3a1793805fe600a042dd415df72",
+ "tx": "0xdfd1c8def75556bbbffb9c34e5079e4107d1129aaa349a727b0009c581038850",
+ "block": 12060242,
+ "status": 1,
+ "readback": "0xa5d0a7b50f6ae18aa6cab30c04d6f426a2a2c3a1793805fe600a042dd415df72",
+ "match": true,
+ "readback_note": "first readback hit lagging RPC (zero); re-read after inclusion returned exists=true and matching digest"
+}

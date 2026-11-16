@@ -1,0 +1,1427 @@
+{
+  "experiment": "siphon_adaptive_prune",
+  "loops": [
+    {
+      "loop": 0,
+      "mean_ratio_adaptive_over_bool": 0.8075864897667924,
+      "mean_bool": 59.964551664551664,
+      "mean_adaptive": 72.93742126480221,
+      "n_collectors_pruned": 1,
+      "n_collectors_total": 7,
+      "features_pruned": [
+        "delegation",
+        "near_zero",
+        "out_share",
+        "same_sec"
+      ],
+      "n_features_pruned": 4,
+      "n_features_total": 5,
+      "no_gain_vs_prev": false,
+      "learning_steps_overhead": 2088124,
+      "eval_steps_adaptive": 1615118,
+      "eval_steps_bool": 1778453,
+      "total_compute_adaptive": 3703242,
+      "total_compute_bool": 1778453,
+      "compute_ratio_adaptive_over_bool": 2.0822827479837813,
+      "W": {
+        "same_sec": 3.0,
+        "out_share": 2.0,
+        "repeat": 0.28857888811940074,
+        "delegation": 5.0,
+        "near_zero": 2.0
+      },
+      "counterexample_7jNPvx": {
+        "collector": "7jNPvxGzQ5wG5NMYZD1GGLAvCyYF7v1Ai5PV9whYt9AN",
+        "used_baseline": false,
+        "boolean_mean": 146.75833333333333,
+        "adaptive_mean": 375.31666666666666,
+        "ratio": 2.557378910907955
+      },
+      "folds": [
+        {
+          "held_out": "0x09cbc0d92aabe6f53ac7e84f0ba0fbfd05eb80f2",
+          "flat": false,
+          "flat_stats": {
+            "entropy": 0.27999496854459793,
+            "entropy_max": 2.321928094887362,
+            "cv": 1.902790484397171,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "near_zero",
+            "out_share"
+          ],
+          "miss_nodes": 285884,
+          "do_learn": true
+        },
+        {
+          "held_out": "0x8566263047ead285194b2e8feb53f312cf8cb463",
+          "flat": false,
+          "flat_stats": {
+            "entropy": 0.006134313519359654,
+            "entropy_max": 2.321928094887362,
+            "cv": 1.9987661170654492,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 277114,
+          "do_learn": true
+        },
+        {
+          "held_out": "0xeeeee90971b6264c53175d3af6840a8dd5dc7b6c",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 237046,
+          "do_learn": true
+        },
+        {
+          "held_out": "0xf111122404b8c2fc01dff89c65d3104fbb608008",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 231894,
+          "do_learn": true
+        },
+        {
+          "held_out": "5qmtDCvUreD8G59M5FosdpV8Gqdd3kFgdH1Vv7HKXUKq",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 336025,
+          "do_learn": true
+        },
+        {
+          "held_out": "7jNPvxGzQ5wG5NMYZD1GGLAvCyYF7v1Ai5PV9whYt9AN",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 356791,
+          "do_learn": true
+        },
+        {
+          "held_out": "FncazAs6omJJjtLVzquzT9KoyXn6tFixr9kGjr42ktLj",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 335981,
+          "do_learn": true
+        }
+      ]
+    },
+    {
+      "loop": 1,
+      "mean_ratio_adaptive_over_bool": 0.5020121416565678,
+      "mean_bool": 79.10471852708694,
+      "mean_adaptive": 42.7287962714792,
+      "n_collectors_pruned": 1,
+      "n_collectors_total": 7,
+      "features_pruned": [
+        "delegation",
+        "near_zero",
+        "out_share",
+        "same_sec"
+      ],
+      "n_features_pruned": 4,
+      "n_features_total": 5,
+      "no_gain_vs_prev": false,
+      "learning_steps_overhead": 1764116,
+      "eval_steps_adaptive": 1374430,
+      "eval_steps_bool": 1672370,
+      "total_compute_adaptive": 3138546,
+      "total_compute_bool": 1672370,
+      "compute_ratio_adaptive_over_bool": 1.876705513732009,
+      "W": {
+        "same_sec": 3.0,
+        "out_share": 2.0,
+        "repeat": 0.08267923571878844,
+        "delegation": 5.0,
+        "near_zero": 2.0
+      },
+      "counterexample_7jNPvx": {
+        "collector": "7jNPvxGzQ5wG5NMYZD1GGLAvCyYF7v1Ai5PV9whYt9AN",
+        "used_baseline": true,
+        "boolean_mean": 139.41666666666666,
+        "adaptive_mean": 155.85,
+        "ratio": 1.117872086072923
+      },
+      "folds": [
+        {
+          "held_out": "0x09cbc0d92aabe6f53ac7e84f0ba0fbfd05eb80f2",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 254921,
+          "do_learn": true
+        },
+        {
+          "held_out": "0x8566263047ead285194b2e8feb53f312cf8cb463",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 213301,
+          "do_learn": true
+        },
+        {
+          "held_out": "0xeeeee90971b6264c53175d3af6840a8dd5dc7b6c",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 213076,
+          "do_learn": true
+        },
+        {
+          "held_out": "0xf111122404b8c2fc01dff89c65d3104fbb608008",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 198343,
+          "do_learn": true
+        },
+        {
+          "held_out": "5qmtDCvUreD8G59M5FosdpV8Gqdd3kFgdH1Vv7HKXUKq",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 288015,
+          "do_learn": true
+        },
+        {
+          "held_out": "7jNPvxGzQ5wG5NMYZD1GGLAvCyYF7v1Ai5PV9whYt9AN",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 285276,
+          "do_learn": true
+        },
+        {
+          "held_out": "FncazAs6omJJjtLVzquzT9KoyXn6tFixr9kGjr42ktLj",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 299670,
+          "do_learn": true
+        }
+      ]
+    },
+    {
+      "loop": 2,
+      "mean_ratio_adaptive_over_bool": 0.5654657956517168,
+      "mean_bool": 74.53636025838907,
+      "mean_adaptive": 46.07917180098031,
+      "n_collectors_pruned": 7,
+      "n_collectors_total": 7,
+      "features_pruned": [
+        "delegation",
+        "near_zero",
+        "out_share",
+        "repeat",
+        "same_sec"
+      ],
+      "n_features_pruned": 5,
+      "n_features_total": 5,
+      "no_gain_vs_prev": true,
+      "learning_steps_overhead": 1688221,
+      "eval_steps_adaptive": 1422173,
+      "eval_steps_bool": 1646612,
+      "total_compute_adaptive": 3110394,
+      "total_compute_bool": 1646612,
+      "compute_ratio_adaptive_over_bool": 1.8889659494768651,
+      "W": {
+        "same_sec": 3.0,
+        "out_share": 2.0,
+        "repeat": 0.05,
+        "delegation": 5.0,
+        "near_zero": 2.0
+      },
+      "counterexample_7jNPvx": {
+        "collector": "7jNPvxGzQ5wG5NMYZD1GGLAvCyYF7v1Ai5PV9whYt9AN",
+        "used_baseline": true,
+        "boolean_mean": 139.90833333333333,
+        "adaptive_mean": 136.03333333333333,
+        "ratio": 0.9723032938233367
+      },
+      "folds": [
+        {
+          "held_out": "0x09cbc0d92aabe6f53ac7e84f0ba0fbfd05eb80f2",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 284244,
+          "do_learn": true
+        },
+        {
+          "held_out": "0x8566263047ead285194b2e8feb53f312cf8cb463",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 206619,
+          "do_learn": true
+        },
+        {
+          "held_out": "0xeeeee90971b6264c53175d3af6840a8dd5dc7b6c",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 209480,
+          "do_learn": true
+        },
+        {
+          "held_out": "0xf111122404b8c2fc01dff89c65d3104fbb608008",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 150550,
+          "do_learn": true
+        },
+        {
+          "held_out": "5qmtDCvUreD8G59M5FosdpV8Gqdd3kFgdH1Vv7HKXUKq",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 273030,
+          "do_learn": true
+        },
+        {
+          "held_out": "7jNPvxGzQ5wG5NMYZD1GGLAvCyYF7v1Ai5PV9whYt9AN",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 272479,
+          "do_learn": true
+        },
+        {
+          "held_out": "FncazAs6omJJjtLVzquzT9KoyXn6tFixr9kGjr42ktLj",
+          "flat": false,
+          "flat_stats": {
+            "entropy": -0.0,
+            "entropy_max": 2.321928094887362,
+            "cv": 2.0,
+            "near_uniform_entropy": false,
+            "low_cv": false
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "same_sec"
+          ],
+          "miss_nodes": 278885,
+          "do_learn": true
+        }
+      ]
+    },
+    {
+      "loop": 3,
+      "mean_ratio_adaptive_over_bool": 1.101525020647292,
+      "mean_bool": 64.5516912116017,
+      "mean_adaptive": 71.24295864436223,
+      "n_collectors_pruned": 7,
+      "n_collectors_total": 7,
+      "features_pruned": [
+        "delegation",
+        "near_zero",
+        "out_share",
+        "repeat",
+        "same_sec"
+      ],
+      "n_features_pruned": 5,
+      "n_features_total": 5,
+      "no_gain_vs_prev": true,
+      "learning_steps_overhead": 0,
+      "eval_steps_adaptive": 1685261,
+      "eval_steps_bool": 1655154,
+      "total_compute_adaptive": 1685261,
+      "total_compute_bool": 1655154,
+      "compute_ratio_adaptive_over_bool": 1.0181898481953946,
+      "W": {
+        "same_sec": 3.0,
+        "out_share": 2.0,
+        "repeat": 1.0,
+        "delegation": 5.0,
+        "near_zero": 2.0
+      },
+      "counterexample_7jNPvx": {
+        "collector": "7jNPvxGzQ5wG5NMYZD1GGLAvCyYF7v1Ai5PV9whYt9AN",
+        "used_baseline": true,
+        "boolean_mean": 137.89166666666668,
+        "adaptive_mean": 138.23333333333332,
+        "ratio": 1.0024777905360487
+      },
+      "folds": [
+        {
+          "held_out": "0x09cbc0d92aabe6f53ac7e84f0ba0fbfd05eb80f2",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "0x8566263047ead285194b2e8feb53f312cf8cb463",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "0xeeeee90971b6264c53175d3af6840a8dd5dc7b6c",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "0xf111122404b8c2fc01dff89c65d3104fbb608008",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "5qmtDCvUreD8G59M5FosdpV8Gqdd3kFgdH1Vv7HKXUKq",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "7jNPvxGzQ5wG5NMYZD1GGLAvCyYF7v1Ai5PV9whYt9AN",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "FncazAs6omJJjtLVzquzT9KoyXn6tFixr9kGjr42ktLj",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        }
+      ]
+    },
+    {
+      "loop": 4,
+      "mean_ratio_adaptive_over_bool": 1.2121497660364042,
+      "mean_bool": 54.010312037858625,
+      "mean_adaptive": 65.24687693259122,
+      "n_collectors_pruned": 7,
+      "n_collectors_total": 7,
+      "features_pruned": [
+        "delegation",
+        "near_zero",
+        "out_share",
+        "repeat",
+        "same_sec"
+      ],
+      "n_features_pruned": 5,
+      "n_features_total": 5,
+      "no_gain_vs_prev": true,
+      "learning_steps_overhead": 0,
+      "eval_steps_adaptive": 1699105,
+      "eval_steps_bool": 1667071,
+      "total_compute_adaptive": 1699105,
+      "total_compute_bool": 1667071,
+      "compute_ratio_adaptive_over_bool": 1.0192157382618976,
+      "W": {
+        "same_sec": 3.0,
+        "out_share": 2.0,
+        "repeat": 1.0,
+        "delegation": 5.0,
+        "near_zero": 2.0
+      },
+      "counterexample_7jNPvx": {
+        "collector": "7jNPvxGzQ5wG5NMYZD1GGLAvCyYF7v1Ai5PV9whYt9AN",
+        "used_baseline": true,
+        "boolean_mean": 133.14166666666668,
+        "adaptive_mean": 135.29166666666666,
+        "ratio": 1.0161482130562682
+      },
+      "folds": [
+        {
+          "held_out": "0x09cbc0d92aabe6f53ac7e84f0ba0fbfd05eb80f2",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "0x8566263047ead285194b2e8feb53f312cf8cb463",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "0xeeeee90971b6264c53175d3af6840a8dd5dc7b6c",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "0xf111122404b8c2fc01dff89c65d3104fbb608008",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "5qmtDCvUreD8G59M5FosdpV8Gqdd3kFgdH1Vv7HKXUKq",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "7jNPvxGzQ5wG5NMYZD1GGLAvCyYF7v1Ai5PV9whYt9AN",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "FncazAs6omJJjtLVzquzT9KoyXn6tFixr9kGjr42ktLj",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        }
+      ]
+    },
+    {
+      "loop": 5,
+      "mean_ratio_adaptive_over_bool": 1.0406759769063254,
+      "mean_bool": 72.47223354458062,
+      "mean_adaptive": 71.98447909569234,
+      "n_collectors_pruned": 7,
+      "n_collectors_total": 7,
+      "features_pruned": [
+        "delegation",
+        "near_zero",
+        "out_share",
+        "repeat",
+        "same_sec"
+      ],
+      "n_features_pruned": 5,
+      "n_features_total": 5,
+      "no_gain_vs_prev": false,
+      "learning_steps_overhead": 0,
+      "eval_steps_adaptive": 1678473,
+      "eval_steps_bool": 1781868,
+      "total_compute_adaptive": 1678473,
+      "total_compute_bool": 1781868,
+      "compute_ratio_adaptive_over_bool": 0.9419738162422806,
+      "W": {
+        "same_sec": 3.0,
+        "out_share": 2.0,
+        "repeat": 1.0,
+        "delegation": 5.0,
+        "near_zero": 2.0
+      },
+      "counterexample_7jNPvx": {
+        "collector": "7jNPvxGzQ5wG5NMYZD1GGLAvCyYF7v1Ai5PV9whYt9AN",
+        "used_baseline": true,
+        "boolean_mean": 163.525,
+        "adaptive_mean": 158.76666666666668,
+        "ratio": 0.9709014931457983
+      },
+      "folds": [
+        {
+          "held_out": "0x09cbc0d92aabe6f53ac7e84f0ba0fbfd05eb80f2",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "0x8566263047ead285194b2e8feb53f312cf8cb463",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "0xeeeee90971b6264c53175d3af6840a8dd5dc7b6c",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "0xf111122404b8c2fc01dff89c65d3104fbb608008",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "5qmtDCvUreD8G59M5FosdpV8Gqdd3kFgdH1Vv7HKXUKq",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "7jNPvxGzQ5wG5NMYZD1GGLAvCyYF7v1Ai5PV9whYt9AN",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "FncazAs6omJJjtLVzquzT9KoyXn6tFixr9kGjr42ktLj",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        }
+      ]
+    },
+    {
+      "loop": 6,
+      "mean_ratio_adaptive_over_bool": 0.9870263010818533,
+      "mean_bool": 72.9092090632907,
+      "mean_adaptive": 66.99604113874301,
+      "n_collectors_pruned": 7,
+      "n_collectors_total": 7,
+      "features_pruned": [
+        "delegation",
+        "near_zero",
+        "out_share",
+        "repeat",
+        "same_sec"
+      ],
+      "n_features_pruned": 5,
+      "n_features_total": 5,
+      "no_gain_vs_prev": false,
+      "learning_steps_overhead": 0,
+      "eval_steps_adaptive": 1753999,
+      "eval_steps_bool": 1715577,
+      "total_compute_adaptive": 1753999,
+      "total_compute_bool": 1715577,
+      "compute_ratio_adaptive_over_bool": 1.0223959635737714,
+      "W": {
+        "same_sec": 3.0,
+        "out_share": 2.0,
+        "repeat": 1.0,
+        "delegation": 5.0,
+        "near_zero": 2.0
+      },
+      "counterexample_7jNPvx": {
+        "collector": "7jNPvxGzQ5wG5NMYZD1GGLAvCyYF7v1Ai5PV9whYt9AN",
+        "used_baseline": true,
+        "boolean_mean": 145.25833333333333,
+        "adaptive_mean": 134.775,
+        "ratio": 0.9278297286443693
+      },
+      "folds": [
+        {
+          "held_out": "0x09cbc0d92aabe6f53ac7e84f0ba0fbfd05eb80f2",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "0x8566263047ead285194b2e8feb53f312cf8cb463",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "0xeeeee90971b6264c53175d3af6840a8dd5dc7b6c",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "0xf111122404b8c2fc01dff89c65d3104fbb608008",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "5qmtDCvUreD8G59M5FosdpV8Gqdd3kFgdH1Vv7HKXUKq",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "7jNPvxGzQ5wG5NMYZD1GGLAvCyYF7v1Ai5PV9whYt9AN",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "FncazAs6omJJjtLVzquzT9KoyXn6tFixr9kGjr42ktLj",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        }
+      ]
+    },
+    {
+      "loop": 7,
+      "mean_ratio_adaptive_over_bool": 0.8192245748358044,
+      "mean_bool": 74.27060819683462,
+      "mean_adaptive": 50.69455782312925,
+      "n_collectors_pruned": 7,
+      "n_collectors_total": 7,
+      "features_pruned": [
+        "delegation",
+        "near_zero",
+        "out_share",
+        "repeat",
+        "same_sec"
+      ],
+      "n_features_pruned": 5,
+      "n_features_total": 5,
+      "no_gain_vs_prev": false,
+      "learning_steps_overhead": 0,
+      "eval_steps_adaptive": 1723242,
+      "eval_steps_bool": 1595984,
+      "total_compute_adaptive": 1723242,
+      "total_compute_bool": 1595984,
+      "compute_ratio_adaptive_over_bool": 1.0797363883347202,
+      "W": {
+        "same_sec": 3.0,
+        "out_share": 2.0,
+        "repeat": 1.0,
+        "delegation": 5.0,
+        "near_zero": 2.0
+      },
+      "counterexample_7jNPvx": {
+        "collector": "7jNPvxGzQ5wG5NMYZD1GGLAvCyYF7v1Ai5PV9whYt9AN",
+        "used_baseline": true,
+        "boolean_mean": 132.35833333333332,
+        "adaptive_mean": 106.025,
+        "ratio": 0.8010451426053014
+      },
+      "folds": [
+        {
+          "held_out": "0x09cbc0d92aabe6f53ac7e84f0ba0fbfd05eb80f2",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "0x8566263047ead285194b2e8feb53f312cf8cb463",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "0xeeeee90971b6264c53175d3af6840a8dd5dc7b6c",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "0xf111122404b8c2fc01dff89c65d3104fbb608008",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "5qmtDCvUreD8G59M5FosdpV8Gqdd3kFgdH1Vv7HKXUKq",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "7jNPvxGzQ5wG5NMYZD1GGLAvCyYF7v1Ai5PV9whYt9AN",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        },
+        {
+          "held_out": "FncazAs6omJJjtLVzquzT9KoyXn6tFixr9kGjr42ktLj",
+          "flat": true,
+          "flat_stats": {
+            "entropy": 0,
+            "entropy_max": 0,
+            "cv": 0,
+            "near_uniform_entropy": true,
+            "low_cv": true
+          },
+          "pruned_features": [
+            "delegation",
+            "near_zero",
+            "out_share",
+            "repeat",
+            "same_sec"
+          ],
+          "miss_nodes": 0,
+          "do_learn": false
+        }
+      ]
+    }
+  ],
+  "verdict": "win: adaptive-prune kept rich walk where signal exists and cut flat regions; avoided unpruned degradation (unpruned_last=1.495, adapt_last=0.819)",
+  "first_ratio": 0.8075864897667924,
+  "last_ratio": 0.8192245748358044,
+  "best_ratio": 0.5020121416565678,
+  "final_collectors_pruned": 7,
+  "final_features_pruned": 5,
+  "prevented_unpruned_degradation": true,
+  "unpruned_last_ratio": 1.495372850133566
+}
