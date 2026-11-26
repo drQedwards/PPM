@@ -1,0 +1,6 @@
+name = "pmll"
+version = "0.1.0"
+defaultTargets = ["PMLL"]
+
+[[lean_lib]]
+name = "PMLL"
